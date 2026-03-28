@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dota 2 Draft Assistant</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<!-- Loading splash -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-title">DOTA 2 DRAFT ASSISTANT</div>
+    <div class="splash-subtitle">Loading hero data...</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <div class="splash-status" id="splash-status">Connecting...</div>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app" class="hidden">
+
+  <!-- Header -->
+  <header>
+    <div class="header-title">DOTA 2 DRAFT ASSISTANT</div>
+    <div class="header-controls">
+      <label for="my-team-select">My Team:</label>
+      <select id="my-team-select">
+        <option value="radiant">Radiant</option>
+        <option value="dire">Dire</option>
+      </select>
+      <label for="mmr-bracket-select">Bracket:</label>
+      <select id="mmr-bracket-select">
+        <option value="7" selected>Immortal</option>
+        <option value="6">Divine</option>
+        <option value="5">Ancient</option>
+        <option value="4">Legend</option>
+        <option value="3">Archon</option>
+        <option value="2">Crusader / Guardian</option>
+        <option value="1">Herald</option>
+      </select>
+      <button id="reset-btn" class="btn-secondary">Reset Draft</button>
+      <button id="refresh-btn" class="btn-ghost">↻ Refresh Data</button>
+      <div class="auth-controls" id="auth-controls">
+        <button id="login-btn" class="btn-ghost">Log In</button>
+      </div>
+      <div class="user-controls hidden" id="user-controls">
+        <button id="profile-btn" class="btn-ghost">👤 <span id="username-display"></span></button>
+        <button id="logout-btn" class="btn-ghost">Log Out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Draft board -->
+  <section class="draft-board">
+    <!-- Radiant picks -->
+    <div class="team-section radiant">
+      <div class="team-label radiant-label">RADIANT PICKS</div>
+      <div class="pick-slots" id="radiant-picks">
+        <div class="pick-slot empty" data-team="radiant" data-index="0"></div>
+        <div class="pick-slot empty" data-team="radiant" data-index="1"></div>
+        <div class="pick-slot empty" data-team="radiant" data-index="2"></div>
+        <div class="pick-slot empty" data-team="radiant" data-index="3"></div>
+        <div class="pick-slot empty" data-team="radiant" data-index="4"></div>
+      </div>
+    </div>
+
+    <!-- Dire picks -->
+    <div class="team-section dire">
+      <div class="team-label dire-label">DIRE PICKS</div>
+      <div class="pick-slots" id="dire-picks">
+        <div class="pick-slot empty" data-team="dire" data-index="0"></div>
+        <div class="pick-slot empty" data-team="dire" data-index="1"></div>
+        <div class="pick-slot empty" data-team="dire" data-index="2"></div>
+        <div class="pick-slot empty" data-team="dire" data-index="3"></div>
+        <div class="pick-slot empty" data-team="dire" data-index="4"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero search + grid -->
+  <section class="hero-picker">
+    <div class="picker-controls">
+      <input type="text" id="hero-search" placeholder="Search heroes..." autocomplete="off" />
+      <div class="add-target-controls">
+        <span>Add as:</span>
+        <button class="add-target-btn active" data-target="my-pick" id="btn-my-pick">My Pick</button>
+        <button class="add-target-btn" data-target="enemy-pick" id="btn-enemy-pick">Enemy Pick</button>
+      </div>
+      <div class="role-filter-controls">
+        <span>My Role:</span>
+        <button class="role-filter-btn active" data-role="">All</button>
+        <button class="role-filter-btn" data-role="carry">Carry</button>
+        <button class="role-filter-btn" data-role="mid">Mid</button>
+        <button class="role-filter-btn" data-role="offlane">Offlane</button>
+        <button class="role-filter-btn" data-role="support">Support</button>
+        <button class="role-filter-btn" data-role="hard_support">Hard Support</button>
+      </div>
+    </div>
+    <div class="hero-grid" id="hero-grid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Recommendations -->
+  <section class="recommendations">
+    <div class="rec-header">
+      <span class="rec-title">TOP RECOMMENDATIONS</span>
+      <span class="rec-hint" id="rec-hint">Select heroes to see suggestions</span>
+    </div>
+    <div class="rec-list" id="rec-list">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Advanced weights panel -->
+    <details class="weights-panel">
+      <summary>⚙ Adjust Scoring Weights</summary>
+      <div class="weights-grid">
+        <div class="weight-row">
+          <label>
+            Counter Weight
+            <input type="range" id="w-counter" min="0" max="1" step="0.05" value="0.55" />
+            <span id="w-counter-val">0.55</span>
+          </label>
+          <div class="weight-hint">How well your pick counters the enemy's heroes. Raise this late in the draft once the enemy lineup is clear.</div>
+        </div>
+        <div class="weight-row">
+          <label>
+            Win Rate Weight
+            <input type="range" id="w-winrate" min="0" max="1" step="0.05" value="0.25" />
+            <span id="w-winrate-val">0.25</span>
+          </label>
+          <div class="weight-hint">Overall strength of the hero at your selected bracket. Raise this early in the draft or when certain heroes are clearly dominant in the meta.</div>
+        </div>
+        <div class="weight-row">
+          <label>
+            Synergy Weight
+            <input type="range" id="w-role" min="0" max="1" step="0.05" value="0.20" />
+            <span id="w-role-val">0.20</span>
+          </label>
+          <div class="weight-hint">How well the hero performs when paired with your current allies, based on real Stratz co-pick win rate data. Raise this when your team comp is mostly decided and you want a synergistic final pick.</div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Win Probability Panel (shown when both teams have 5 picks) -->
+  <section class="winprob-panel hidden" id="winprob-panel">
+    <div class="winprob-header">
+      <span class="winprob-title">DRAFT COMPLETE — WIN PROBABILITY</span>
+    </div>
+    <div id="winprob-content">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Enemy Threat Panel -->
+  <section class="threat-panel hidden" id="threat-panel">
+    <div class="threat-header">
+      <span class="threat-title">ENEMY THREATS TO YOUR PICKS</span>
+    </div>
+    <div class="threat-list" id="threat-list">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+</div>
+
+<!-- Auth modal -->
+<div id="auth-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="auth-modal-title">Log In</span>
+      <button class="chat-close" id="auth-modal-close">✕</button>
+    </div>
+    <form id="auth-form" autocomplete="off">
+      <div class="form-group">
+        <label for="auth-username">Username</label>
+        <input type="text" id="auth-username" required minlength="3" maxlength="30" />
+      </div>
+      <div class="form-group">
+        <label for="auth-password">Password</label>
+        <input type="password" id="auth-password" required minlength="6" />
+      </div>
+      <div class="form-error hidden" id="auth-error"></div>
+      <button type="submit" class="btn-primary" id="auth-submit-btn">Log In</button>
+      <div class="form-switch">
+        <span id="auth-switch-text">Don't have an account?</span>
+        <button type="button" class="btn-link" id="auth-switch-btn">Register</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Profile panel -->
+<div id="profile-panel" class="modal-overlay hidden">
+  <div class="modal-box modal-profile">
+    <div class="modal-header">
+      <div>
+        <span class="modal-title">Player Profile</span>
+        <span class="profile-subtitle">Your AI assistant reads this to personalize advice</span>
+      </div>
+      <button class="chat-close" id="profile-close">✕</button>
+    </div>
+    <form id="profile-form">
+
+      <!-- Dota Account Link -->
+      <div class="profile-section">
+        <div class="section-label">DOTA 2 ACCOUNT</div>
+        <div class="account-link-row">
+          <input type="text" id="profile-dota-id" placeholder="Enter your Dota 2 Friend ID" />
+          <button type="button" class="btn-accent" id="link-account-btn">Link</button>
+        </div>
+        <div class="account-hint">Find your Friend ID in Dota 2: top-left corner of your profile. Public match data required.</div>
+        <div class="account-status hidden" id="account-status">
+          <div class="account-info" id="account-info"></div>
+        </div>
+      </div>
+
+      <!-- Roles -->
+      <div class="profile-section">
+        <div class="section-label">MY ROLES</div>
+        <div class="role-tags" id="profile-roles">
+          <button type="button" class="role-tag" data-role="carry"><span class="role-icon">&#9876;</span> Carry</button>
+          <button type="button" class="role-tag" data-role="mid"><span class="role-icon">&#9733;</span> Mid</button>
+          <button type="button" class="role-tag" data-role="offlane"><span class="role-icon">&#9760;</span> Offlane</button>
+          <button type="button" class="role-tag" data-role="support"><span class="role-icon">&#10010;</span> Support</button>
+          <button type="button" class="role-tag" data-role="hard_support"><span class="role-icon">&#9829;</span> Hard Sup</button>
+        </div>
+      </div>
+
+      <!-- Hero Pool -->
+      <div class="profile-section">
+        <div class="section-label">HERO POOL</div>
+        <div class="hero-pool-display" id="hero-pool-display"></div>
+        <div class="hero-search-wrap">
+          <input type="text" id="profile-hero-search" placeholder="Type to search heroes..." autocomplete="off" />
+          <div class="hero-search-dropdown hidden" id="hero-search-dropdown"></div>
+        </div>
+      </div>
+
+      <!-- Playstyle -->
+      <div class="profile-section">
+        <div class="section-label">PLAYSTYLE <span class="section-hint">pick up to 3</span></div>
+        <div class="playstyle-tags" id="playstyle-tags">
+          <button type="button" class="style-tag" data-style="aggressive">Aggressive</button>
+          <button type="button" class="style-tag" data-style="tempo">Tempo / Pace</button>
+          <button type="button" class="style-tag" data-style="teamfight">Teamfight</button>
+          <button type="button" class="style-tag" data-style="farming">Farming</button>
+          <button type="button" class="style-tag" data-style="lane_domination">Lane Domination</button>
+          <button type="button" class="style-tag" data-style="control">Control / Utility</button>
+          <button type="button" class="style-tag" data-style="split_push">Split Push</button>
+          <button type="button" class="style-tag" data-style="ganking">Ganking / Roaming</button>
+          <button type="button" class="style-tag" data-style="late_game">Late Game</button>
+          <button type="button" class="style-tag" data-style="early_pressure">Early Pressure</button>
+        </div>
+      </div>
+
+      <!-- Extra notes -->
+      <div class="profile-section">
+        <div class="section-label">EXTRA NOTES <span class="section-hint">optional — anything else the AI should know</span></div>
+        <textarea id="profile-notes" rows="2" placeholder="e.g. I can't play micro heroes, I like heroes with escape spells"></textarea>
+      </div>
+
+      <!-- Player stats from Stratz (populated after account link) -->
+      <div class="profile-section hidden" id="player-stats-section">
+        <div class="section-label">YOUR RECENT PERFORMANCE <span class="section-hint">from Stratz</span></div>
+        <div id="player-stats-content"></div>
+      </div>
+
+      <div class="profile-actions">
+        <button type="submit" class="btn-primary btn-save">Save Profile</button>
+        <span class="form-status hidden" id="profile-status">Saved!</span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Floating chat assistant -->
+<div id="chat-fab" title="Ask the Draft Assistant">
+  <span class="chat-fab-icon">💬</span>
+</div>
+
+<div id="chat-panel" class="hidden">
+  <div class="chat-header">
+    <span class="chat-title">DRAFT ASSISTANT</span>
+    <button id="chat-close-btn" class="chat-close">✕</button>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-msg assistant">
+      <span>Ask me anything — best heroes for a role, who counters who, patch changes, draft advice. I use your live Stratz data and the latest patch notes.</span>
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="e.g. best offlane right now?" autocomplete="off" />
+    <button id="chat-send-btn">Send</button>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
