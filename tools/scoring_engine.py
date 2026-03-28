@@ -10,10 +10,71 @@ import math as _math
 
 
 DEFAULT_WEIGHTS = {
-    "counter":  0.65,
+    "counter":  0.55,
     "win_rate": 0.15,
     "synergy":  0.20,
+    "hero_pool": 0.10,
 }
+
+# Bayesian shrinkage: regress matchup win rates toward 50% based on sample size.
+# k=400 means we need ~400 games before trusting the data as much as the prior.
+SHRINKAGE_K = 400.0
+
+# Sigmoid multiplier for win probability. x10 produces ~43-57% for normal drafts.
+SIGMOID_K = 10.0
+
+# Component weights for win probability (analyze_draft).
+WINPROB_WEIGHTS = (0.65, 0.10, 0.25)  # matchup, wr_diff, synergy
+
+# Dota lane interaction weights: how much each cross-team role pair matters.
+_ROLES = ["carry", "mid", "offlane", "support", "hard_support"]
+_LANE_WEIGHTS = {
+    # carry lanes against offlane + supports
+    ("carry", "carry"): 0.4,  ("carry", "mid"): 0.3,  ("carry", "offlane"): 1.5,
+    ("carry", "support"): 1.2, ("carry", "hard_support"): 1.5,
+    # mid faces mid
+    ("mid", "carry"): 0.3, ("mid", "mid"): 2.0, ("mid", "offlane"): 0.4,
+    ("mid", "support"): 0.3, ("mid", "hard_support"): 0.3,
+    # offlane lanes against carry + supports
+    ("offlane", "carry"): 1.5, ("offlane", "mid"): 0.4, ("offlane", "offlane"): 0.4,
+    ("offlane", "support"): 0.6, ("offlane", "hard_support"): 0.6,
+    # supports interact with carry lane and offlane
+    ("support", "carry"): 1.2, ("support", "mid"): 0.3, ("support", "offlane"): 0.6,
+    ("support", "support"): 0.3, ("support", "hard_support"): 0.3,
+    ("hard_support", "carry"): 1.5, ("hard_support", "mid"): 0.3,
+    ("hard_support", "offlane"): 0.6, ("hard_support", "support"): 0.3,
+    ("hard_support", "hard_support"): 0.3,
+}
+
+
+def _shrunk_advantage(entry: dict, prior: float = 0.5, k: float = SHRINKAGE_K) -> float:
+    """Bayesian shrinkage: regress a matchup win rate toward the prior based on sample size."""
+    wr = entry.get("win_rate", prior)
+    games = entry.get("games", 0)
+    if games <= 0:
+        return 0.0
+    shrunk = (wr * games + prior * k) / (games + k)
+    return shrunk - prior
+
+
+def _role_probabilities(hero_id: int, role_map: dict) -> dict[str, float]:
+    """Return {role: probability} for a hero based on role_map membership."""
+    roles = [role for role, ids in role_map.items() if hero_id in ids]
+    if not roles:
+        return {r: 0.2 for r in _ROLES}
+    p = 1.0 / len(roles)
+    return {r: (p if r in roles else 0.0) for r in _ROLES}
+
+
+def _pair_weight(r_id: int, d_id: int, role_map: dict) -> float:
+    """Compute lane-interaction weight between two heroes on opposite teams."""
+    r_probs = _role_probabilities(r_id, role_map)
+    d_probs = _role_probabilities(d_id, role_map)
+    weight = 0.0
+    for r_role in _ROLES:
+        for d_role in _ROLES:
+            weight += r_probs[r_role] * d_probs[d_role] * _LANE_WEIGHTS[(r_role, d_role)]
+    return weight
 
 def get_win_rate(hero_id: int, hero_stats: dict, bracket: str = "7") -> float:
     """
@@ -52,11 +113,8 @@ def get_counter_score(
     advantages = []
 
     for enemy_id in enemy_ids:
-        matchup = candidate_matchups.get(enemy_id)
-        if matchup and matchup.get("games", 0) > 0:
-            advantage = matchup["win_rate"] - 0.50
-        else:
-            advantage = 0.0
+        matchup = candidate_matchups.get(enemy_id, {})
+        advantage = _shrunk_advantage(matchup)
         advantages.append(advantage)
         details.append({"hero_id": enemy_id, "advantage": round(advantage, 4)})
 
@@ -83,11 +141,8 @@ def get_synergy_score(
     advantages = []
 
     for ally_id in ally_ids:
-        matchup = candidate_with.get(ally_id)
-        if matchup and matchup.get("games", 0) > 0:
-            advantage = matchup["win_rate"] - 0.50
-        else:
-            advantage = 0.0
+        matchup = candidate_with.get(ally_id, {})
+        advantage = _shrunk_advantage(matchup)
         advantages.append(advantage)
 
     return sum(advantages) / len(advantages)
@@ -103,6 +158,7 @@ def score_candidates(
     mmr_bracket: str = "7",
     weights: dict | None = None,
     top_n: int = 10,
+    hero_pool: list[int] | None = None,
 ) -> dict:
     """
     Score and rank hero candidates for the current draft state.
@@ -130,6 +186,7 @@ def score_candidates(
     with_matchups = all_matchups.get("with", {})
 
     # --- Pass 1: compute raw components for all valid candidates ---
+    _pool_set = set(hero_pool) if hero_pool else set()
     raw = []
     for hero_id in candidate_ids:
         hero = heroes.get(str(hero_id))
@@ -140,6 +197,7 @@ def score_candidates(
             hero_id, enemy_pick_ids, vs_matchups
         )
         synergy_score = get_synergy_score(hero_id, ally_pick_ids, with_matchups)
+        pool_score = 1.0 if (hero_pool and hero_id in _pool_set) else 0.0
         raw.append({
             "hero_id": hero_id,
             "hero": hero,
@@ -147,6 +205,7 @@ def score_candidates(
             "counter_score": counter_score,
             "counter_detail": counter_detail,
             "synergy_score": synergy_score,
+            "pool_score": pool_score,
         })
 
     if not raw:
@@ -163,14 +222,16 @@ def score_candidates(
     counter_norms = _norm([r["counter_score"] for r in raw])
     wr_norms      = _norm([r["win_rate"] for r in raw])
     synergy_norms = _norm([r["synergy_score"] for r in raw])
+    pool_norms    = _norm([r["pool_score"] for r in raw])
 
     # --- Pass 2: apply weights to normalized scores ---
     results = []
     for i, r in enumerate(raw):
         total = (
-            w["counter"]  * counter_norms[i]
-            + w["win_rate"] * wr_norms[i]
-            + w["synergy"]  * synergy_norms[i]
+            w["counter"]   * counter_norms[i]
+            + w["win_rate"]  * wr_norms[i]
+            + w["synergy"]   * synergy_norms[i]
+            + w.get("hero_pool", 0) * pool_norms[i]
         )
 
         # Attach enemy hero names to counter detail
@@ -194,11 +255,13 @@ def score_candidates(
                 "img_url": r["hero"].get("img_url", ""),
                 "roles": r["hero"].get("roles", []),
                 "total_score": round(total, 4),
+                "in_hero_pool": r["pool_score"] > 0,
                 "breakdown": {
                     "counter_score": round(r["counter_score"], 4),
                     "win_rate_score": round(wr_norms[i], 4),
                     "win_rate_pct": round(r["win_rate"] * 100, 1),
                     "synergy_score": round(synergy_norms[i], 4),
+                    "hero_pool_score": round(pool_norms[i], 4),
                     "counters_detail": detailed_counters,
                 },
             }
@@ -219,14 +282,18 @@ def analyze_draft(
     hero_stats: dict,     # {hero_id_str: {bracket_enum: {wins, picks}}}
     heroes: dict,         # {hero_id_str: hero_dict}
     bracket: str = "7",
+    role_map: dict | None = None,
 ) -> dict:
     """
     Compute win probability for a completed 5v5 draft and explain the key factors.
 
-    Win probability is based on:
-      - Cross-team matchup win rates (60% weight): how Radiant heroes perform vs Dire heroes
-      - Overall hero win rates (25% weight): each team's heroes' general strength
-      - Intra-team synergy (15% weight): how well each team's heroes pair together
+    Win probability uses Bayesian-shrunk matchup data, role-weighted lane
+    interactions, and a calibrated sigmoid (x10) for realistic outputs.
+
+    Components:
+      - Cross-team matchups (65%): role-weighted, shrunk by sample size
+      - Overall hero win rates (10%): meta strength (reduced — overlaps with matchups)
+      - Intra-team synergy (25%): co-pick win rates, shrunk by sample size
 
     Returns a dict with win probabilities, factor breakdown, and top matchups.
     """
@@ -245,13 +312,17 @@ def analyze_draft(
     def himg(hero_id: int) -> str:
         return heroes.get(str(hero_id), {}).get("img_url", "")
 
-    # ── 1. Cross-team matchup analysis (5×5 = 25 pairs) ──────────────────────
+    # ── 1. Cross-team matchup analysis (5×5 = 25 pairs, role-weighted) ───────
     matchup_pairs = []
+    total_adv = 0.0
+    total_weight = 0.0
     for r_id in radiant_ids:
         for d_id in dire_ids:
             entry = vs_matchups.get(r_id, {}).get(d_id, {})
-            wr    = entry.get("win_rate", 0.5)
-            games = entry.get("games", 0)
+            adv   = _shrunk_advantage(entry)
+            pw    = _pair_weight(r_id, d_id, role_map) if role_map else 1.0
+            total_adv += adv * pw
+            total_weight += pw
             matchup_pairs.append({
                 "radiant_id":   r_id,
                 "dire_id":      d_id,
@@ -259,24 +330,20 @@ def analyze_draft(
                 "dire_name":    hname(d_id),
                 "radiant_img":  himg(r_id),
                 "dire_img":     himg(d_id),
-                "win_rate":     round(wr, 4),   # Radiant hero's WR against Dire hero
-                "advantage":    round(wr - 0.5, 4),
-                "games":        games,
+                "win_rate":     round(entry.get("win_rate", 0.5), 4),
+                "advantage":    round(adv, 4),
+                "games":        entry.get("games", 0),
             })
 
-    avg_matchup = (
-        sum(p["advantage"] for p in matchup_pairs) / len(matchup_pairs)
-        if matchup_pairs else 0.0
-    )
+    avg_matchup = total_adv / total_weight if total_weight > 0 else 0.0
 
-    # ── 2. Intra-team synergy (C(5,2) = 10 pairs per team) ───────────────────
+    # ── 2. Intra-team synergy (C(5,2) = 10 pairs per team, shrunk) ──────────
     def synergy_pairs(team_ids: list[int]) -> list[dict]:
         pairs = []
         for i, h1 in enumerate(team_ids):
             for h2 in team_ids[i + 1:]:
                 entry = with_matchups.get(h1, {}).get(h2, {})
-                wr    = entry.get("win_rate", 0.5)
-                games = entry.get("games", 0)
+                adv   = _shrunk_advantage(entry)
                 pairs.append({
                     "hero1_id":   h1,
                     "hero2_id":   h2,
@@ -284,9 +351,9 @@ def analyze_draft(
                     "hero2_name": hname(h2),
                     "hero1_img":  himg(h1),
                     "hero2_img":  himg(h2),
-                    "win_rate":   round(wr, 4),
-                    "advantage":  round(wr - 0.5, 4),
-                    "games":      games,
+                    "win_rate":   round(entry.get("win_rate", 0.5), 4),
+                    "advantage":  round(adv, 4),
+                    "games":      entry.get("games", 0),
                 })
         return pairs
 
@@ -303,9 +370,10 @@ def analyze_draft(
     dire_avg_wr    = sum(dire_wrs)    / len(dire_wrs)    if dire_wrs    else 0.5
     wr_diff = radiant_avg_wr - dire_avg_wr
 
-    # ── 4. Win probability ────────────────────────────────────────────────────
-    raw      = 0.60 * avg_matchup + 0.25 * wr_diff + 0.15 * synergy_diff
-    win_prob = 1.0 / (1.0 + _math.exp(-raw * 15)) * 100
+    # ── 4. Win probability (calibrated sigmoid) ──────────────────────────────
+    w_m, w_wr, w_syn = WINPROB_WEIGHTS
+    raw      = w_m * avg_matchup + w_wr * wr_diff + w_syn * synergy_diff
+    win_prob = 1.0 / (1.0 + _math.exp(-raw * SIGMOID_K)) * 100
 
     # ── 5. Sort for display ───────────────────────────────────────────────────
     matchup_pairs.sort(key=lambda x: x["advantage"], reverse=True)

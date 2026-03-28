@@ -309,9 +309,16 @@ class RecommendRequest(BaseModel):
 
 
 @app.post("/api/recommend")
-def recommend(req: RecommendRequest):
+def recommend(req: RecommendRequest, authorization: Optional[str] = Header(None)):
     if not _cache["ready"]:
         raise HTTPException(503, "Cache not ready yet")
+
+    # Resolve hero pool from logged-in user's profile
+    hero_pool = []
+    user = _get_current_user(authorization)
+    if user:
+        profile = db.get_profile(user["id"])
+        hero_pool = profile.get("hero_pool", []) if profile else []
 
     all_hero_ids = [int(k) for k in _cache["heroes"].keys()]
     excluded = set(req.ally_picks + req.enemy_picks + req.bans)
@@ -340,6 +347,7 @@ def recommend(req: RecommendRequest):
         mmr_bracket=req.mmr_bracket,
         weights=weights,
         top_n=15,
+        hero_pool=hero_pool,
     )
 
     threats = compute_threats(
@@ -377,6 +385,7 @@ def draft_analysis(req: DraftAnalysisRequest):
         hero_stats=_cache["hero_stats"],
         heroes=_cache["heroes"],
         bracket=req.mmr_bracket,
+        role_map=_role_map,
     )
 
 

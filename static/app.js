@@ -28,18 +28,21 @@ function loadWeights() {
       const isOldDefault =
         (w.counter === 0.55 && w.win_rate === 0.25 && w.role_synergy === 0.20) ||
         (w.counter === 0.75 && w.win_rate === 0.20 && w.role_synergy === 0.05) ||
-        (w.counter === 0.65 && w.win_rate === 0.15 && w.role_synergy === 0.20);
+        (w.counter === 0.65 && w.win_rate === 0.15 && w.role_synergy === 0.20) ||
+        (w.counter === 0.65 && w.win_rate === 0.15 && w.synergy === 0.20 && !w.hero_pool);
       if (isOldDefault) {
         localStorage.removeItem('draft_weights');
+      } else if (w.synergy != null && w.hero_pool != null) {
+        return w;  // custom weights with hero_pool key
       } else if (w.synergy != null) {
-        return w;  // custom weights already using new key
+        return { ...w, hero_pool: 0.10 };  // add hero_pool to existing custom weights
       } else if (w.role_synergy != null) {
         // migrate old key name
-        return { counter: w.counter, win_rate: w.win_rate, synergy: w.role_synergy };
+        return { counter: w.counter, win_rate: w.win_rate, synergy: w.role_synergy, hero_pool: 0.10 };
       }
     }
   } catch (_) {}
-  return { counter: 0.65, win_rate: 0.15, synergy: 0.20 };
+  return { counter: 0.55, win_rate: 0.15, synergy: 0.20, hero_pool: 0.10 };
 }
 function saveWeights() {
   localStorage.setItem('draft_weights', JSON.stringify(state.weights));
@@ -929,7 +932,7 @@ async function fetchRecommendations() {
     try {
       const res = await fetch('/api/recommend', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({
           ally_picks: allyPicks,
           enemy_picks: enemyPicks,
@@ -1018,6 +1021,9 @@ function renderRecommendations() {
     if (rec.breakdown.synergy_score > 0.6) {
       tags.push(`<span class="tag tag-role">Synergy</span>`);
     }
+    if (rec.in_hero_pool) {
+      tags.push(`<span class="tag tag-pool">Pool</span>`);
+    }
 
     card.innerHTML = `
       <div class="rec-rank">${i + 1}</div>
@@ -1070,9 +1076,11 @@ function applyWeightsToUI() {
   document.getElementById('w-counter').value = state.weights.counter;
   document.getElementById('w-winrate').value = state.weights.win_rate;
   document.getElementById('w-role').value = state.weights.synergy;
+  document.getElementById('w-heropool').value = state.weights.hero_pool;
   document.getElementById('w-counter-val').textContent = state.weights.counter.toFixed(2);
   document.getElementById('w-winrate-val').textContent = state.weights.win_rate.toFixed(2);
   document.getElementById('w-role-val').textContent = state.weights.synergy.toFixed(2);
+  document.getElementById('w-heropool-val').textContent = state.weights.hero_pool.toFixed(2);
 }
 
 // ── Event listeners ───────────────────────────────────────────
@@ -1146,10 +1154,10 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
 });
 
 // Weight sliders
-['counter', 'winrate', 'role'].forEach(key => {
+['counter', 'winrate', 'role', 'heropool'].forEach(key => {
   const slider = document.getElementById(`w-${key}`);
   const label = document.getElementById(`w-${key}-val`);
-  const stateKey = key === 'winrate' ? 'win_rate' : key === 'role' ? 'synergy' : 'counter';
+  const stateKey = key === 'winrate' ? 'win_rate' : key === 'role' ? 'synergy' : key === 'heropool' ? 'hero_pool' : 'counter';
   slider.addEventListener('input', () => {
     state.weights[stateKey] = parseFloat(slider.value);
     label.textContent = parseFloat(slider.value).toFixed(2);

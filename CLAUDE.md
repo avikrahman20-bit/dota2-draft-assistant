@@ -59,10 +59,13 @@ tools/
 - Matchup data has both `vs` (counter) and `with` (synergy) per hero per bracket
 
 **Scoring Engine**
-- Default weights: counter=0.65, win_rate=0.15, synergy=0.20 (user-adjustable)
+- Default weights: counter=0.55, win_rate=0.15, synergy=0.20, hero_pool=0.10 (user-adjustable)
+- Hero pool weight boosts heroes in the logged-in user's saved hero pool (1.0 if in pool, 0.0 if not)
 - All components normalized to [0,1] before weighting
-- Win probability: sigmoid function `1 / (1 + exp(-raw * 15)) * 100`
-- Win prob components: matchup advantage (60%), win rate advantage (25%), synergy difference (15%)
+- Bayesian shrinkage (k=400): regresses matchup win rates toward 50% based on sample size
+- Role-weighted matchups: lane interaction weights (mid vs mid = 2.0x, carry vs offlane = 1.5x, cross-lane = 0.3x)
+- Win probability: sigmoid function `1 / (1 + exp(-raw * 10)) * 100` (calibrated for ~43-57% typical range)
+- Win prob components: matchup advantage (65%), win rate advantage (10%), synergy difference (25%)
 
 **Chat Assistant**
 - Model: `claude-haiku-4-5-20251001` (cheapest/fastest)

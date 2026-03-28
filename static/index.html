@@ -143,6 +143,14 @@
           </label>
           <div class="weight-hint">How well the hero performs when paired with your current allies, based on real Stratz co-pick win rate data. Raise this when your team comp is mostly decided and you want a synergistic final pick.</div>
         </div>
+        <div class="weight-row">
+          <label>
+            Hero Pool Weight
+            <input type="range" id="w-heropool" min="0" max="1" step="0.05" value="0.10" />
+            <span id="w-heropool-val">0.10</span>
+          </label>
+          <div class="weight-hint">Boost heroes in your saved hero pool. Set to 0 to ignore your pool, raise it to strongly prefer comfort picks. Requires login with a saved hero pool.</div>
+        </div>
       </div>
     </details>
   </section>
