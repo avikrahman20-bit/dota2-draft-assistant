@@ -24,10 +24,10 @@ def get_api_key() -> str:
 
 def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
     """
-    Fetch a player's profile + recent hero performance from Stratz.
+    Fetch a player's profile + recent hero performance + recent matches from Stratz.
     account_id: Dota 2 Friend ID (numeric string)
     heroes_cache: {hero_id_str: {localized_name, ...}} for name resolution
-    Returns dict with player info + top heroes, or None on error.
+    Returns dict with player info + top heroes + recent matches, or None on error.
     """
     api_key = get_api_key()
     if not api_key:
@@ -36,7 +36,7 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
     session = cffi_requests.Session(impersonate="chrome110")
     headers = {"Authorization": f"Bearer {api_key}"}
 
-    # GraphQL query: player profile + hero performance
+    # GraphQL query: player profile + hero performance + recent matches
     query = """
     query ($steamAccountId: Long!) {
       player(steamAccountId: $steamAccountId) {
@@ -54,6 +54,25 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
         }
         matchCount
         winCount
+        matches(request: { take: 20 }) {
+          id
+          didRadiantWin
+          durationSeconds
+          startDateTime
+          players {
+            steamAccountId
+            heroId
+            isRadiant
+            kills
+            deaths
+            assists
+            networth
+            imp
+            role
+            lane
+            award
+          }
+        }
       }
     }
     """
@@ -95,6 +114,54 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
 
     top_heroes.sort(key=lambda x: x["matches"], reverse=True)
 
+    # Build recent matches list
+    recent_matches = []
+    role_map = {0: "Unknown", 1: "Carry", 2: "Mid", 3: "Offlane", 4: "Soft Sup", 5: "Hard Sup"}
+    lane_map = {0: "Unknown", 1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle"}
+    award_map = {1: "MVP", 2: "Top Core", 3: "Top Support"}
+    acct_int = int(account_id)
+
+    for m in (player.get("matches") or []):
+        all_players = m.get("players") or []
+
+        # Find our player in the full player list
+        p = next((pl for pl in all_players if pl.get("steamAccountId") == acct_int), None)
+        if not p:
+            continue
+
+        hero_id = p.get("heroId")
+        hero_name = heroes_cache.get(str(hero_id), {}).get("localized_name", f"Hero {hero_id}")
+        is_radiant = p.get("isRadiant", False)
+        won = (m.get("didRadiantWin") == is_radiant)
+        duration_min = (m.get("durationSeconds") or 0) / 60
+
+        # Build enemy team list
+        enemy_heroes = []
+        for pl in all_players:
+            if pl.get("isRadiant") != is_radiant:
+                ehid = pl.get("heroId")
+                ename = heroes_cache.get(str(ehid), {}).get("localized_name", f"Hero {ehid}")
+                erole = role_map.get(pl.get("role"), "Unknown")
+                enemy_heroes.append({"hero_id": ehid, "hero_name": ename, "role": erole})
+
+        recent_matches.append({
+            "match_id": m.get("id"),
+            "hero_id": hero_id,
+            "hero_name": hero_name,
+            "won": won,
+            "kills": p.get("kills", 0),
+            "deaths": p.get("deaths", 0),
+            "assists": p.get("assists", 0),
+            "networth": p.get("networth", 0),
+            "imp": p.get("imp"),  # Stratz impact score
+            "role": role_map.get(p.get("role"), "Unknown"),
+            "lane": lane_map.get(p.get("lane"), "Unknown"),
+            "award": award_map.get(p.get("award"), None),
+            "duration_min": round(duration_min, 1),
+            "start_time": m.get("startDateTime"),
+            "enemy_heroes": enemy_heroes,
+        })
+
     total_matches = player.get("matchCount", 0)
     total_wins = player.get("winCount", 0)
 
@@ -111,6 +178,7 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
         "total_wins": total_wins,
         "overall_wr": round(total_wins / total_matches * 100, 1) if total_matches > 0 else 0,
         "top_heroes": top_heroes[:15],
+        "recent_matches": recent_matches,
         "dota_plus": steam.get("isDotaPlusSubscriber", False),
     }
 

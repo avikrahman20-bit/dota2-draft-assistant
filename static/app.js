@@ -357,8 +357,9 @@ function setupPlaystyleTags() {
 // ── Dota Account Linking ─────────────────────────────────────
 function setupAccountLink() {
   const btn = document.getElementById('link-account-btn');
-  if (!btn) return;
-  btn.addEventListener('click', linkDotaAccount);
+  if (btn) btn.addEventListener('click', linkDotaAccount);
+  const unlinkBtn = document.getElementById('unlink-account-btn');
+  if (unlinkBtn) unlinkBtn.addEventListener('click', unlinkDotaAccount);
 }
 
 async function linkDotaAccount() {
@@ -392,6 +393,30 @@ async function linkDotaAccount() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Link';
+  }
+}
+
+async function unlinkDotaAccount() {
+  if (!confirm('Unlink your Dota 2 account?')) return;
+  try {
+    const res = await fetch('/api/unlink_account', {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    if (!res.ok) {
+      alert('Could not unlink account');
+      return;
+    }
+    // Clear local state
+    if (authState.profile) {
+      authState.profile.dota_account_id = '';
+      authState.profile.player_stats = {};
+    }
+    document.getElementById('profile-dota-id').value = '';
+    document.getElementById('account-status').classList.add('hidden');
+    document.getElementById('player-stats-section').classList.add('hidden');
+  } catch (err) {
+    alert('Network error unlinking account');
   }
 }
 
@@ -1004,18 +1029,22 @@ function renderRecommendations() {
       ? 'score-high' : rec.total_score > 0
       ? 'score-mid' : 'score-low';
 
-    // Build counter tags (top 2 enemies countered)
-    const topCounters = (rec.breakdown.counters_detail || [])
-      .filter(c => c.advantage > 0)
-      .slice(0, 2);
+    // Build counter tags — show both good and bad matchups
+    const counterDetail = rec.breakdown.counters_detail || [];
+    const goodCounters = counterDetail.filter(c => c.advantage > 0).slice(0, 2);
+    const badCounters = counterDetail.filter(c => c.advantage < -0.005);
 
     const tags = [];
-    if (topCounters.length > 0) {
-      const counterLabels = topCounters.map(c => {
-        const winPct = (50 + c.advantage * 100).toFixed(1);
+    if (goodCounters.length > 0) {
+      const counterLabels = goodCounters.map(c => {
+        const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : (50 + c.advantage * 100).toFixed(1);
         return `${shortName(c.vs_hero)} ${winPct}%`;
       });
       tags.push(`<span class="tag tag-counter">vs ${counterLabels.join(' · ')}</span>`);
+    }
+    for (const c of badCounters) {
+      const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : (50 + c.advantage * 100).toFixed(1);
+      tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${winPct}%</span>`);
     }
     tags.push(`<span class="tag tag-wr">WR ${rec.breakdown.win_rate_pct}%</span>`);
     if (rec.breakdown.synergy_score > 0.6) {
@@ -1239,6 +1268,7 @@ async function sendChatMessage() {
         question,
         radiant: radiantIds,
         dire:    direIds,
+        my_team: myTeam,
         mmr_bracket: state.mmr_bracket,
         history: chatHistory.slice(-10),  // last 10 turns for context
       }),

@@ -280,6 +280,15 @@ def link_account(req: LinkAccountRequest, authorization: Optional[str] = Header(
     return player_data
 
 
+@app.post("/api/unlink_account")
+def unlink_account(authorization: Optional[str] = Header(None)):
+    user = _get_current_user(authorization)
+    if not user:
+        raise HTTPException(401, "Not authenticated")
+    db.update_profile(user["id"], dota_account_id="", player_stats={})
+    return {"ok": True}
+
+
 @app.get("/api/player_stats")
 def get_player_stats(authorization: Optional[str] = Header(None)):
     """Re-fetch latest player stats from Stratz."""
@@ -393,6 +402,7 @@ class ChatRequest(BaseModel):
     question: str
     radiant: list[int] = []
     dire: list[int] = []
+    my_team: str = "radiant"
     mmr_bracket: str = "7"
     history: list[dict] = []   # [{"role": "user"|"assistant", "content": str}]
 
@@ -404,14 +414,60 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
     if not req.question.strip():
         raise HTTPException(400, "Empty question")
 
-    # Load user profile if logged in
+    # Load user profile if logged in, refresh Stratz stats if linked
     user_profile = None
     user = _get_current_user(authorization)
     if user:
         user_profile = db.get_profile(user["id"])
         user_profile["username"] = user["username"]
+        # Auto-refresh player stats from Stratz so match history is current
+        account_id = user_profile.get("dota_account_id", "")
+        if account_id:
+            try:
+                fresh_stats = fetch_player_summary(account_id, _cache.get("heroes", {}))
+                if fresh_stats:
+                    db.update_profile(user["id"], player_stats=fresh_stats)
+                    user_profile["player_stats"] = fresh_stats
+            except Exception:
+                pass  # Use cached stats if refresh fails
         # Include recent feedback for AI context
         user_profile["recent_feedback"] = db.get_recent_feedback(user["id"], limit=10)
+
+    # Run the scoring engine so the AI sees the same recommendations as the panel
+    recommendations = []
+    if req.radiant or req.dire:
+        if req.my_team == "dire":
+            ally_ids = req.dire
+            enemy_ids = req.radiant
+        else:
+            ally_ids = req.radiant
+            enemy_ids = req.dire
+
+        hero_pool = []
+        if user_profile:
+            hero_pool = user_profile.get("hero_pool", [])
+
+        all_hero_ids = [int(k) for k in _cache["heroes"].keys()]
+        excluded = set(ally_ids + enemy_ids)
+        candidates = [h for h in all_hero_ids if h not in excluded]
+
+        bracket_enum = fetch_matchups.BRACKET_ENUM.get(req.mmr_bracket, "DIVINE_IMMORTAL")
+        vs_for_bracket = _cache["matchups"]["vs"].get(bracket_enum, {})
+        with_for_bracket = _cache["matchups"]["with"].get(bracket_enum, {})
+
+        result = score_candidates(
+            candidate_ids=candidates,
+            enemy_pick_ids=enemy_ids,
+            ally_pick_ids=ally_ids,
+            all_matchups={"vs": vs_for_bracket, "with": with_for_bracket},
+            hero_stats=_cache["hero_stats"],
+            heroes=_cache["heroes"],
+            mmr_bracket=req.mmr_bracket,
+            weights=None,
+            top_n=10,
+            hero_pool=hero_pool,
+        )
+        recommendations = result.get("top", [])
 
     try:
         reply = assistant_answer(
@@ -425,6 +481,8 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
             bracket=req.mmr_bracket,
             conversation_history=req.history,
             user_profile=user_profile,
+            recommendations=recommendations,
+            my_team=req.my_team,
         )
         return {"reply": reply}
     except Exception as e:

@@ -116,7 +116,12 @@ def get_counter_score(
         matchup = candidate_matchups.get(enemy_id, {})
         advantage = _shrunk_advantage(matchup)
         advantages.append(advantage)
-        details.append({"hero_id": enemy_id, "advantage": round(advantage, 4)})
+        details.append({
+            "hero_id": enemy_id,
+            "advantage": round(advantage, 4),
+            "win_rate": matchup.get("win_rate"),
+            "games": matchup.get("games", 0),
+        })
 
     return sum(advantages) / len(advantages), details
 
@@ -243,6 +248,8 @@ def score_candidates(
                     "vs_hero_id": entry["hero_id"],
                     "vs_hero": enemy.get("localized_name", str(entry["hero_id"])),
                     "advantage": entry["advantage"],
+                    "win_rate": entry.get("win_rate"),
+                    "games": entry.get("games", 0),
                 }
             )
         detailed_counters.sort(key=lambda x: x["advantage"], reverse=True)
