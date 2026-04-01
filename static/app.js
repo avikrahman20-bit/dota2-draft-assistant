@@ -29,20 +29,22 @@ function loadWeights() {
         (w.counter === 0.55 && w.win_rate === 0.25 && w.role_synergy === 0.20) ||
         (w.counter === 0.75 && w.win_rate === 0.20 && w.role_synergy === 0.05) ||
         (w.counter === 0.65 && w.win_rate === 0.15 && w.role_synergy === 0.20) ||
-        (w.counter === 0.65 && w.win_rate === 0.15 && w.synergy === 0.20 && !w.hero_pool);
+        (w.counter === 0.65 && w.win_rate === 0.15 && w.synergy === 0.20 && !w.hero_pool) ||
+        (w.counter === 0.55 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.10 && !w.meta);
       if (isOldDefault) {
         localStorage.removeItem('draft_weights');
+      } else if (w.meta != null && w.hero_pool != null && w.synergy != null) {
+        return w;  // current format with all keys
       } else if (w.synergy != null && w.hero_pool != null) {
-        return w;  // custom weights with hero_pool key
+        return { ...w, meta: 0.05 };  // add meta to existing weights
       } else if (w.synergy != null) {
-        return { ...w, hero_pool: 0.10 };  // add hero_pool to existing custom weights
+        return { ...w, hero_pool: 0.05, meta: 0.05 };
       } else if (w.role_synergy != null) {
-        // migrate old key name
-        return { counter: w.counter, win_rate: w.win_rate, synergy: w.role_synergy, hero_pool: 0.10 };
+        return { counter: w.counter, win_rate: w.win_rate, synergy: w.role_synergy, hero_pool: 0.05, meta: 0.05 };
       }
     }
   } catch (_) {}
-  return { counter: 0.55, win_rate: 0.15, synergy: 0.20, hero_pool: 0.10 };
+  return { counter: 0.55, win_rate: 0.15, synergy: 0.20, hero_pool: 0.05, meta: 0.05 };
 }
 function saveWeights() {
   localStorage.setItem('draft_weights', JSON.stringify(state.weights));
@@ -1030,20 +1032,21 @@ function renderRecommendations() {
       ? 'score-mid' : 'score-low';
 
     // Build counter tags — show both good and bad matchups
+    // Use shrunk win rate (50 + advantage) for display — raw win_rate is misleading on small samples
     const counterDetail = rec.breakdown.counters_detail || [];
-    const goodCounters = counterDetail.filter(c => c.advantage > 0).slice(0, 2);
-    const badCounters = counterDetail.filter(c => c.advantage < -0.005);
+    const goodCounters = counterDetail.filter(c => c.advantage > 0.02).slice(0, 2);
+    const badCounters = counterDetail.filter(c => c.advantage < -0.02);
 
     const tags = [];
     if (goodCounters.length > 0) {
       const counterLabels = goodCounters.map(c => {
-        const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : (50 + c.advantage * 100).toFixed(1);
+        const winPct = (50 + c.advantage * 100).toFixed(1);
         return `${shortName(c.vs_hero)} ${winPct}%`;
       });
       tags.push(`<span class="tag tag-counter">vs ${counterLabels.join(' · ')}</span>`);
     }
     for (const c of badCounters) {
-      const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : (50 + c.advantage * 100).toFixed(1);
+      const winPct = (50 + c.advantage * 100).toFixed(1);
       tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${winPct}%</span>`);
     }
     tags.push(`<span class="tag tag-wr">WR ${rec.breakdown.win_rate_pct}%</span>`);
@@ -1106,10 +1109,12 @@ function applyWeightsToUI() {
   document.getElementById('w-winrate').value = state.weights.win_rate;
   document.getElementById('w-role').value = state.weights.synergy;
   document.getElementById('w-heropool').value = state.weights.hero_pool;
+  document.getElementById('w-meta').value = state.weights.meta;
   document.getElementById('w-counter-val').textContent = state.weights.counter.toFixed(2);
   document.getElementById('w-winrate-val').textContent = state.weights.win_rate.toFixed(2);
   document.getElementById('w-role-val').textContent = state.weights.synergy.toFixed(2);
   document.getElementById('w-heropool-val').textContent = state.weights.hero_pool.toFixed(2);
+  document.getElementById('w-meta-val').textContent = state.weights.meta.toFixed(2);
 }
 
 // ── Event listeners ───────────────────────────────────────────
@@ -1183,10 +1188,10 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
 });
 
 // Weight sliders
-['counter', 'winrate', 'role', 'heropool'].forEach(key => {
+['counter', 'winrate', 'role', 'heropool', 'meta'].forEach(key => {
   const slider = document.getElementById(`w-${key}`);
   const label = document.getElementById(`w-${key}-val`);
-  const stateKey = key === 'winrate' ? 'win_rate' : key === 'role' ? 'synergy' : key === 'heropool' ? 'hero_pool' : 'counter';
+  const stateKey = key === 'winrate' ? 'win_rate' : key === 'role' ? 'synergy' : key === 'heropool' ? 'hero_pool' : key === 'meta' ? 'meta' : 'counter';
   slider.addEventListener('input', () => {
     state.weights[stateKey] = parseFloat(slider.value);
     label.textContent = parseFloat(slider.value).toFixed(2);

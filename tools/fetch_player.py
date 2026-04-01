@@ -70,6 +70,7 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
             imp
             role
             lane
+            position
             award
           }
         }
@@ -116,8 +117,18 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
 
     # Build recent matches list
     recent_matches = []
-    role_map = {0: "Unknown", 1: "Carry", 2: "Mid", 3: "Offlane", 4: "Soft Sup", 5: "Hard Sup"}
-    lane_map = {0: "Unknown", 1: "Safe", 2: "Mid", 3: "Off", 4: "Jungle"}
+    # Stratz position enum → display name
+    position_map = {
+        "POSITION_1": "Carry", "POSITION_2": "Mid", "POSITION_3": "Offlane",
+        "POSITION_4": "Soft Sup", "POSITION_5": "Hard Sup",
+    }
+    # Fallback: Stratz role + lane → display name
+    role_str_map = {
+        "CORE": "Core", "LIGHT_SUPPORT": "Soft Sup", "HARD_SUPPORT": "Hard Sup",
+    }
+    lane_str_map = {
+        "SAFE_LANE": "Safe", "MID_LANE": "Mid", "OFF_LANE": "Off", "JUNGLE": "Jungle",
+    }
     award_map = {1: "MVP", 2: "Top Core", 3: "Top Support"}
     acct_int = int(account_id)
 
@@ -135,13 +146,33 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
         won = (m.get("didRadiantWin") == is_radiant)
         duration_min = (m.get("durationSeconds") or 0) / 60
 
+        def _resolve_role(pl):
+            """Resolve player role from position (best) or role+lane (fallback)."""
+            pos = pl.get("position")
+            if pos and pos in position_map:
+                return position_map[pos]
+            role = pl.get("role")
+            lane = pl.get("lane")
+            if role in role_str_map:
+                if role == "CORE":
+                    # Distinguish core roles by lane
+                    if lane == "MID_LANE":
+                        return "Mid"
+                    elif lane == "OFF_LANE":
+                        return "Offlane"
+                    elif lane == "SAFE_LANE":
+                        return "Carry"
+                    return "Core"
+                return role_str_map[role]
+            return "Unknown"
+
         # Build enemy team list
         enemy_heroes = []
         for pl in all_players:
             if pl.get("isRadiant") != is_radiant:
                 ehid = pl.get("heroId")
                 ename = heroes_cache.get(str(ehid), {}).get("localized_name", f"Hero {ehid}")
-                erole = role_map.get(pl.get("role"), "Unknown")
+                erole = _resolve_role(pl)
                 enemy_heroes.append({"hero_id": ehid, "hero_name": ename, "role": erole})
 
         recent_matches.append({
@@ -154,13 +185,16 @@ def fetch_player_summary(account_id: str, heroes_cache: dict) -> dict | None:
             "assists": p.get("assists", 0),
             "networth": p.get("networth", 0),
             "imp": p.get("imp"),  # Stratz impact score
-            "role": role_map.get(p.get("role"), "Unknown"),
-            "lane": lane_map.get(p.get("lane"), "Unknown"),
+            "role": _resolve_role(p),
+            "lane": lane_str_map.get(p.get("lane"), "Unknown"),
             "award": award_map.get(p.get("award"), None),
             "duration_min": round(duration_min, 1),
             "start_time": m.get("startDateTime"),
             "enemy_heroes": enemy_heroes,
         })
+
+    # Sort by most recent first
+    recent_matches.sort(key=lambda x: x.get("start_time") or 0, reverse=True)
 
     total_matches = player.get("matchCount", 0)
     total_wins = player.get("winCount", 0)

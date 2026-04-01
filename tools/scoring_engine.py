@@ -13,7 +13,8 @@ DEFAULT_WEIGHTS = {
     "counter":  0.55,
     "win_rate": 0.15,
     "synergy":  0.20,
-    "hero_pool": 0.10,
+    "hero_pool": 0.05,
+    "meta":     0.05,
 }
 
 # Bayesian shrinkage: regress matchup win rates toward 50% based on sample size.
@@ -90,6 +91,14 @@ def get_win_rate(hero_id: int, hero_stats: dict, bracket: str = "7") -> float:
     if picks == 0:
         return 0.5
     return wins / picks
+
+
+def get_pick_count(hero_id: int, hero_stats: dict, bracket: str = "7") -> int:
+    """Return the number of games a hero was picked in the given bracket."""
+    from tools.fetch_hero_data import BRACKET_ENUM
+    bracket_enum = BRACKET_ENUM.get(bracket, "IMMORTAL")
+    stats = hero_stats.get(str(hero_id), {}).get(bracket_enum, {})
+    return stats.get("picks", 0)
 
 
 def get_counter_score(
@@ -198,6 +207,7 @@ def score_candidates(
         if not hero:
             continue
         win_rate = get_win_rate(hero_id, hero_stats, bracket=mmr_bracket)
+        pick_count = get_pick_count(hero_id, hero_stats, bracket=mmr_bracket)
         counter_score, counter_detail = get_counter_score(
             hero_id, enemy_pick_ids, vs_matchups
         )
@@ -207,6 +217,7 @@ def score_candidates(
             "hero_id": hero_id,
             "hero": hero,
             "win_rate": win_rate,
+            "pick_count": pick_count,
             "counter_score": counter_score,
             "counter_detail": counter_detail,
             "synergy_score": synergy_score,
@@ -224,9 +235,13 @@ def score_candidates(
         span = mx - mn
         return [(v - mn) / span for v in values]
 
-    counter_norms = _norm([r["counter_score"] for r in raw])
+    # Counter & synergy use absolute normalization: 0.5 = neutral, scaled so
+    # ±0.05 advantage maps to [0, 1].  This prevents min-max from inflating
+    # noise-level differences (e.g. 1 enemy pick where every hero is ±2%).
+    counter_norms = [max(0.0, min(1.0, 0.5 + r["counter_score"] * 10)) for r in raw]
+    synergy_norms = [max(0.0, min(1.0, 0.5 + r["synergy_score"] * 10)) for r in raw]
     wr_norms      = _norm([r["win_rate"] for r in raw])
-    synergy_norms = _norm([r["synergy_score"] for r in raw])
+    meta_norms    = _norm([r["pick_count"] for r in raw])
     pool_norms    = _norm([r["pool_score"] for r in raw])
 
     # --- Pass 2: apply weights to normalized scores ---
@@ -237,6 +252,7 @@ def score_candidates(
             + w["win_rate"]  * wr_norms[i]
             + w["synergy"]   * synergy_norms[i]
             + w.get("hero_pool", 0) * pool_norms[i]
+            + w.get("meta", 0) * meta_norms[i]
         )
 
         # Attach enemy hero names to counter detail
@@ -268,6 +284,7 @@ def score_candidates(
                     "win_rate_score": round(wr_norms[i], 4),
                     "win_rate_pct": round(r["win_rate"] * 100, 1),
                     "synergy_score": round(synergy_norms[i], 4),
+                    "meta_score": round(meta_norms[i], 4),
                     "hero_pool_score": round(pool_norms[i], 4),
                     "counters_detail": detailed_counters,
                 },

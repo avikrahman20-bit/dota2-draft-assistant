@@ -59,7 +59,8 @@ tools/
 - Matchup data has both `vs` (counter) and `with` (synergy) per hero per bracket
 
 **Scoring Engine**
-- Default weights: counter=0.55, win_rate=0.15, synergy=0.20, hero_pool=0.10 (user-adjustable)
+- Default weights: counter=0.55, win_rate=0.15, synergy=0.20, hero_pool=0.05, meta=0.05 (user-adjustable)
+- Meta weight uses pick rate (games played) in the selected bracket — popular heroes get a boost
 - Hero pool weight boosts heroes in the logged-in user's saved hero pool (1.0 if in pool, 0.0 if not)
 - All components normalized to [0,1] before weighting
 - Bayesian shrinkage (k=400): regresses matchup win rates toward 50% based on sample size
