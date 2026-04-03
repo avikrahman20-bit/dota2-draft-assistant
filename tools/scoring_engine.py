@@ -245,15 +245,34 @@ def score_candidates(
     pool_norms    = _norm([r["pool_score"] for r in raw])
 
     # --- Pass 2: apply weights to normalized scores ---
+    # Only include components that have actual data; redistribute inactive
+    # weight so scores stay meaningful (e.g. synergy is meaningless with no allies).
+    has_enemies = len(enemy_pick_ids) > 0
+    has_allies  = len(ally_pick_ids) > 0
+    has_pool    = bool(hero_pool)
+
+    active_weights = {}
+    active_weights["win_rate"] = w["win_rate"]
+    active_weights["meta"]     = w.get("meta", 0)
+    if has_enemies:
+        active_weights["counter"] = w["counter"]
+    if has_allies:
+        active_weights["synergy"] = w["synergy"]
+    if has_pool:
+        active_weights["hero_pool"] = w.get("hero_pool", 0)
+
+    weight_sum = sum(active_weights.values())
+    scale = 1.0 / weight_sum if weight_sum > 0 else 1.0
+
     results = []
     for i, r in enumerate(raw):
         total = (
-            w["counter"]   * counter_norms[i]
-            + w["win_rate"]  * wr_norms[i]
-            + w["synergy"]   * synergy_norms[i]
-            + w.get("hero_pool", 0) * pool_norms[i]
-            + w.get("meta", 0) * meta_norms[i]
-        )
+            active_weights.get("counter", 0)   * counter_norms[i]
+            + active_weights.get("win_rate", 0) * wr_norms[i]
+            + active_weights.get("synergy", 0)  * synergy_norms[i]
+            + active_weights.get("hero_pool", 0) * pool_norms[i]
+            + active_weights.get("meta", 0)     * meta_norms[i]
+        ) * scale
 
         # Attach enemy hero names to counter detail
         detailed_counters = []

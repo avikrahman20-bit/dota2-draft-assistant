@@ -749,25 +749,6 @@ function renderPickSlots(team, picks) {
 function applyGridScoreOverlays() {
   // Remove existing badges
   document.querySelectorAll('.hero-score-badge').forEach(el => el.remove());
-
-  const scores = state.allScores;
-  if (!scores || Object.keys(scores).length === 0) return;
-
-  // Compute quartile thresholds for color coding
-  const vals = Object.values(scores).sort((a, b) => a - b);
-  const q1 = vals[Math.floor(vals.length * 0.25)];
-  const q3 = vals[Math.floor(vals.length * 0.75)];
-
-  document.querySelectorAll('.hero-card:not(.used)').forEach(card => {
-    const score = scores[card.dataset.heroId];
-    if (score == null) return;
-
-    const badge = document.createElement('div');
-    badge.className = 'hero-score-badge ' +
-      (score >= q3 ? 'badge-high' : score <= q1 ? 'badge-low' : 'badge-mid');
-    badge.textContent = Math.round(score * 100);
-    card.appendChild(badge);
-  });
 }
 
 // ── Threat Panel ──────────────────────────────────────────────
@@ -1032,22 +1013,25 @@ function renderRecommendations() {
       ? 'score-mid' : 'score-low';
 
     // Build counter tags — show both good and bad matchups
-    // Use shrunk win rate (50 + advantage) for display — raw win_rate is misleading on small samples
+    // Display raw win rate + game count from Stratz (consistent with chat assistant)
+    // Threshold lowered to 0.005 so even small-sample matchups show (with game count for context)
     const counterDetail = rec.breakdown.counters_detail || [];
-    const goodCounters = counterDetail.filter(c => c.advantage > 0.02).slice(0, 2);
-    const badCounters = counterDetail.filter(c => c.advantage < -0.02);
+    const goodCounters = counterDetail.filter(c => c.advantage > 0.005);
+    const badCounters = counterDetail.filter(c => c.advantage < -0.005);
 
     const tags = [];
     if (goodCounters.length > 0) {
       const counterLabels = goodCounters.map(c => {
-        const winPct = (50 + c.advantage * 100).toFixed(1);
-        return `${shortName(c.vs_hero)} ${winPct}%`;
+        const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
+        const games = c.games ? ` (${c.games}g)` : '';
+        return `${shortName(c.vs_hero)} ${winPct}%${games}`;
       });
       tags.push(`<span class="tag tag-counter">vs ${counterLabels.join(' · ')}</span>`);
     }
     for (const c of badCounters) {
-      const winPct = (50 + c.advantage * 100).toFixed(1);
-      tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${winPct}%</span>`);
+      const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
+      const games = c.games ? ` (${c.games}g)` : '';
+      tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${winPct}%${games}</span>`);
     }
     tags.push(`<span class="tag tag-wr">WR ${rec.breakdown.win_rate_pct}%</span>`);
     if (rec.breakdown.synergy_score > 0.6) {

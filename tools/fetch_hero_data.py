@@ -130,7 +130,84 @@ def fetch_hero_stats(session) -> dict:
     return stats
 
 
-def run(force: bool = False) -> tuple[dict, dict]:
+# Stratz PositionIds → our role names
+POSITION_MAP = {
+    "POSITION_1": "carry",
+    "POSITION_2": "mid",
+    "POSITION_3": "offlane",
+    "POSITION_4": "support",
+    "POSITION_5": "hard_support",
+}
+
+# Minimum share of a hero's total games in a position to be listed in that role.
+# 10% threshold filters out noise (e.g. Meepo "offlane" at 5%) while keeping
+# real flex picks (e.g. WK offlane at 32%, Doom carry at 12%).
+ROLE_THRESHOLD = 0.10
+
+
+def fetch_role_map(session) -> dict:
+    """
+    Fetch per-hero per-position pick counts from Stratz GraphQL and build
+    a role map based on where heroes are actually played.
+
+    Uses IMMORTAL bracket data as the reference for role classification.
+
+    Returns {role_str: [hero_id, ...]} matching the old role_map.json format.
+    """
+    # Query pick counts per hero for each position at IMMORTAL bracket
+    aliases = []
+    for pos_enum in POSITION_MAP:
+        alias = pos_enum.lower()
+        aliases.append(
+            f'{alias}: heroStats {{ winDay(bracketIds: IMMORTAL, positionIds: {pos_enum}) '
+            f'{{ heroId matchCount }} }}'
+        )
+    query = "{ " + " ".join(aliases) + " }"
+
+    resp = session.post(
+        GRAPHQL,
+        json={"query": query},
+        headers={"Content-Type": "application/json"},
+        timeout=60,
+    )
+    resp.raise_for_status()
+    body = resp.json()
+    if "errors" in body:
+        raise ValueError(f"GraphQL errors: {body['errors']}")
+
+    # Aggregate: {hero_id: {position_enum: total_picks}}
+    hero_pos_picks: dict[int, dict[str, int]] = {}
+    for pos_enum, role_name in POSITION_MAP.items():
+        alias = pos_enum.lower()
+        entries = (body["data"].get(alias) or {}).get("winDay") or []
+        for e in entries:
+            hero_id = e["heroId"]
+            picks = e.get("matchCount", 0) or 0
+            if hero_id not in hero_pos_picks:
+                hero_pos_picks[hero_id] = {}
+            hero_pos_picks[hero_id][pos_enum] = (
+                hero_pos_picks[hero_id].get(pos_enum, 0) + picks
+            )
+
+    # Build role map: hero is listed in a role if ≥ ROLE_THRESHOLD of their games are there
+    role_map: dict[str, list[int]] = {role: [] for role in POSITION_MAP.values()}
+    for hero_id, pos_picks in hero_pos_picks.items():
+        total = sum(pos_picks.values())
+        if total == 0:
+            continue
+        for pos_enum, role_name in POSITION_MAP.items():
+            picks = pos_picks.get(pos_enum, 0)
+            if picks / total >= ROLE_THRESHOLD:
+                role_map[role_name].append(hero_id)
+
+    # Sort each role's hero list for stable output
+    for role in role_map:
+        role_map[role].sort()
+
+    return role_map
+
+
+def run(force: bool = False) -> tuple[dict, dict, dict]:
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     api_key = get_api_key()
     if not api_key:
@@ -139,8 +216,9 @@ def run(force: bool = False) -> tuple[dict, dict]:
             "Get your free key at https://stratz.com/api-token"
         )
 
-    heroes_path = TMP_DIR / "heroes.json"
-    stats_path  = TMP_DIR / "hero_stats.json"
+    heroes_path   = TMP_DIR / "heroes.json"
+    stats_path    = TMP_DIR / "hero_stats.json"
+    role_map_path = TMP_DIR / "role_map.json"
 
     with cffi_requests.Session(impersonate="chrome110") as session:
         session.headers.update({"Authorization": f"Bearer {api_key}"})
@@ -163,11 +241,21 @@ def run(force: bool = False) -> tuple[dict, dict]:
             print(f"Using cached hero stats ({stats_path})", flush=True)
             stats = json.loads(stats_path.read_text())
 
-    return heroes, stats
+        if force or not is_cache_valid(role_map_path):
+            print("Fetching position data to build role map...", flush=True)
+            role_map = fetch_role_map(session)
+            role_map_path.write_text(json.dumps(role_map, indent=2))
+            print(f"  Built role map: {', '.join(f'{r}={len(ids)}' for r, ids in role_map.items())}", flush=True)
+        else:
+            print(f"Using cached role map ({role_map_path})", flush=True)
+            role_map = json.loads(role_map_path.read_text())
+
+    return heroes, stats, role_map
 
 
 if __name__ == "__main__":
     import sys
     force = "--force" in sys.argv
-    heroes, stats = run(force=force)
+    heroes, stats, role_map = run(force=force)
     print(f"\nDone. {len(heroes)} heroes, {len(stats)} stat entries.")
+    print(f"Role map: {', '.join(f'{r}={len(ids)}' for r, ids in role_map.items())}")

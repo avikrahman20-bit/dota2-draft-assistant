@@ -41,7 +41,7 @@ tools/
   scoring_engine.py     # Pure scoring: counter, win rate, synergy → recommendations + draft analysis
   assistant.py          # Claude-powered chat: builds context from live data + patch notes
   patch_notes.py        # Fetches latest patch notes from dota2.com datafeed
-  role_map.json         # Position → hero ID mapping (carry, mid, offlane, support, hard_support)
+  role_map.json         # (DEPRECATED — now auto-generated from Stratz position data into .tmp/role_map.json)
 .env                    # API keys: STRATZ_API_KEY, ANTHROPIC_API_KEY
 .tmp/                   # Cache (disposable, regenerated automatically)
   heroes.json           # Cached hero list

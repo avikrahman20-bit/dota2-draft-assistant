@@ -27,12 +27,8 @@ from tools.fetch_player import fetch_player_summary
 import database as db
 import auth as auth_module
 
-# Load static role → hero ID mapping
-ROLE_MAP_PATH = Path(__file__).parent / "tools" / "role_map.json"
+# Role map: populated dynamically from Stratz position data during cache load
 _role_map: dict[str, list[int]] = {}
-if ROLE_MAP_PATH.exists():
-    with ROLE_MAP_PATH.open() as _f:
-        _role_map = json.load(_f)
 
 # Initialize user database
 db.init_db()
@@ -69,9 +65,11 @@ def _load_cache() -> None:
         # Step 1: Hero list + stats
         _cache["total"] = 1
         _cache["progress"] = 0
-        heroes, stats = fetch_hero_data.run()
+        global _role_map
+        heroes, stats, role_map = fetch_hero_data.run()
         _cache["heroes"] = heroes
         _cache["hero_stats"] = stats
+        _role_map = role_map
 
         # Step 2: Matchups (with progress updates)
         _cache["total"] = len(heroes)
@@ -355,7 +353,7 @@ def recommend(req: RecommendRequest, authorization: Optional[str] = Header(None)
         heroes=_cache["heroes"],
         mmr_bracket=req.mmr_bracket,
         weights=weights,
-        top_n=15,
+        top_n=20,
         hero_pool=hero_pool,
     )
 
@@ -509,9 +507,11 @@ def _load_cache_forced() -> None:
     try:
         _cache["total"] = 1
         _cache["progress"] = 0
-        heroes, stats = fetch_hero_data.run(force=True)
+        global _role_map
+        heroes, stats, role_map = fetch_hero_data.run(force=True)
         _cache["heroes"] = heroes
         _cache["hero_stats"] = stats
+        _role_map = role_map
         _cache["total"] = len(heroes)
         _cache["progress"] = 0
         fetch_matchups.run(force=True, progress_callback=_progress_callback)

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(powershell -Command \"Start-Process python -ArgumentList ''app.py'' -WorkingDirectory ''C:/Users/Khan Gadget/Desktop/Claude''\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/chat -H 'Content-Type: application/json' -d '{\"\"\"\"question\"\"\"\":\"\"\"\"what offlane counters lifestealer?\"\"\"\",\"\"\"\"radiant\"\"\"\":[],\"\"\"\"dire\"\"\"\":[],\"\"\"\"mmr_bracket\"\"\"\":\"\"\"\"7\"\"\"\",\"\"\"\"history\"\"\"\":[],\"\"\"\"my_team\"\"\"\":\"\"\"\"radiant\"\"\"\"}')",
+      "WebSearch",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/chat -H \"Content-Type: application/json\" -d '{\"\"\"\"question\"\"\"\":\"\"\"\"What is Legion Commander win rate vs Leshrac?\"\"\"\",\"\"\"\"radiant\"\"\"\":[54,52],\"\"\"\"dire\"\"\"\":[],\"\"\"\"mmr_bracket\"\"\"\":\"\"\"\"7\"\"\"\",\"\"\"\"history\"\"\"\":[],\"\"\"\"my_team\"\"\"\":\"\"\"\"dire\"\"\"\"}')",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/recommend -H \"Content-Type: application/json\" -d '{\"\"\"\"enemy_picks\"\"\"\":[54,52],\"\"\"\"ally_picks\"\"\"\":[],\"\"\"\"mmr_bracket\"\"\"\":\"\"\"\"7\"\"\"\",\"\"\"\"top_n\"\"\"\":30}')"
+    ]
+  }
+}
