@@ -284,13 +284,28 @@ button {
 }
 .add-target-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
 
-/* Hero Grid */
+/* Hero Grid (collapsible) */
+.hero-grid-toggle {
+  margin-top: 4px;
+}
+.hero-grid-toggle summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 0;
+  user-select: none;
+}
+.hero-grid-toggle summary:hover { color: var(--accent); }
 .hero-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   max-height: 180px;
   overflow-y: auto;
+  margin-top: 6px;
 }
 
 .hero-card {
@@ -323,11 +338,80 @@ button {
   line-height: 1.2;
 }
 
-/* ── Recommendations ─────────────────────────────────────── */
+/* ── Recommendations + Enemy Predictions ────────────────── */
 .recommendations {
   padding: 12px 20px;
-  flex: 1;
 }
+
+/* Enemy predictions panel — full-width, same grid as recommendations */
+.enemy-predictions {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+.enemy-header {
+  padding-bottom: 0;
+}
+.enemy-title { color: var(--dire) !important; }
+.enemy-hint { color: var(--dire) !important; opacity: 0.7; }
+
+.enemy-role-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 0 10px 0;
+  border-bottom: 2px solid var(--dire);
+  margin-bottom: 10px;
+}
+
+.enemy-role-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.enemy-role-btn {
+  background: var(--surface2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.enemy-role-btn.active {
+  background: var(--dire);
+  color: #fff;
+  border-color: var(--dire);
+}
+.enemy-role-btn:hover:not(.active) { border-color: var(--dire); color: var(--dire); }
+
+.enemy-predictions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+
+.enemy-pred-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--dire);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.enemy-pred-card:hover {
+  border-color: var(--dire);
+  background: var(--dire-dim);
+}
+
+.tag-enemy-counter { background: rgba(192,64,64,0.15); color: var(--dire); }
+.tag-enemy-synergy { background: rgba(192,64,64,0.10); color: #e07050; }
+
+.enemy-pred-card .rec-score-bar { background: var(--dire); }
+.enemy-pred-card .rec-score-num { color: var(--dire); }
 
 .rec-header {
   display: flex; align-items: baseline; gap: 12px;
@@ -448,9 +532,16 @@ button {
 .weights-panel summary:hover { color: var(--text); }
 
 .weights-grid {
-  display: flex; flex-wrap: wrap; gap: 12px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 32px;
   padding: 12px;
   border-top: 1px solid var(--border);
+}
+
+.weight-row:last-child {
+  grid-column: 1 / -1;
+  max-width: calc(50% - 16px);
 }
 
 .weights-grid label {
@@ -706,12 +797,12 @@ input[type="range"] {
 
 /* ── Enemy Threat Panel ──────────────────────────────────── */
 .threat-panel {
-  padding: 10px 20px 14px;
+  padding: 10px 20px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
-.threat-header { margin-bottom: 8px; }
+.threat-header { margin-bottom: 6px; }
 
 .threat-title {
   font-size: 11px;
@@ -720,53 +811,156 @@ input[type="range"] {
   color: var(--text-muted);
 }
 
-.threat-list {
+.threat-list { display: flex; flex-direction: column; gap: 0; }
+
+/* Tier labels */
+.threat-tier-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 8px 0 5px;
+  color: var(--text-muted);
+}
+.threat-tier-label.critical { color: var(--score-low); }
+.threat-tier-label.minor    { color: var(--text-muted); margin-top: 8px; }
+
+/* Critical threat cards */
+.threat-card {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-radius: 6px;
+  border-left: 3px solid var(--score-low);
+  margin-bottom: 6px;
 }
 
-.threat-row {
+.threat-card-img {
+  width: 48px; height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+  object-position: center top;
+  flex-shrink: 0;
+}
+
+.threat-card-body { flex: 1; min-width: 0; }
+
+.threat-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.threat-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.threat-card-role {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.threat-sev {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+.sev-critical { background: rgba(255,80,80,0.15); color: var(--score-low); border: 1px solid var(--score-low); }
+.sev-moderate { background: rgba(255,185,60,0.12); color: var(--score-mid); border: 1px solid var(--score-mid); }
+
+.threat-avg-pct {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Matchup tags */
+.threat-matchup-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.threat-tag {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.threat-tag-pct { color: var(--score-low); font-weight: 700; }
+
+/* Action callout */
+.threat-action-text {
+  font-size: 11px;
+  color: var(--accent);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Minor threat rows */
+.threat-minor-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 5px 8px;
-  border-radius: 6px;
   background: var(--surface2);
-  border-left: 3px solid transparent;
+  border-radius: 4px;
+  border-left: 2px solid var(--border);
+  margin-bottom: 4px;
 }
-.threat-row.threat-high { border-left-color: var(--score-low); }
-.threat-row.threat-mid  { border-left-color: var(--score-mid); }
-.threat-row.threat-low  { border-left-color: var(--border); }
 
-.threat-img {
-  width: 28px; height: 28px;
+.threat-minor-img {
+  width: 24px; height: 24px;
   border-radius: 3px;
   object-fit: cover;
   object-position: center top;
   flex-shrink: 0;
 }
 
-.threat-name {
+.threat-minor-name {
   font-size: 12px;
+  font-weight: 600;
   color: var(--text);
-  min-width: 80px;
+  min-width: 90px;
 }
 
-.threat-arrow {
+.threat-minor-role {
+  font-size: 10px;
+  color: var(--text-muted);
+  min-width: 60px;
+}
+
+.threat-minor-detail {
   font-size: 11px;
   color: var(--text-muted);
-  flex-shrink: 0;
+  flex: 1;
 }
 
-.threat-winrate {
-  margin-left: auto;
-  font-size: 13px;
+.threat-minor-pct {
+  font-size: 12px;
   font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
-.threat-winrate.threat-high { color: var(--score-low); }
-.threat-winrate.threat-mid  { color: var(--score-mid); }
-.threat-winrate.threat-low  { color: var(--text-muted); }
 
 /* ── Chat Assistant ──────────────────────────────────────────── */
 #chat-fab {

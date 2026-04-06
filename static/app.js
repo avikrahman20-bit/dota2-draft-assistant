@@ -14,6 +14,8 @@ const state = {
   recommendations: [],
   allScores: {},       // hero_id (str) -> total_score, for grid coloring
   threats: [],         // [{enemy_id, enemy_name, vs_ally_id, vs_ally_name, win_rate}]
+  enemy_predictions: [],
+  enemy_role_filter: '',
   weights: loadWeights(),
   mmr_bracket: loadMmrBracket(),
   role_filter: loadRoleFilter(),
@@ -30,15 +32,18 @@ function loadWeights() {
         (w.counter === 0.75 && w.win_rate === 0.20 && w.role_synergy === 0.05) ||
         (w.counter === 0.65 && w.win_rate === 0.15 && w.role_synergy === 0.20) ||
         (w.counter === 0.65 && w.win_rate === 0.15 && w.synergy === 0.20 && !w.hero_pool) ||
-        (w.counter === 0.55 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.10 && !w.meta);
+        (w.counter === 0.55 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.10 && !w.meta) ||
+        (w.counter === 0.55 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.05 && w.meta === 0.05) ||
+        (w.counter === 0.50 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.05 && w.meta === 0.05);
       if (isOldDefault) {
         localStorage.removeItem('draft_weights');
       } else if (w.meta != null && w.hero_pool != null && w.synergy != null) {
-        return w;  // current format with all keys
+        const { contest, ...rest } = w;
+        return rest;
       } else if (w.synergy != null && w.hero_pool != null) {
-        return { ...w, meta: 0.05 };  // add meta to existing weights
+        return { counter: w.counter, win_rate: w.win_rate, synergy: w.synergy, hero_pool: w.hero_pool, meta: 0.05 };
       } else if (w.synergy != null) {
-        return { ...w, hero_pool: 0.05, meta: 0.05 };
+        return { counter: w.counter, win_rate: w.win_rate, synergy: w.synergy, hero_pool: 0.05, meta: 0.05 };
       } else if (w.role_synergy != null) {
         return { counter: w.counter, win_rate: w.win_rate, synergy: w.role_synergy, hero_pool: 0.05, meta: 0.05 };
       }
@@ -752,6 +757,22 @@ function applyGridScoreOverlays() {
 }
 
 // ── Threat Panel ──────────────────────────────────────────────
+const _THREAT_ACTIONS = {
+  Carry:        'Pressure before BKB. Contest their safe lane — they scale dangerously.',
+  Mid:          'Gank before level 6. Deny rune control or this snowballs.',
+  Offlane:      'Avoid isolated fights. Group for objectives — they win 1v1s.',
+  Support:      'Counter their vision. Their rotations control the map.',
+  'Hard Support': 'Deny early pull camp. They enable the whole team.',
+};
+
+function _threatAction(roles) {
+  const priority = ['Mid', 'Carry', 'Offlane', 'Support', 'Hard Support'];
+  for (const r of priority) {
+    if (roles.includes(r)) return _THREAT_ACTIONS[r] || '';
+  }
+  return 'Track their movements — limited data available.';
+}
+
 function renderThreatPanel() {
   const panel = document.getElementById('threat-panel');
   const list  = document.getElementById('threat-list');
@@ -765,29 +786,65 @@ function renderThreatPanel() {
   }
 
   panel.classList.remove('hidden');
-  list.innerHTML = '';
 
-  state.threats.forEach(t => {
-    const winPct = (t.win_rate * 100).toFixed(1);
-    const adv = t.win_rate - 0.5;
-    const cls = adv >= 0.05 ? 'threat-high' : adv >= 0.02 ? 'threat-mid' : 'threat-low';
-    const enemy = state.heroes[t.enemy_id]    || {};
-    const ally  = state.heroes[t.vs_ally_id]  || {};
+  const threats  = state.threats; // sorted by avg_win_rate desc
+  const critical = threats.slice(0, 2);
+  const minor    = threats.slice(2);
 
-    const row = document.createElement('div');
-    row.className = `threat-row ${cls}`;
-    row.innerHTML = `
-      <img class="threat-img" src="${enemy.img_url || ''}" alt="${t.enemy_name}"
-           onerror="this.style.display='none'">
-      <span class="threat-name">${t.enemy_name}</span>
-      <span class="threat-arrow">counters</span>
-      <img class="threat-img" src="${ally.img_url || ''}" alt="${t.vs_ally_name}"
-           onerror="this.style.display='none'">
-      <span class="threat-name">${t.vs_ally_name}</span>
-      <span class="threat-winrate ${cls}">${winPct}%</span>
-    `;
-    list.appendChild(row);
+  let html = '';
+
+  // ── Critical Threats ──────────────────────────────────────
+  html += `<div class="threat-tier-label critical">CRITICAL THREATS</div>`;
+
+  critical.forEach(t => {
+    const avgPct = (t.avg_win_rate * 100).toFixed(1);
+    const severity = t.avg_win_rate >= 0.53 ? 'CRITICAL' : 'MODERATE';
+    const sevCls   = severity === 'CRITICAL' ? 'sev-critical' : 'sev-moderate';
+    const role     = (t.enemy_roles || [])[0] || '';
+    const action   = _threatAction(t.enemy_roles || []);
+
+    // Worst matchup tags (max 3, only show if win_rate > 0.5)
+    const badMatchups = t.matchups
+      .filter(m => m.win_rate > 0.5)
+      .slice(0, 3)
+      .map(m => `<span class="threat-tag">${m.ally_name} <span class="threat-tag-pct">${(m.win_rate*100).toFixed(0)}%</span></span>`)
+      .join('');
+
+    html += `
+      <div class="threat-card">
+        <img class="threat-card-img" src="${t.enemy_img}" onerror="this.style.display='none'" alt="${t.enemy_name}">
+        <div class="threat-card-body">
+          <div class="threat-card-top">
+            <span class="threat-card-name">${t.enemy_name}</span>
+            <span class="threat-card-role">${role}</span>
+            <span class="threat-sev ${sevCls}">${severity}</span>
+            <span class="threat-avg-pct">${avgPct}% vs your team</span>
+          </div>
+          ${badMatchups ? `<div class="threat-matchup-tags">Counters: ${badMatchups}</div>` : ''}
+          <div class="threat-action-text">→ ${action}</div>
+        </div>
+      </div>`;
   });
+
+  // ── Minor Threats ─────────────────────────────────────────
+  if (minor.length) {
+    html += `<div class="threat-tier-label minor">MINOR THREATS</div>`;
+    minor.forEach(t => {
+      const worstAlly = t.matchups[0];
+      const avgPct    = (t.avg_win_rate * 100).toFixed(1);
+      const role      = (t.enemy_roles || [])[0] || '';
+      html += `
+        <div class="threat-minor-row">
+          <img class="threat-minor-img" src="${t.enemy_img}" onerror="this.style.display='none'" alt="${t.enemy_name}">
+          <span class="threat-minor-name">${t.enemy_name}</span>
+          <span class="threat-minor-role">${role}</span>
+          <span class="threat-minor-detail">worst vs ${worstAlly?.ally_name ?? '—'}</span>
+          <span class="threat-minor-pct">${avgPct}%</span>
+        </div>`;
+    });
+  }
+
+  list.innerHTML = html;
 }
 
 // ── Win Probability ───────────────────────────────────────
@@ -902,28 +959,6 @@ function renderWinProb(data) {
         <span class="wp-prob ${dProb > rProb ? 'wp-winner' : ''}" style="color:var(--dire)">${dProb}%</span>
       </div>
     </div>
-
-    <div class="wp-factors">
-      <div class="wp-section-label">WHY</div>
-      <div class="wp-factor-row ${advCls(comp.matchup_adv)}">
-        <span class="wp-factor-name">Matchup edge</span>
-        <span class="wp-factor-bar-wrap"><div class="wp-factor-bar" style="width:${Math.min(100, Math.abs(comp.matchup_adv) * 400)}%"></div></span>
-        <span class="wp-factor-val">${fmtAdv(comp.matchup_adv)} ${favored(comp.matchup_adv)}</span>
-      </div>
-      <div class="wp-factor-row ${advCls(comp.wr_adv)}">
-        <span class="wp-factor-name">Win rate edge</span>
-        <span class="wp-factor-bar-wrap"><div class="wp-factor-bar" style="width:${Math.min(100, Math.abs(comp.wr_adv) * 400)}%"></div></span>
-        <span class="wp-factor-val">${fmtAdv(comp.wr_adv)} ${favored(comp.wr_adv)} (R:${data.radiant_avg_wr}% / D:${data.dire_avg_wr}%)</span>
-      </div>
-      <div class="wp-factor-row ${advCls(comp.synergy_adv)}">
-        <span class="wp-factor-name">Synergy edge</span>
-        <span class="wp-factor-bar-wrap"><div class="wp-factor-bar" style="width:${Math.min(100, Math.abs(comp.synergy_adv) * 400)}%"></div></span>
-        <span class="wp-factor-val">${fmtAdv(comp.synergy_adv)} ${favored(comp.synergy_adv)}</span>
-      </div>
-    </div>
-
-    ${matchupSection}
-    ${synSection}
   `;
 }
 
@@ -949,6 +984,7 @@ async function fetchRecommendations() {
           weights: state.weights,
           mmr_bracket: state.mmr_bracket,
           role_filter: state.role_filter,
+          enemy_role_filter: state.enemy_role_filter,
         }),
       });
       if (!res.ok) return;
@@ -959,13 +995,15 @@ async function fetchRecommendations() {
         state.allScores = {};
         state.threats = [];
       } else {
-        state.recommendations = data.top || [];
-        state.allScores       = data.all_scores || {};
-        state.threats         = data.threats    || [];
+        state.recommendations    = data.top || [];
+        state.allScores          = data.all_scores || {};
+        state.threats            = data.threats    || [];
+        state.enemy_predictions  = data.enemy_predictions || [];
       }
       renderRecommendations();
       applyGridScoreOverlays();
       renderThreatPanel();
+      renderEnemyPredictions();
     } catch (_) {}
   }, 150);
 }
@@ -1055,12 +1093,102 @@ function renderRecommendations() {
       <div class="rec-score-num ${scoreClass}">${rec.total_score > 0 ? '+' : ''}${rec.total_score.toFixed(3)}</div>
     `;
 
-    // Click a recommendation to add to your team
+    // Click a recommendation to add (respects add_target mode)
     card.addEventListener('click', () => {
-      const allyArr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
-      if (allyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
-        allyArr.push(rec.hero_id);
+      if (state.add_target === 'my-pick') {
+        const allyArr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
+        if (allyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
+          allyArr.push(rec.hero_id);
+          onStateChange();
+          document.getElementById('hero-search').focus();
+        }
+      } else if (state.add_target === 'enemy-pick') {
+        const enemyArr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
+        if (enemyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
+          enemyArr.push(rec.hero_id);
+          onStateChange();
+          document.getElementById('hero-search').focus();
+        }
+      }
+    });
+
+    list.appendChild(card);
+  });
+}
+
+function renderEnemyPredictions() {
+  const panel = document.getElementById('enemy-predictions-panel');
+  const list = document.getElementById('enemy-predictions-list');
+  if (!panel || !list) return;
+
+  const myTeam = state.my_team;
+  const allyPicks = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
+  const enemyPicks = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
+  const preds = state.enemy_predictions;
+
+  // Hide when no picks exist or no predictions
+  if ((allyPicks.length === 0 && enemyPicks.length === 0) || !preds || preds.length === 0) {
+    panel.classList.add('hidden');
+    return;
+  }
+
+  panel.classList.remove('hidden');
+  list.innerHTML = '';
+
+  preds.forEach((pred, i) => {
+    const card = document.createElement('div');
+    card.className = 'enemy-pred-card';
+
+    const barPct = Math.max(10, Math.min(100, pred.total_score * 100 / 0.15));
+
+    // Build tags — from enemy's perspective, counters_detail shows how they counter YOUR heroes
+    const counterDetail = pred.breakdown.counters_detail || [];
+    const goodCounters = counterDetail.filter(c => c.advantage > 0.005);
+    const badCounters = counterDetail.filter(c => c.advantage < -0.005);
+    const tags = [];
+
+    if (goodCounters.length > 0) {
+      const counterLabels = goodCounters.map(c => {
+        const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
+        const games = c.games ? ` (${c.games}g)` : '';
+        return `${shortName(c.vs_hero)} ${winPct}%${games}`;
+      });
+      tags.push(`<span class="tag tag-enemy-counter">vs ${counterLabels.join(' · ')}</span>`);
+    }
+    for (const c of badCounters) {
+      const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
+      const games = c.games ? ` (${c.games}g)` : '';
+      tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${winPct}%${games}</span>`);
+    }
+
+    // Only show synergy tag when enemy actually has picks
+    if (enemyPicks.length > 0 && pred.breakdown.synergy_score > 0.6) {
+      tags.push(`<span class="tag tag-enemy-synergy">Synergy with enemy team</span>`);
+    }
+
+    tags.push(`<span class="tag tag-wr">WR ${pred.breakdown.win_rate_pct}%</span>`);
+
+    card.innerHTML = `
+      <div class="rec-rank">${i + 1}</div>
+      <img class="rec-img" src="${pred.img_url}" alt="${pred.localized_name}"
+           onerror="this.style.display='none'" />
+      <div class="rec-info">
+        <div class="rec-name">${pred.localized_name}</div>
+        <div class="rec-score-bar-wrap">
+          <div class="rec-score-bar" style="width:${barPct}%;background:var(--dire)"></div>
+        </div>
+        <div class="rec-tags">${tags.join('')}</div>
+      </div>
+      <div class="rec-score-num">${pred.total_score > 0 ? '+' : ''}${pred.total_score.toFixed(3)}</div>
+    `;
+
+    // Click always adds to enemy team (these are enemy picks)
+    card.addEventListener('click', () => {
+      const enemyArr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
+      if (enemyArr.length < 5 && !getUsedSet().has(pred.hero_id)) {
+        enemyArr.push(pred.hero_id);
         onStateChange();
+        document.getElementById('hero-search').focus();
       }
     });
 
@@ -1129,6 +1257,7 @@ document.getElementById('my-team-select').addEventListener('change', (e) => {
   fetchRecommendations();
   renderRecommendations();
   renderThreatPanel();
+  renderEnemyPredictions();
 });
 
 document.querySelectorAll('.add-target-btn').forEach(btn => {
@@ -1145,6 +1274,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   state.recommendations = [];
   state.allScores = {};
   state.threats = [];
+  state.enemy_predictions = [];
   const searchEl = document.getElementById('hero-search');
   searchEl.value = '';
   setAddTarget('my-pick');
@@ -1154,6 +1284,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   document.getElementById('rec-hint').textContent = 'Select heroes to see suggestions';
   document.getElementById('winprob-panel').classList.add('hidden');
   renderThreatPanel();
+  renderEnemyPredictions();
   applyGridScoreOverlays();
 });
 
@@ -1198,6 +1329,16 @@ document.querySelectorAll('.role-filter-btn').forEach(btn => {
     btn.classList.add('active');
     state.role_filter = btn.dataset.role;
     saveRoleFilter();
+    fetchRecommendations();
+  });
+});
+
+// Enemy role filter buttons
+document.querySelectorAll('.enemy-role-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.enemy-role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.enemy_role_filter = btn.dataset.erole;
     fetchRecommendations();
   });
 });

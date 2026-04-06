@@ -243,7 +243,6 @@ def score_candidates(
     wr_norms      = _norm([r["win_rate"] for r in raw])
     meta_norms    = _norm([r["pick_count"] for r in raw])
     pool_norms    = _norm([r["pool_score"] for r in raw])
-
     # --- Pass 2: apply weights to normalized scores ---
     # Only include components that have actual data; redistribute inactive
     # weight so scores stay meaningful (e.g. synergy is meaningless with no allies).

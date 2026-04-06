@@ -81,7 +81,7 @@
     </div>
   </section>
 
-  <!-- Hero search + grid -->
+  <!-- Hero search + controls -->
   <section class="hero-picker">
     <div class="picker-controls">
       <input type="text" id="hero-search" placeholder="Search heroes..." autocomplete="off" />
@@ -100,10 +100,60 @@
         <button class="role-filter-btn" data-role="hard_support">Hard Support</button>
       </div>
     </div>
-    <div class="hero-grid" id="hero-grid">
-      <!-- Populated by JS -->
-    </div>
+    <details class="hero-grid-toggle" id="hero-grid-toggle">
+      <summary>Hero Grid</summary>
+      <div class="hero-grid" id="hero-grid">
+        <!-- Populated by JS -->
+      </div>
+    </details>
   </section>
+
+  <!-- Advanced weights panel -->
+  <details class="weights-panel">
+    <summary>⚙ Adjust Scoring Weights</summary>
+    <div class="weights-grid">
+      <div class="weight-row">
+        <label>
+          Counter Weight
+          <input type="range" id="w-counter" min="0" max="1" step="0.05" value="0.55" />
+          <span id="w-counter-val">0.55</span>
+        </label>
+        <div class="weight-hint">How well your pick counters the enemy's heroes. Raise this late in the draft once the enemy lineup is clear.</div>
+      </div>
+      <div class="weight-row">
+        <label>
+          Win Rate Weight
+          <input type="range" id="w-winrate" min="0" max="1" step="0.05" value="0.25" />
+          <span id="w-winrate-val">0.25</span>
+        </label>
+        <div class="weight-hint">Overall strength of the hero at your selected bracket. Raise this early in the draft or when certain heroes are clearly dominant in the meta.</div>
+      </div>
+      <div class="weight-row">
+        <label>
+          Synergy Weight
+          <input type="range" id="w-role" min="0" max="1" step="0.05" value="0.20" />
+          <span id="w-role-val">0.20</span>
+        </label>
+        <div class="weight-hint">How well the hero performs when paired with your current allies, based on real Stratz co-pick win rate data. Raise this when your team comp is mostly decided and you want a synergistic final pick.</div>
+      </div>
+      <div class="weight-row">
+        <label>
+          Hero Pool Weight
+          <input type="range" id="w-heropool" min="0" max="1" step="0.05" value="0.05" />
+          <span id="w-heropool-val">0.05</span>
+        </label>
+        <div class="weight-hint">Boost heroes in your saved hero pool. Set to 0 to ignore your pool, raise it to strongly prefer comfort picks. Requires login with a saved hero pool.</div>
+      </div>
+      <div class="weight-row">
+        <label>
+          Meta Weight
+          <input type="range" id="w-meta" min="0" max="1" step="0.05" value="0.05" />
+          <span id="w-meta-val">0.05</span>
+        </label>
+        <div class="weight-hint">Boost heroes with high pick rates in your bracket. Popular heroes are battle-tested in the current meta. Raise this to favor meta staples over niche picks.</div>
+      </div>
+    </div>
+  </details>
 
   <!-- Recommendations -->
   <section class="recommendations">
@@ -114,53 +164,26 @@
     <div class="rec-list" id="rec-list">
       <!-- Populated by JS -->
     </div>
+  </section>
 
-    <!-- Advanced weights panel -->
-    <details class="weights-panel">
-      <summary>⚙ Adjust Scoring Weights</summary>
-      <div class="weights-grid">
-        <div class="weight-row">
-          <label>
-            Counter Weight
-            <input type="range" id="w-counter" min="0" max="1" step="0.05" value="0.55" />
-            <span id="w-counter-val">0.55</span>
-          </label>
-          <div class="weight-hint">How well your pick counters the enemy's heroes. Raise this late in the draft once the enemy lineup is clear.</div>
-        </div>
-        <div class="weight-row">
-          <label>
-            Win Rate Weight
-            <input type="range" id="w-winrate" min="0" max="1" step="0.05" value="0.25" />
-            <span id="w-winrate-val">0.25</span>
-          </label>
-          <div class="weight-hint">Overall strength of the hero at your selected bracket. Raise this early in the draft or when certain heroes are clearly dominant in the meta.</div>
-        </div>
-        <div class="weight-row">
-          <label>
-            Synergy Weight
-            <input type="range" id="w-role" min="0" max="1" step="0.05" value="0.20" />
-            <span id="w-role-val">0.20</span>
-          </label>
-          <div class="weight-hint">How well the hero performs when paired with your current allies, based on real Stratz co-pick win rate data. Raise this when your team comp is mostly decided and you want a synergistic final pick.</div>
-        </div>
-        <div class="weight-row">
-          <label>
-            Hero Pool Weight
-            <input type="range" id="w-heropool" min="0" max="1" step="0.05" value="0.05" />
-            <span id="w-heropool-val">0.05</span>
-          </label>
-          <div class="weight-hint">Boost heroes in your saved hero pool. Set to 0 to ignore your pool, raise it to strongly prefer comfort picks. Requires login with a saved hero pool.</div>
-        </div>
-        <div class="weight-row">
-          <label>
-            Meta Weight
-            <input type="range" id="w-meta" min="0" max="1" step="0.05" value="0.05" />
-            <span id="w-meta-val">0.05</span>
-          </label>
-          <div class="weight-hint">Boost heroes with high pick rates in your bracket. Popular heroes are battle-tested in the current meta. Raise this to favor meta staples over niche picks.</div>
-        </div>
-      </div>
-    </details>
+  <!-- Enemy Predictions -->
+  <section class="enemy-predictions hidden" id="enemy-predictions-panel">
+    <div class="rec-header enemy-header">
+      <span class="rec-title enemy-title">ENEMY'S BEST PICKS</span>
+      <span class="rec-hint enemy-hint">What the enemy most wants to pick</span>
+    </div>
+    <div class="enemy-role-filter-controls" id="enemy-role-filters">
+      <span class="enemy-role-label">Filter by Role:</span>
+      <button class="enemy-role-btn active" data-erole="">All</button>
+      <button class="enemy-role-btn" data-erole="carry">Carry</button>
+      <button class="enemy-role-btn" data-erole="mid">Mid</button>
+      <button class="enemy-role-btn" data-erole="offlane">Off</button>
+      <button class="enemy-role-btn" data-erole="support">Sup</button>
+      <button class="enemy-role-btn" data-erole="hard_support">Hard Sup</button>
+    </div>
+    <div class="enemy-predictions-list" id="enemy-predictions-list">
+      <!-- Populated by JS -->
+    </div>
   </section>
 
   <!-- Win Probability Panel (shown when both teams have 5 picks) -->

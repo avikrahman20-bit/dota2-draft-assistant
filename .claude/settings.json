@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c ':*)"
+      "Bash(python -c ':*)",
+      "Bash(powershell -Command \"Start-Process python -ArgumentList 'app.py' -WorkingDirectory 'C:/Users/Khan Gadget/Desktop/Dota 2 Draft Assistant'\")",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.sabrina.dev)",
+      "WebFetch(domain:dev.to)",
+      "Read(//c/Users/Khan Gadget/.claude/**)",
+      "Read(//c/Users/Khan Gadget/Desktop/**)",
+      "Bash(printf '@echo off\\\\ncd /d \"C:\\\\\\\\Users\\\\\\\\Khan Gadget\\\\\\\\Desktop\\\\\\\\Dota 2 Draft Assistant\"\\\\n\"C:\\\\\\\\Users\\\\\\\\Khan Gadget\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Programs\\\\\\\\Python\\\\\\\\Python312\\\\\\\\python.exe\" app.py\\\\npause\\\\n')"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Khan Gadget\\.claude"
     ]
   }
 }
