@@ -421,7 +421,7 @@ button {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: var(--text-muted);
+  color: var(--radiant);
 }
 .rec-hint { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
@@ -434,6 +434,7 @@ button {
 .rec-card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--radiant);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -443,7 +444,7 @@ button {
   transition: border-color 0.15s, background 0.15s;
 }
 .rec-card:hover {
-  border-color: var(--accent);
+  border-color: var(--radiant);
   background: var(--surface2);
 }
 
@@ -811,7 +812,7 @@ input[type="range"] {
   color: var(--text-muted);
 }
 
-.threat-list { display: flex; flex-direction: column; gap: 0; }
+.threat-list { display: flex; flex-direction: column; gap: 0; padding-bottom: 80px; }
 
 /* Tier labels */
 .threat-tier-label {
@@ -916,50 +917,9 @@ input[type="range"] {
   line-height: 1.4;
 }
 
-/* Minor threat rows */
-.threat-minor-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  background: var(--surface2);
-  border-radius: 4px;
-  border-left: 2px solid var(--border);
-  margin-bottom: 4px;
-}
-
-.threat-minor-img {
-  width: 24px; height: 24px;
-  border-radius: 3px;
-  object-fit: cover;
-  object-position: center top;
-  flex-shrink: 0;
-}
-
-.threat-minor-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  min-width: 90px;
-}
-
-.threat-minor-role {
-  font-size: 10px;
-  color: var(--text-muted);
-  min-width: 60px;
-}
-
-.threat-minor-detail {
-  font-size: 11px;
-  color: var(--text-muted);
-  flex: 1;
-}
-
-.threat-minor-pct {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  white-space: nowrap;
+/* Minor threat cards (same structure as critical, use threat-card base class) */
+.threat-card.minor {
+  opacity: 0.85;
 }
 
 /* ── Chat Assistant ──────────────────────────────────────────── */
@@ -1679,3 +1639,48 @@ input[type="range"] {
   transition: border-color 0.15s;
 }
 #profile-notes:focus { border-color: var(--accent); }
+.link-error { color: #f85149; font-size: 12px; margin: 4px 0; }
+
+/* ── Mobile Responsive (≤768px) ─────────────────────────────── */
+@media (max-width: 768px) {
+  /* Draft board: stack teams vertically */
+  .draft-board {
+    grid-template-columns: 1fr;
+  }
+
+  /* Recommendations & enemy predictions: single column */
+  .rec-list,
+  .enemy-predictions-list {
+    grid-template-columns: 1fr;
+  }
+
+  /* Weights panel: single column */
+  .weights-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Win probability details: single column */
+  .wp-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Chat panel: full width */
+  .chat-panel {
+    width: 100vw !important;
+    right: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Hero slot size adjustments */
+  :root {
+    --slot-size: 56px;
+    --slot-size-sm: 40px;
+  }
+
+  /* Toolbar wraps on small screens */
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}

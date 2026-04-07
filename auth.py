@@ -28,8 +28,14 @@ def _load_jwt_secret() -> str:
     # Generate and append to .env
     import secrets
     secret = secrets.token_hex(32)
-    with open(_ENV_PATH, "a") as f:
-        f.write(f"\n# JWT signing secret (auto-generated)\nJWT_SECRET={secret}\n")
+    try:
+        with open(_ENV_PATH, "a") as f:
+            f.write(f"\n# JWT signing secret (auto-generated)\nJWT_SECRET={secret}\n")
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to write JWT_SECRET to .env: {e}\n"
+            "Ensure .env file is writable or set JWT_SECRET manually."
+        )
     return secret
 
 
@@ -43,7 +49,10 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode(), hashed.encode())
+    try:
+        return bcrypt.checkpw(password.encode(), hashed.encode())
+    except (ValueError, TypeError):
+        return False
 
 
 def create_token(user_id: int, username: str) -> str:

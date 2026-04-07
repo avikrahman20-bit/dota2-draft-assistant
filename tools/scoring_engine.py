@@ -7,6 +7,7 @@ Usage:
 """
 
 import math as _math
+from tools.utils import hero_name as _hero_name
 
 
 DEFAULT_WEIGHTS = {
@@ -349,7 +350,7 @@ def analyze_draft(
         return wins / picks if picks > 0 else 0.5
 
     def hname(hero_id: int) -> str:
-        return heroes.get(str(hero_id), {}).get("localized_name", str(hero_id))
+        return _hero_name(hero_id, heroes)
 
     def himg(hero_id: int) -> str:
         return heroes.get(str(hero_id), {}).get("img_url", "")

@@ -69,7 +69,8 @@ def _is_new_format(path: Path) -> bool:
         raw = json.loads(path.read_text())
         first = next(iter(raw.values()), None)
         return isinstance(first, dict) and "vs" in first
-    except Exception:
+    except Exception as e:
+        print(f"[warn] Could not read cache file {path.name}: {e}", flush=True)
         return False
 
 

@@ -7,6 +7,7 @@ Opens at http://127.0.0.1:8000
 import collections
 import json
 import logging
+import os
 import sys
 import threading
 import time
@@ -54,6 +55,32 @@ def _check_rate_limit(ip: str, endpoint: str, max_per_minute: int = 30) -> None:
             stale = [k for k, v in _rate_data.items() if not v]
             for k in stale:
                 del _rate_data[k]
+
+# Validate required environment configuration at startup
+def _validate_env():
+    """Check required API keys and configuration. Fail fast with clear error."""
+    errors = []
+
+    stratz_key = os.environ.get("STRATZ_API_KEY", "").strip()
+    if not stratz_key:
+        errors.append("STRATZ_API_KEY not set in .env")
+
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not anthropic_key:
+        errors.append("ANTHROPIC_API_KEY not set in .env")
+
+    jwt_secret = os.environ.get("JWT_SECRET", "").strip()
+    if not jwt_secret:
+        errors.append("JWT_SECRET not set in .env (should auto-generate on first run)")
+
+    if errors:
+        msg = "Startup configuration errors:\n  • " + "\n  • ".join(errors)
+        msg += "\n\nFix: Copy .env.example to .env and fill in your API keys from:"
+        msg += "\n  • Stratz: https://stratz.com/api-token"
+        msg += "\n  • Anthropic: https://console.anthropic.com/"
+        raise RuntimeError(msg)
+
+_validate_env()
 
 # Ensure tools/ is importable
 sys.path.insert(0, str(Path(__file__).parent))
@@ -105,10 +132,12 @@ _cache: dict = {
     "progress": 0,
     "total": 0,
     "error": None,
+    "load_start_time": 0,  # unix timestamp when cache load began
 }
 
 TMP_DIR = Path(__file__).parent / ".tmp"
 _cache_lock = threading.Lock()
+_CACHE_LOAD_TIMEOUT_SECS = 300  # 5 minutes max for initial load
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +150,10 @@ def _progress_callback(done: int, total: int) -> None:
 
 
 def _load_cache(force: bool = False) -> None:
+    with _cache_lock:
+        _cache["load_start_time"] = time.time()
+        _cache["error"] = None
+
     try:
         _cache["total"] = 1
         _cache["progress"] = 0
@@ -136,6 +169,7 @@ def _load_cache(force: bool = False) -> None:
             _role_map            = role_map
             _cache["matchups"]   = matchups
             _cache["ready"]      = True
+            _cache["error"]      = None
         vs_count = sum(len(v) for v in matchups["vs"].values())
         logger.info(
             "%s ready. %d heroes, %d vs matchup entries loaded.",
@@ -214,6 +248,15 @@ def compute_threats(
 
 @app.get("/api/status")
 def get_status():
+    # Check for timeout: if load started but not finished after 5 min, mark error
+    if (not _cache["ready"] and _cache["load_start_time"] > 0 and
+        time.time() - _cache["load_start_time"] > _CACHE_LOAD_TIMEOUT_SECS):
+        _cache["error"] = (
+            "Cache loading timed out after 5 minutes. "
+            "Check that Stratz API is reachable and your API key is valid."
+        )
+        _cache["progress"] = 0
+
     return {
         "ready": _cache["ready"],
         "progress": _cache["progress"],
@@ -395,6 +438,13 @@ def recommend(req: RecommendRequest, request: Request, authorization: Optional[s
     if not _cache["ready"]:
         raise HTTPException(503, "Cache not ready yet")
 
+    # Validate all requested heroes exist
+    all_hero_ids = set(int(k) for k in _cache["heroes"].keys())
+    requested_ids = set(req.ally_picks + req.enemy_picks + req.bans)
+    missing = requested_ids - all_hero_ids
+    if missing:
+        raise HTTPException(400, f"Unknown hero IDs: {sorted(missing)}")
+
     # Resolve hero pool from logged-in user's profile
     hero_pool = []
     user = _get_current_user(authorization)
@@ -402,7 +452,6 @@ def recommend(req: RecommendRequest, request: Request, authorization: Optional[s
         profile = db.get_profile(user["id"])
         hero_pool = profile.get("hero_pool", []) if profile else []
 
-    all_hero_ids = [int(k) for k in _cache["heroes"].keys()]
     excluded = set(req.ally_picks + req.enemy_picks + req.bans)
     candidates = [h for h in all_hero_ids if h not in excluded]
 

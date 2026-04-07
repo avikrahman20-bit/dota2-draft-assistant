@@ -523,7 +523,9 @@ async function pollStatus() {
 
     if (data.error) {
       clearInterval(pollInterval);
-      document.getElementById('splash-status').textContent = 'Error: ' + data.error + ' — restart the server and refresh.';
+      document.getElementById('splash-status').innerHTML =
+        `<strong>⚠ Startup Error</strong><br>${_esc(data.error)}<br><br>` +
+        `<button onclick="location.reload()" style="padding:8px 16px; font-size:14px; cursor:pointer;">Retry</button>`;
       return;
     }
 
@@ -779,21 +781,6 @@ function applyGridScoreOverlays() {
 }
 
 // ── Threat Panel ──────────────────────────────────────────────
-const _THREAT_ACTIONS = {
-  Carry:        'Pressure before BKB. Contest their safe lane — they scale dangerously.',
-  Mid:          'Gank before level 6. Deny rune control or this snowballs.',
-  Offlane:      'Avoid isolated fights. Group for objectives — they win 1v1s.',
-  Support:      'Counter their vision. Their rotations control the map.',
-  'Hard Support': 'Deny early pull camp. They enable the whole team.',
-};
-
-function _threatAction(roles) {
-  const priority = ['Mid', 'Carry', 'Offlane', 'Support', 'Hard Support'];
-  for (const r of priority) {
-    if (roles.includes(r)) return _THREAT_ACTIONS[r] || '';
-  }
-  return 'Track their movements — limited data available.';
-}
 
 function _esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -826,8 +813,6 @@ function renderThreatPanel() {
     const avgPct = (t.avg_win_rate * 100).toFixed(1);
     const severity = t.avg_win_rate >= 0.53 ? 'CRITICAL' : 'MODERATE';
     const sevCls   = severity === 'CRITICAL' ? 'sev-critical' : 'sev-moderate';
-    const role     = (t.enemy_roles || [])[0] || '';
-    const action   = _threatAction(t.enemy_roles || []);
 
     // Worst matchup tags (max 3, only show if win_rate > 0.5)
     const badMatchups = t.matchups
@@ -842,12 +827,10 @@ function renderThreatPanel() {
         <div class="threat-card-body">
           <div class="threat-card-top">
             <span class="threat-card-name">${_esc(t.enemy_name)}</span>
-            <span class="threat-card-role">${_esc(role)}</span>
             <span class="threat-sev ${sevCls}">${severity}</span>
             <span class="threat-avg-pct">${avgPct}% vs your team</span>
           </div>
           ${badMatchups ? `<div class="threat-matchup-tags">Counters: ${badMatchups}</div>` : ''}
-          <div class="threat-action-text">→ ${_esc(action)}</div>
         </div>
       </div>`;
   });
@@ -858,14 +841,19 @@ function renderThreatPanel() {
     minor.forEach(t => {
       const worstAlly = t.matchups[0];
       const avgPct    = (t.avg_win_rate * 100).toFixed(1);
-      const role      = (t.enemy_roles || [])[0] || '';
+      const severity  = t.avg_win_rate >= 0.53 ? 'CRITICAL' : 'MODERATE';
+      const sevCls    = severity === 'CRITICAL' ? 'sev-critical' : 'sev-moderate';
       html += `
-        <div class="threat-minor-row">
-          <img class="threat-minor-img" src="${_esc(t.enemy_img)}" onerror="this.style.display='none'" alt="${_esc(t.enemy_name)}">
-          <span class="threat-minor-name">${_esc(t.enemy_name)}</span>
-          <span class="threat-minor-role">${_esc(role)}</span>
-          <span class="threat-minor-detail">worst vs ${_esc(worstAlly?.ally_name ?? '—')}</span>
-          <span class="threat-minor-pct">${avgPct}%</span>
+        <div class="threat-card minor">
+          <img class="threat-card-img" src="${_esc(t.enemy_img)}" onerror="this.style.display='none'" alt="${_esc(t.enemy_name)}">
+          <div class="threat-card-body">
+            <div class="threat-card-top">
+              <span class="threat-card-name">${_esc(t.enemy_name)}</span>
+              <span class="threat-sev ${sevCls}">${severity}</span>
+              <span class="threat-avg-pct">${avgPct}% vs your team</span>
+            </div>
+            ${worstAlly ? `<div class="threat-matchup-tags">Counters: <span class="threat-tag">${_esc(worstAlly?.ally_name ?? '—')} <span class="threat-tag-pct">${(worstAlly.win_rate*100).toFixed(0)}%</span></span></div>` : ''}
+          </div>
         </div>`;
     });
   }
@@ -1013,7 +1001,26 @@ async function fetchRecommendations() {
           enemy_role_filter: state.enemy_role_filter,
         }),
       });
-      if (!res.ok) return;
+
+      if (!res.ok) {
+        let errorMsg = '';
+        if (res.status === 503) {
+          errorMsg = 'Recommendations unavailable — cache still loading. Retry in a moment.';
+        } else if (res.status === 400) {
+          try {
+            const err = await res.json();
+            errorMsg = err.detail || 'Invalid request';
+          } catch (_) {
+            errorMsg = `Error ${res.status}: Check your hero selections`;
+          }
+        } else {
+          errorMsg = `Error ${res.status} fetching recommendations`;
+        }
+        document.getElementById('rec-hint').textContent = errorMsg;
+        document.getElementById('rec-list').innerHTML = '';
+        return;
+      }
+
       const data = await res.json();
       // Handle both old list format and new {top, all_scores, threats} format
       if (Array.isArray(data)) {
@@ -1030,7 +1037,9 @@ async function fetchRecommendations() {
       applyGridScoreOverlays();
       renderThreatPanel();
       renderEnemyPredictions();
-    } catch (_) {}
+    } catch (err) {
+      document.getElementById('rec-hint').textContent = 'Network error fetching recommendations';
+    }
   }, 150);
 }
 

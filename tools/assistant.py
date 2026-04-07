@@ -11,6 +11,7 @@ import anthropic
 from tools.patch_notes import get_patch_notes
 from tools.fetch_hero_data import BRACKET_ENUM as STATS_BRACKET_ENUM
 from tools.fetch_matchups import BRACKET_ENUM as MATCHUP_BRACKET_ENUM
+from tools.utils import hero_name as _hero_name_util
 
 # Load API key from .env (already loaded by app.py via python-dotenv or os.environ)
 _client: anthropic.Anthropic | None = None
@@ -32,7 +33,7 @@ def _get_client() -> anthropic.Anthropic:
 
 
 def _hero_name(hero_id: int, heroes: dict) -> str:
-    return heroes.get(str(hero_id), {}).get("localized_name", str(hero_id))
+    return _hero_name_util(hero_id, heroes)
 
 
 def _build_meta_context(
@@ -406,7 +407,11 @@ def _build_user_context(user_profile: dict | None, heroes: dict) -> str:
             lines.append(f"  • {fb['feedback']}{hero_note}")
 
     lines.append("")
-    return "\n".join(lines)
+    result = "\n".join(lines)
+    # Cap user context to ~4000 chars to avoid bloating the system prompt
+    if len(result) > 4000:
+        result = result[:3950] + "\n...[profile truncated]"
+    return result
 
 
 def answer(

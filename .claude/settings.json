@@ -8,7 +8,11 @@
       "WebFetch(domain:dev.to)",
       "Read(//c/Users/Khan Gadget/.claude/**)",
       "Read(//c/Users/Khan Gadget/Desktop/**)",
-      "Bash(printf '@echo off\\\\ncd /d \"C:\\\\\\\\Users\\\\\\\\Khan Gadget\\\\\\\\Desktop\\\\\\\\Dota 2 Draft Assistant\"\\\\n\"C:\\\\\\\\Users\\\\\\\\Khan Gadget\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Programs\\\\\\\\Python\\\\\\\\Python312\\\\\\\\python.exe\" app.py\\\\npause\\\\n')"
+      "Bash(printf '@echo off\\\\ncd /d \"C:\\\\\\\\Users\\\\\\\\Khan Gadget\\\\\\\\Desktop\\\\\\\\Dota 2 Draft Assistant\"\\\\n\"C:\\\\\\\\Users\\\\\\\\Khan Gadget\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Programs\\\\\\\\Python\\\\\\\\Python312\\\\\\\\python.exe\" app.py\\\\npause\\\\n')",
+      "Bash(gh pr:*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python)",
+      "Bash(python -m pytest tests/ -v --tb=short)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Khan Gadget\\.claude"

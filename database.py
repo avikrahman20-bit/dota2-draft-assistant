@@ -106,11 +106,16 @@ def get_profile(user_id: int) -> dict:
         if not row:
             return {}
         profile = dict(row)
-        profile["preferred_roles"] = json.loads(profile["preferred_roles"])
-        profile["hero_pool"] = json.loads(profile["hero_pool"])
-        profile["playstyle_tags"] = json.loads(profile.get("playstyle_tags") or "[]")
-        profile["custom_weights"] = json.loads(profile["custom_weights"])
-        profile["player_stats"] = json.loads(profile.get("player_stats") or "{}")
+        def _loads(val, fallback):
+            try:
+                return json.loads(val) if val else fallback
+            except (json.JSONDecodeError, TypeError):
+                return fallback
+        profile["preferred_roles"] = _loads(profile["preferred_roles"], [])
+        profile["hero_pool"]        = _loads(profile["hero_pool"], [])
+        profile["playstyle_tags"]   = _loads(profile.get("playstyle_tags"), [])
+        profile["custom_weights"]   = _loads(profile["custom_weights"], {})
+        profile["player_stats"]     = _loads(profile.get("player_stats"), {})
         return profile
 
 
