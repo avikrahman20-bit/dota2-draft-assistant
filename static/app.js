@@ -63,7 +63,7 @@ function saveRoleFilter() { localStorage.setItem('draft_role_filter', state.role
 // ── Auth State ───────────────────────────────────────────────
 const authState = {
   token: localStorage.getItem('auth_token') || null,
-  user: JSON.parse(localStorage.getItem('auth_user') || 'null'),
+  user: (() => { try { return JSON.parse(localStorage.getItem('auth_user') || 'null'); } catch (_) { return null; } })(),
   profile: null,
 };
 
@@ -378,6 +378,9 @@ async function linkDotaAccount() {
   btn.disabled = true;
   btn.textContent = 'Linking...';
 
+  const errEl = document.getElementById('link-account-error');
+  if (errEl) errEl.classList.add('hidden');
+
   try {
     const res = await fetch('/api/link_account', {
       method: 'POST',
@@ -386,7 +389,7 @@ async function linkDotaAccount() {
     });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.detail || 'Could not link account');
+      if (errEl) { errEl.textContent = data.detail || 'Could not link account'; errEl.classList.remove('hidden'); }
       return;
     }
     // Update local profile
@@ -396,7 +399,7 @@ async function linkDotaAccount() {
     showAccountStatus(data);
     renderPlayerStats(data);
   } catch (err) {
-    alert('Network error linking account');
+    if (errEl) { errEl.textContent = 'Network error — try again'; errEl.classList.remove('hidden'); }
   } finally {
     btn.disabled = false;
     btn.textContent = 'Link';
@@ -405,13 +408,14 @@ async function linkDotaAccount() {
 
 async function unlinkDotaAccount() {
   if (!confirm('Unlink your Dota 2 account?')) return;
+  const errEl = document.getElementById('link-account-error');
   try {
     const res = await fetch('/api/unlink_account', {
       method: 'POST',
       headers: authHeaders(),
     });
     if (!res.ok) {
-      alert('Could not unlink account');
+      if (errEl) { errEl.textContent = 'Could not unlink account'; errEl.classList.remove('hidden'); }
       return;
     }
     // Clear local state
@@ -423,7 +427,7 @@ async function unlinkDotaAccount() {
     document.getElementById('account-status').classList.add('hidden');
     document.getElementById('player-stats-section').classList.add('hidden');
   } catch (err) {
-    alert('Network error unlinking account');
+    if (errEl) { errEl.textContent = 'Network error — try again'; errEl.classList.remove('hidden'); }
   }
 }
 
@@ -518,7 +522,8 @@ async function pollStatus() {
     const data = await res.json();
 
     if (data.error) {
-      document.getElementById('splash-status').textContent = 'Error: ' + data.error;
+      clearInterval(pollInterval);
+      document.getElementById('splash-status').textContent = 'Error: ' + data.error + ' — restart the server and refresh.';
       return;
     }
 
@@ -540,8 +545,15 @@ async function pollStatus() {
 
 async function initApp() {
   // Fetch hero list
-  const res = await fetch('/api/heroes');
-  const heroes = await res.json();
+  let heroes;
+  try {
+    const res = await fetch('/api/heroes');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    heroes = await res.json();
+  } catch (err) {
+    document.getElementById('splash-status').textContent = 'Failed to load heroes — refresh or restart the server.';
+    return;
+  }
 
   for (const [id, hero] of Object.entries(heroes)) {
     state.heroes[parseInt(id)] = hero;
@@ -626,6 +638,15 @@ function renderHeroGrid(filter = '') {
   applyGridScoreOverlays();
 }
 
+// Update only used/unused state on existing grid cards (no DOM rebuild)
+function updateHeroGridUsed() {
+  const used = getUsedSet();
+  document.querySelectorAll('#hero-grid .hero-card').forEach(card => {
+    const id = parseInt(card.dataset.heroId);
+    card.classList.toggle('used', used.has(id));
+  });
+}
+
 function getUsedSet() {
   return new Set([...state.radiant_picks, ...state.dire_picks, ...state.bans]);
 }
@@ -696,7 +717,8 @@ function handleSlotClick(type, index) {
 
 function onStateChange() {
   renderDraftBoard();
-  renderHeroGrid(document.getElementById('hero-search').value);
+  updateHeroGridUsed();
+  applyGridScoreOverlays();
   fetchRecommendations();
   if (state.radiant_picks.length === 5 && state.dire_picks.length === 5) {
     fetchDraftAnalysis();
@@ -773,6 +795,10 @@ function _threatAction(roles) {
   return 'Track their movements — limited data available.';
 }
 
+function _esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function renderThreatPanel() {
   const panel = document.getElementById('threat-panel');
   const list  = document.getElementById('threat-list');
@@ -812,16 +838,16 @@ function renderThreatPanel() {
 
     html += `
       <div class="threat-card">
-        <img class="threat-card-img" src="${t.enemy_img}" onerror="this.style.display='none'" alt="${t.enemy_name}">
+        <img class="threat-card-img" src="${_esc(t.enemy_img)}" onerror="this.style.display='none'" alt="${_esc(t.enemy_name)}">
         <div class="threat-card-body">
           <div class="threat-card-top">
-            <span class="threat-card-name">${t.enemy_name}</span>
-            <span class="threat-card-role">${role}</span>
+            <span class="threat-card-name">${_esc(t.enemy_name)}</span>
+            <span class="threat-card-role">${_esc(role)}</span>
             <span class="threat-sev ${sevCls}">${severity}</span>
             <span class="threat-avg-pct">${avgPct}% vs your team</span>
           </div>
           ${badMatchups ? `<div class="threat-matchup-tags">Counters: ${badMatchups}</div>` : ''}
-          <div class="threat-action-text">→ ${action}</div>
+          <div class="threat-action-text">→ ${_esc(action)}</div>
         </div>
       </div>`;
   });
@@ -835,10 +861,10 @@ function renderThreatPanel() {
       const role      = (t.enemy_roles || [])[0] || '';
       html += `
         <div class="threat-minor-row">
-          <img class="threat-minor-img" src="${t.enemy_img}" onerror="this.style.display='none'" alt="${t.enemy_name}">
-          <span class="threat-minor-name">${t.enemy_name}</span>
-          <span class="threat-minor-role">${role}</span>
-          <span class="threat-minor-detail">worst vs ${worstAlly?.ally_name ?? '—'}</span>
+          <img class="threat-minor-img" src="${_esc(t.enemy_img)}" onerror="this.style.display='none'" alt="${_esc(t.enemy_name)}">
+          <span class="threat-minor-name">${_esc(t.enemy_name)}</span>
+          <span class="threat-minor-role">${_esc(role)}</span>
+          <span class="threat-minor-detail">worst vs ${_esc(worstAlly?.ally_name ?? '—')}</span>
           <span class="threat-minor-pct">${avgPct}%</span>
         </div>`;
     });
@@ -1403,7 +1429,11 @@ async function sendChatMessage() {
         history: chatHistory.slice(-10),  // last 10 turns for context
       }),
     });
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) {
+      let msg = `Error ${res.status}`;
+      try { const e = await res.json(); msg = e.detail || msg; } catch (_) {}
+      throw new Error(msg);
+    }
     const data = await res.json();
     thinking.remove();
     appendChatMsg('assistant', data.reply);
@@ -1411,7 +1441,7 @@ async function sendChatMessage() {
     chatHistory.push({ role: 'assistant', content: data.reply  });
   } catch (err) {
     thinking.remove();
-    appendChatMsg('assistant', '⚠ Error: ' + err.message);
+    appendChatMsg('assistant', 'Error: ' + err.message);
   } finally {
     btn.disabled = false;
     input.focus();

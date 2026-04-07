@@ -4,6 +4,7 @@ Run: python app.py
 Opens at http://127.0.0.1:8000
 """
 
+import collections
 import json
 import logging
 import sys
@@ -13,13 +14,46 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
+import anthropic as _anthropic
 import uvicorn
+from dotenv import load_dotenv
+load_dotenv()  # Load .env into os.environ before any tool modules are imported
+
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+)
 logger = logging.getLogger(__name__)
+
+# ── Simple per-IP rate limiter ────────────────────────────────────────────────
+# Sliding-window: track timestamps of recent requests per (ip, endpoint).
+_rate_data: dict[str, collections.deque] = {}
+_rate_lock = threading.Lock()
+
+
+def _check_rate_limit(ip: str, endpoint: str, max_per_minute: int = 30) -> None:
+    key = f"{ip}:{endpoint}"
+    now = time.monotonic()
+    window = 60.0
+    with _rate_lock:
+        dq = _rate_data.setdefault(key, collections.deque())
+        # Drop timestamps older than the window
+        while dq and now - dq[0] > window:
+            dq.popleft()
+        if len(dq) >= max_per_minute:
+            logger.warning("Rate limit hit: %s on %s", ip, endpoint)
+            raise HTTPException(429, "Too many requests — slow down")
+        dq.append(now)
+        # Evict empty keys to prevent unbounded dict growth
+        if len(_rate_data) > 5000:
+            stale = [k for k, v in _rate_data.items() if not v]
+            for k in stale:
+                del _rate_data[k]
 
 # Ensure tools/ is importable
 sys.path.insert(0, str(Path(__file__).parent))
@@ -47,6 +81,19 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Dota 2 Draft Assistant", lifespan=lifespan)
 
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all API requests with method, path, status, and elapsed time."""
+    start = time.monotonic()
+    response = await call_next(request)
+    elapsed = time.monotonic() - start
+    if request.url.path.startswith("/api/"):
+        level = logging.WARNING if response.status_code >= 400 else logging.INFO
+        logger.log(level, "%s %s → %d (%.3fs)", request.method, request.url.path, response.status_code, elapsed)
+    return response
+
+
 # ---------------------------------------------------------------------------
 # In-memory state
 # ---------------------------------------------------------------------------
@@ -73,19 +120,14 @@ def _progress_callback(done: int, total: int) -> None:
     _cache["total"] = total
 
 
-def _load_cache() -> None:
+def _load_cache(force: bool = False) -> None:
     try:
-        # Step 1: Hero list + stats
         _cache["total"] = 1
         _cache["progress"] = 0
-        heroes, stats, role_map = fetch_hero_data.run()
-
-        # Step 2: Matchups (with progress updates)
+        heroes, stats, role_map = fetch_hero_data.run(force=force)
         _cache["total"] = len(heroes)
         _cache["progress"] = 0
-        fetch_matchups.run(progress_callback=_progress_callback)
-
-        # Step 3: Atomic swap — readers never see partial state
+        fetch_matchups.run(force=force, progress_callback=_progress_callback)
         matchups = fetch_matchups.load_all_matchups()
         with _cache_lock:
             global _role_map
@@ -94,22 +136,29 @@ def _load_cache() -> None:
             _role_map            = role_map
             _cache["matchups"]   = matchups
             _cache["ready"]      = True
-
         vs_count = sum(len(v) for v in matchups["vs"].values())
-        print(
-            f"\nServer ready. {len(heroes)} heroes, "
-            f"{vs_count} vs matchup entries loaded.",
-            flush=True,
+        logger.info(
+            "%s ready. %d heroes, %d vs matchup entries loaded.",
+            "Force refresh" if force else "Server", len(heroes), vs_count,
         )
     except Exception as e:
         _cache["error"] = str(e)
-        print(f"\nStartup error: {e}", flush=True)
+        logger.error("%s error: %s", "Force refresh" if force else "Startup", e)
 
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _matchups_for_bracket(mmr_bracket: str) -> dict:
+    """Return {"vs": ..., "with": ...} slice from cache for the given bracket UI value."""
+    bracket_enum = fetch_matchups.BRACKET_ENUM.get(mmr_bracket, "DIVINE_IMMORTAL")
+    return {
+        "vs":   _cache["matchups"].get("vs",   {}).get(bracket_enum, {}),
+        "with": _cache["matchups"].get("with", {}).get(bracket_enum, {}),
+    }
+
 
 def compute_threats(
     enemy_ids: list[int],
@@ -341,7 +390,8 @@ class RecommendRequest(BaseModel):
 
 
 @app.post("/api/recommend")
-def recommend(req: RecommendRequest, authorization: Optional[str] = Header(None)):
+def recommend(req: RecommendRequest, request: Request, authorization: Optional[str] = Header(None)):
+    _check_rate_limit(request.client.host, "recommend", max_per_minute=60)
     if not _cache["ready"]:
         raise HTTPException(503, "Cache not ready yet")
 
@@ -363,11 +413,8 @@ def recommend(req: RecommendRequest, authorization: Optional[str] = Header(None)
 
     weights = {**DEFAULT_WEIGHTS, **req.weights} if req.weights else None
 
-    # Select the matchup slice for the requested bracket
-    bracket_enum = fetch_matchups.BRACKET_ENUM.get(req.mmr_bracket, "DIVINE_IMMORTAL")
-    vs_for_bracket   = _cache["matchups"]["vs"].get(bracket_enum, {})
-    with_for_bracket = _cache["matchups"]["with"].get(bracket_enum, {})
-    matchups_for_bracket = {"vs": vs_for_bracket, "with": with_for_bracket}
+    matchups_for_bracket = _matchups_for_bracket(req.mmr_bracket)
+    vs_for_bracket   = matchups_for_bracket["vs"]
 
     # Enemy predictions first — scores are used as denial_scores for ally ranking
     enemy_candidates_all = [h for h in all_hero_ids if h not in excluded]
@@ -425,21 +472,19 @@ class DraftAnalysisRequest(BaseModel):
 
 
 @app.post("/api/draft_analysis")
-def draft_analysis(req: DraftAnalysisRequest):
+def draft_analysis(req: DraftAnalysisRequest, request: Request):
+    _check_rate_limit(request.client.host, "draft_analysis", max_per_minute=20)
     if not _cache.get("ready"):
         raise HTTPException(503, "Cache not ready yet")
     if len(req.radiant) != 5 or len(req.dire) != 5:
         raise HTTPException(400, "Need exactly 5 heroes per team")
 
-    bracket_enum     = fetch_matchups.BRACKET_ENUM.get(req.mmr_bracket, "DIVINE_IMMORTAL")
-    vs_for_bracket   = _cache["matchups"].get("vs",   {}).get(bracket_enum, {})
-    with_for_bracket = _cache["matchups"].get("with", {}).get(bracket_enum, {})
-
+    m = _matchups_for_bracket(req.mmr_bracket)
     return analyze_draft(
         radiant_ids=req.radiant,
         dire_ids=req.dire,
-        vs_matchups=vs_for_bracket,
-        with_matchups=with_for_bracket,
+        vs_matchups=m["vs"],
+        with_matchups=m["with"],
         hero_stats=_cache["hero_stats"],
         heroes=_cache["heroes"],
         bracket=req.mmr_bracket,
@@ -457,7 +502,8 @@ class ChatRequest(BaseModel):
 
 
 @app.post("/api/chat")
-def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
+def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Header(None)):
+    _check_rate_limit(request.client.host, "chat", max_per_minute=20)
     if not _cache.get("ready"):
         raise HTTPException(503, "Cache not ready yet")
     if not req.question.strip():
@@ -480,8 +526,8 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
                         fresh_stats["_fetched_at"] = time.time()
                         db.update_profile(user["id"], player_stats=fresh_stats)
                         user_profile["player_stats"] = fresh_stats
-                except Exception:
-                    pass  # Use cached stats if refresh fails
+                except Exception as refresh_err:
+                    logger.warning("Stratz stats refresh failed: %s", refresh_err)
         # Include recent feedback for AI context
         user_profile["recent_feedback"] = db.get_recent_feedback(user["id"], limit=10)
 
@@ -503,15 +549,11 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
         excluded = set(ally_ids + enemy_ids)
         candidates = [h for h in all_hero_ids if h not in excluded]
 
-        bracket_enum = fetch_matchups.BRACKET_ENUM.get(req.mmr_bracket, "DIVINE_IMMORTAL")
-        vs_for_bracket = _cache["matchups"]["vs"].get(bracket_enum, {})
-        with_for_bracket = _cache["matchups"]["with"].get(bracket_enum, {})
-
         result = score_candidates(
             candidate_ids=candidates,
             enemy_pick_ids=enemy_ids,
             ally_pick_ids=ally_ids,
-            all_matchups={"vs": vs_for_bracket, "with": with_for_bracket},
+            all_matchups=_matchups_for_bracket(req.mmr_bracket),
             hero_stats=_cache["hero_stats"],
             heroes=_cache["heroes"],
             mmr_bracket=req.mmr_bracket,
@@ -537,8 +579,14 @@ def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
             my_team=req.my_team,
         )
         return {"reply": reply}
-    except Exception:
+    except Exception as e:
         logger.exception("Chat endpoint error")
+        if isinstance(e, _anthropic.AuthenticationError):
+            raise HTTPException(500, "Anthropic API key is invalid or missing")
+        if isinstance(e, _anthropic.RateLimitError):
+            raise HTTPException(429, "AI rate limit reached — try again in a moment")
+        if isinstance(e, _anthropic.APIConnectionError):
+            raise HTTPException(502, "Could not connect to Anthropic API")
         raise HTTPException(500, "An error occurred processing your request")
 
 
@@ -553,33 +601,8 @@ def refresh(req: RefreshRequest, request: Request):
     if not _cache["ready"]:
         raise HTTPException(503, "Still loading initial cache")
     _cache["ready"] = False
-    thread = threading.Thread(
-        target=_load_cache_forced if req.force else _load_cache, daemon=True
-    )
-    thread.start()
+    threading.Thread(target=_load_cache, kwargs={"force": req.force}, daemon=True).start()
     return {"message": "Refresh started in background"}
-
-
-def _load_cache_forced() -> None:
-    try:
-        _cache["total"] = 1
-        _cache["progress"] = 0
-        heroes, stats, role_map = fetch_hero_data.run(force=True)
-        _cache["total"] = len(heroes)
-        _cache["progress"] = 0
-        fetch_matchups.run(force=True, progress_callback=_progress_callback)
-        matchups = fetch_matchups.load_all_matchups()
-        with _cache_lock:
-            global _role_map
-            _cache["heroes"]     = heroes
-            _cache["hero_stats"] = stats
-            _role_map            = role_map
-            _cache["matchups"]   = matchups
-            _cache["ready"]      = True
-        print("Force refresh complete.", flush=True)
-    except Exception as e:
-        _cache["error"] = str(e)
-        print(f"Force refresh error: {e}", flush=True)
 
 
 # ---------------------------------------------------------------------------
@@ -612,4 +635,4 @@ if __name__ == "__main__":
     # Open browser after short delay to let server start
     threading.Timer(1.5, lambda: webbrowser.open("http://127.0.0.1:8000")).start()
 
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")

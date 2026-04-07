@@ -222,7 +222,7 @@
       </div>
       <div class="form-group">
         <label for="auth-password">Password</label>
-        <input type="password" id="auth-password" required minlength="6" />
+        <input type="password" id="auth-password" required minlength="8" />
       </div>
       <div class="form-error hidden" id="auth-error"></div>
       <button type="submit" class="btn-primary" id="auth-submit-btn">Log In</button>
@@ -253,6 +253,7 @@
           <input type="text" id="profile-dota-id" placeholder="Enter your Dota 2 Friend ID" />
           <button type="button" class="btn-accent" id="link-account-btn">Link</button>
         </div>
+        <div id="link-account-error" class="link-error hidden"></div>
         <div class="account-hint">Find your Friend ID in Dota 2: top-left corner of your profile. Public match data required.</div>
         <div class="account-status hidden" id="account-status">
           <div class="account-info" id="account-info"></div>
