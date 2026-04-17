@@ -36,6 +36,10 @@ BRACKET_ENUM = {
 
 
 def get_api_key() -> str:
+    import os
+    key = os.environ.get("STRATZ_API_KEY", "").strip()
+    if key:
+        return key
     env_path = Path(__file__).parent.parent / ".env"
     if env_path.exists():
         for line in env_path.read_text().splitlines():
