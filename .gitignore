@@ -3,8 +3,8 @@
 credentials.json
 token.json
 
-# Temp files
-.tmp/
+# Temp files — committed so Railway doesn't re-fetch on startup
+# .tmp/
 
 # Python
 __pycache__/
