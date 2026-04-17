@@ -56,6 +56,8 @@ def _check_rate_limit(ip: str, endpoint: str, max_per_minute: int = 30) -> None:
             for k in stale:
                 del _rate_data[k]
 
+DAILY_CHAT_LIMIT = 50
+
 # Validate required environment configuration at startup
 def _validate_env():
     """Check required API keys and configuration. Fail fast with clear error."""
@@ -481,10 +483,13 @@ def recommend(req: RecommendRequest, request: Request, authorization: Optional[s
     )
     # Apply enemy role filter for display (post-slice from oversized top)
     enemy_top = enemy_result["top"]
+    logger.info(f"Enemy predictions before filter: {len(enemy_top)}, enemy_role_filter={repr(req.enemy_role_filter)}")
     if req.enemy_role_filter and req.enemy_role_filter in _role_map:
         enemy_role_set = set(_role_map[req.enemy_role_filter])
         enemy_top = [h for h in enemy_top if h["hero_id"] in enemy_role_set]
+        logger.info(f"After role filter: {len(enemy_top)} heroes in role '{req.enemy_role_filter}'")
     enemy_top = enemy_top[:15]
+    logger.info(f"Final enemy predictions: {len(enemy_top)}")
 
     result = score_candidates(
         candidate_ids=candidates,
@@ -558,9 +563,16 @@ def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Head
     if not req.question.strip():
         raise HTTPException(400, "Empty question")
 
-    # Load user profile if logged in, refresh Stratz stats if linked
-    user_profile = None
     user = _get_current_user(authorization)
+    if not user:
+        raise HTTPException(401, "Login required to use AI chat")
+
+    used = db.get_chat_count_today(user["id"])
+    if used >= DAILY_CHAT_LIMIT:
+        raise HTTPException(429, f"Daily chat limit of {DAILY_CHAT_LIMIT} messages reached — resets at midnight UTC")
+
+    # Load user profile, refresh Stratz stats if linked
+    user_profile = None
     if user:
         user_profile = db.get_profile(user["id"])
         user_profile["username"] = user["username"]
@@ -627,7 +639,9 @@ def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Head
             recommendations=recommendations,
             my_team=req.my_team,
         )
-        return {"reply": reply}
+        db.increment_chat_count(user["id"])
+        remaining = DAILY_CHAT_LIMIT - used - 1
+        return {"reply": reply, "chats_remaining": remaining}
     except Exception as e:
         logger.exception("Chat endpoint error")
         if isinstance(e, _anthropic.AuthenticationError):
@@ -675,13 +689,12 @@ def index():
 
 if __name__ == "__main__":
     import webbrowser
-    import time
 
-    print("Starting Dota 2 Draft Assistant...")
-    print("Opening http://127.0.0.1:8000 in your browser.")
-    print("First run will cache hero data (~2-3 minutes). Subsequent runs are instant.\n")
-
-    # Open browser after short delay to let server start
-    threading.Timer(1.5, lambda: webbrowser.open("http://127.0.0.1:8000")).start()
-
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
+    port = int(os.environ.get("PORT", 8000))
+    host = "0.0.0.0" if os.environ.get("RAILWAY_ENVIRONMENT") else "127.0.0.1"
+    if host == "127.0.0.1":
+        print("Starting Dota 2 Draft Assistant...")
+        print(f"Opening http://127.0.0.1:{port} in your browser.")
+        print("First run will cache hero data (~2-3 minutes). Subsequent runs are instant.\n")
+        threading.Timer(1.5, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
+    uvicorn.run(app, host=host, port=port, log_level="info")

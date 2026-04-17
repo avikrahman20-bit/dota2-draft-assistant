@@ -70,6 +70,13 @@ def init_db():
                 draft_context TEXT   DEFAULT '',
                 created_at  TEXT    DEFAULT (datetime('now'))
             );
+
+            CREATE TABLE IF NOT EXISTS chat_usage (
+                user_id  INTEGER REFERENCES users(id),
+                date     TEXT,
+                count    INTEGER DEFAULT 0,
+                PRIMARY KEY (user_id, date)
+            );
         """)
 
 
@@ -154,6 +161,29 @@ def add_feedback(user_id: int, hero_id: int | None, feedback: str, draft_context
             "INSERT INTO chat_feedback (user_id, hero_id, feedback, draft_context) VALUES (?, ?, ?, ?)",
             (user_id, hero_id, feedback, draft_context),
         )
+
+
+def get_chat_count_today(user_id: int) -> int:
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT count FROM chat_usage WHERE user_id = ? AND date = date('now')",
+            (user_id,)
+        ).fetchone()
+        return row["count"] if row else 0
+
+
+def increment_chat_count(user_id: int) -> int:
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO chat_usage (user_id, date, count) VALUES (?, date('now'), 1) "
+            "ON CONFLICT(user_id, date) DO UPDATE SET count = count + 1",
+            (user_id,)
+        )
+        row = conn.execute(
+            "SELECT count FROM chat_usage WHERE user_id = ? AND date = date('now')",
+            (user_id,)
+        ).fetchone()
+        return row["count"]
 
 
 def get_recent_feedback(user_id: int, limit: int = 20) -> list[dict]:

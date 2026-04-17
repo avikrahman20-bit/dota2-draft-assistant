@@ -1448,6 +1448,9 @@ async function sendChatMessage() {
     appendChatMsg('assistant', data.reply);
     chatHistory.push({ role: 'user',      content: question    });
     chatHistory.push({ role: 'assistant', content: data.reply  });
+    if (data.chats_remaining !== undefined && data.chats_remaining <= 10) {
+      appendChatMsg('assistant', `⚠️ ${data.chats_remaining} AI messages remaining today.`);
+    }
   } catch (err) {
     thinking.remove();
     appendChatMsg('assistant', 'Error: ' + err.message);
