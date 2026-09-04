@@ -21,3 +21,4 @@ users.db
 .DS_Store
 Thumbs.db
 backups/
+.tmp/gsi_token.txt

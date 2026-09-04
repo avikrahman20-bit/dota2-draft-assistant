@@ -228,6 +228,25 @@ async def main():
 
         await js("localStorage.removeItem('draft_state_v1')")
 
+        # ═══ Phase 6: live sync fills the board from a (simulated) GSI payload ═══
+        import urllib.request as _u
+        token = open("C:/Users/Khan Gadget/Desktop/Dota 2 Draft Assistant/.tmp/gsi_token.txt").read().strip()
+        payload = json.dumps({"auth": {"token": token}, "map": {"matchid": "smoke-1", "game_state": "DOTA_GAMERULES_STATE_HERO_SELECTION"},
+                              "player": {"team_name": "dire"},
+                              "draft": {"activeteam": 3, "pick": True, "team2": {"pick0_id": 8, "pick1_id": 11, "ban0_id": 2}, "team3": {"pick0_id": 1, "ban0_id": 3}}}).encode()
+        await js("state.radiant_picks=[]; state.dire_picks=[]; state.bans=[]; onStateChange(); setGsiEnabled(true);")
+        _u.urlopen(_u.Request(URL + "api/gsi", data=payload, headers={"Content-Type": "application/json"}, method="POST")).read()
+        await js(sleep % 1600)
+        board = await js("[state.radiant_picks, state.dire_picks, state.bans, state.my_team, state.add_target]")
+        pill = await js("document.getElementById('live-pill').textContent")
+        check("GSI payload fills board, sets my team + target", board == [[8, 11], [1], [2, 3], 'dire', 'my-pick'], f"{board} pill={pill}")
+        # manual edit survives while the game sends nothing new
+        await js("setAddTarget('ban'); handleHeroCardClick(5);")
+        await js(sleep % 1300)
+        bans = await js("state.bans")
+        check("manual edit kept until the game changes", bans == [2, 3, 5], str(bans))
+        await js("setGsiEnabled(false); state.my_team='radiant'; document.getElementById('my-team-select').value='radiant'; updateYouBadge(); localStorage.removeItem('gsi_enabled');")
+
         # ── console errors ───────────────────────────────────────────
         await js(sleep % 300)
         check("no uncaught JS errors / console.error", len(errors) == 0, "; ".join(errors)[:300])

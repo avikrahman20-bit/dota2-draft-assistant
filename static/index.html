@@ -44,7 +44,8 @@
       </select>
       <button id="undo-btn" class="btn-secondary" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button>
       <button id="reset-btn" class="btn-secondary">Reset Draft</button>
-      <button id="settings-btn" class="btn-ghost" title="Scoring weights">⚙ Settings</button>
+      <button id="live-pill" class="live-pill hidden" type="button" title="Live sync with your Dota 2 client">● Live</button>
+      <button id="settings-btn" class="btn-ghost" title="Scoring weights and live sync">⚙ Settings</button>
       <button id="refresh-btn" class="btn-ghost">↻ Refresh Data</button>
       <div class="auth-controls" id="auth-controls">
         <button id="login-btn" class="btn-ghost" title="Save your hero pool, sync settings, and use AI chat">Log In <span class="login-hint">· pool &amp; AI chat</span></button>
@@ -269,6 +270,17 @@
     <div class="profile-actions">
       <button type="button" class="btn-secondary" id="weights-reset-btn">Reset to defaults</button>
       <span class="form-status hidden" id="weights-status">Reset</span>
+    </div>
+
+    <div class="profile-section gsi-section hidden" id="gsi-section">
+      <div class="section-label">LIVE SYNC WITH DOTA 2 <span class="section-hint">reads the draft straight from your game client</span></div>
+      <div class="gsi-status" id="gsi-status">Checking…</div>
+      <div class="gsi-actions">
+        <button type="button" class="btn-accent btn-sm" id="gsi-install-btn">Install game config</button>
+        <label class="gsi-toggle"><input type="checkbox" id="gsi-enable" /> Auto-fill the board from the game</label>
+      </div>
+      <div class="account-hint">Writes <code>gamestate_integration_draft_assistant.cfg</code> into your Dota 2 cfg folder. Restart Dota 2 once after installing. Works on this PC only (the game talks to <code>127.0.0.1</code>).</div>
+      <div class="account-hint hidden" id="gsi-paths"></div>
     </div>
   </div>
 </div>

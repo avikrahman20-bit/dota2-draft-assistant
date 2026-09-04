@@ -150,6 +150,119 @@ function renderTeamNeeds() {
   }));
 }
 
+// ── Live sync with the Dota 2 client (Game State Integration) ─
+const gsi = { enabled: localStorage.getItem('gsi_enabled') === '1', installed: false, connected: false, lastSig: '', timer: null };
+
+function draftSig(r, d, b, team) { return JSON.stringify([r, d, b, team]); }
+
+function setLivePill(mode, text) {
+  const pill = document.getElementById('live-pill');
+  if (!pill) return;
+  pill.classList.remove('hidden', 'on', 'waiting', 'off');
+  pill.classList.add(mode);
+  pill.textContent = text;
+}
+
+async function gsiRefreshSetup() {
+  try {
+    const r = await fetch('/api/gsi/setup');
+    if (!r.ok) return;
+    const d = await r.json();
+    gsi.installed = d.installed.length > 0;
+    const paths = document.getElementById('gsi-paths');
+    if (paths) {
+      paths.classList.toggle('hidden', !gsi.installed);
+      paths.textContent = gsi.installed ? `Config: ${d.installed.join(', ')}` : '';
+    }
+    const btn = document.getElementById('gsi-install-btn');
+    if (btn) btn.textContent = gsi.installed ? 'Reinstall game config' : 'Install game config';
+    if (!d.candidates.length && btn) btn.title = 'Dota 2 install not found automatically';
+  } catch (_) {}
+  renderGsiStatus();
+}
+
+function renderGsiStatus() {
+  const el = document.getElementById('gsi-status');
+  if (!el) return;
+  if (!gsi.installed) el.innerHTML = `<span class="warn">Not installed.</span> Install the config, then restart Dota 2.`;
+  else if (!gsi.enabled) el.innerHTML = `Installed. Auto-fill is <b>off</b>.`;
+  else if (gsi.connected) el.innerHTML = `<span class="ok">Connected</span> — the game is sending state. The board follows the in-game draft.`;
+  else el.innerHTML = `<span class="warn">Waiting for Dota 2…</span> Launch the game (after a restart) and the board will fill during hero selection.`;
+}
+
+async function gsiPoll() {
+  if (!gsi.enabled) return;
+  try {
+    const r = await fetch('/api/gsi/state');
+    if (!r.ok) throw new Error();
+    const s = await r.json();
+    const was = gsi.connected;
+    gsi.connected = !!s.connected;
+    if (gsi.connected) setLivePill('on', s.in_draft ? '● Live · drafting' : '● Live');
+    else setLivePill('waiting', '○ Live · waiting for Dota');
+    if (was !== gsi.connected) renderGsiStatus();
+    if (!gsi.connected) return;
+
+    const valid = id => state.heroes[id] != null;
+    const r_ = (s.radiant || []).filter(valid), d_ = (s.dire || []).filter(valid), b_ = (s.bans || []).filter(valid);
+    const sig = draftSig(r_, d_, b_, s.my_team);
+    if (sig === gsi.lastSig) return;          // nothing new from the game; keep any manual edits
+    gsi.lastSig = sig;
+    if (!r_.length && !d_.length && !b_.length) return;
+
+    pushUndo();
+    state.radiant_picks = r_; state.dire_picks = d_; state.bans = b_.slice(0, MAX_BANS);
+    if (s.my_team && s.my_team !== state.my_team) {
+      state.my_team = s.my_team;
+      localStorage.setItem('my_team', s.my_team);
+      document.getElementById('my-team-select').value = s.my_team;
+      updateAddTargetLabels(); updateYouBadge();
+    }
+    if (s.picking != null && s.active_team) {
+      setAddTarget(s.picking ? (s.active_team === state.my_team ? 'my-pick' : 'enemy-pick') : 'ban');
+    }
+    onStateChange();
+  } catch (_) {
+    if (gsi.connected) { gsi.connected = false; renderGsiStatus(); }
+    setLivePill('off', '○ Live');
+  }
+}
+
+function setGsiEnabled(on) {
+  gsi.enabled = on;
+  localStorage.setItem('gsi_enabled', on ? '1' : '0');
+  const cb = document.getElementById('gsi-enable'); if (cb) cb.checked = on;
+  clearInterval(gsi.timer); gsi.timer = null;
+  if (on) { gsi.lastSig = ''; gsiPoll(); gsi.timer = setInterval(gsiPoll, 1000); }
+  else { gsi.connected = false; setLivePill('off', '○ Live off'); }
+  renderGsiStatus();
+}
+
+function setupLiveSync() {
+  document.getElementById('gsi-section')?.classList.remove('hidden');
+  document.getElementById('gsi-enable').addEventListener('change', (e) => setGsiEnabled(e.target.checked));
+  document.getElementById('gsi-install-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('gsi-install-btn');
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/gsi/install', { method: 'POST' });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || `Error ${r.status}`);
+      showToast(`Game config installed. Restart Dota 2 to activate.`, 'success', 6000);
+      await gsiRefreshSetup();
+      if (!gsi.enabled) setGsiEnabled(true);
+    } catch (e) {
+      showToast(e.message, 'error', 7000);
+    } finally { btn.disabled = false; }
+  });
+  document.getElementById('live-pill').addEventListener('click', () => { openSettings(); document.getElementById('gsi-section').scrollIntoView({ block: 'nearest' }); });
+  gsiRefreshSetup().then(() => {
+    if (gsi.installed && gsi.enabled) setGsiEnabled(true);
+    else if (gsi.installed) setLivePill('off', '○ Live off');
+    else setLivePill('off', '○ Live setup');
+  });
+}
+
 // ── Settings modal (weights) ─────────────────────────────────
 function openSettings() {
   document.getElementById('settings-modal').classList.remove('hidden');
@@ -1128,6 +1241,7 @@ async function initApp() {
 
   // Server capability gating
   if (!state.can_refresh) document.getElementById('refresh-btn').classList.add('hidden');
+  if (state.can_refresh) setupLiveSync();   // GSI only makes sense on the machine running Dota
   if (!state.chat_enabled) {
     const fab = document.getElementById('chat-fab');
     fab.title = 'AI chat is not configured on this server';

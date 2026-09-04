@@ -827,6 +827,213 @@ def chat_quota(authorization: Optional[str] = Header(None)):
     return {"used": used, "limit": DAILY_CHAT_LIMIT, "remaining": max(0, DAILY_CHAT_LIMIT - used)}
 
 
+# ---------------------------------------------------------------------------
+# Dota 2 Game State Integration (local only)
+# The Dota client POSTs its state to /api/gsi; the UI polls /api/gsi/state.
+# ---------------------------------------------------------------------------
+import re as _re
+import secrets as _secrets
+
+_GSI_CFG_NAME = "gamestate_integration_draft_assistant.cfg"
+_GSI_TOKEN_FILE = TMP_DIR / "gsi_token.txt"
+_GSI_STALE_SECS = 15.0
+_gsi_lock = threading.Lock()
+_gsi_state: dict = {
+    "updated_at": 0.0, "match_id": None, "game_state": "",
+    "radiant": [], "dire": [], "bans": [], "my_team": None, "active_team": None, "picking": None,
+}
+
+
+def _gsi_token() -> str:
+    try:
+        if _GSI_TOKEN_FILE.exists():
+            t = _GSI_TOKEN_FILE.read_text().strip()
+            if t:
+                return t
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+        t = _secrets.token_hex(16)
+        _GSI_TOKEN_FILE.write_text(t)
+        return t
+    except Exception:
+        return "draft-assistant"
+
+
+def _gsi_candidate_dirs() -> list[Path]:
+    """Likely Dota 2 cfg/gamestate_integration folders on this machine."""
+    roots = []
+    for env in ("ProgramFiles(x86)", "ProgramFiles"):
+        base = os.environ.get(env)
+        if base:
+            roots.append(Path(base) / "Steam")
+    for drive in "CDEF":
+        roots += [Path(f"{drive}:/Steam"), Path(f"{drive}:/SteamLibrary"), Path(f"{drive}:/Games/Steam")]
+    # Steam library folders listed in libraryfolders.vdf
+    for r in list(roots):
+        vdf = r / "steamapps" / "libraryfolders.vdf"
+        if vdf.exists():
+            try:
+                for m in _re.finditer(r'"path"\s+"([^"]+)"', vdf.read_text(errors="ignore")):
+                    roots.append(Path(m.group(1).replace("\\\\", "/")))
+            except Exception:
+                pass
+    out, seen = [], set()
+    for r in roots:
+        d = r / "steamapps" / "common" / "dota 2 beta" / "game" / "dota" / "cfg" / "gamestate_integration"
+        key = str(d).lower()
+        if key not in seen and d.parent.exists():
+            seen.add(key)
+            out.append(d)
+    return out
+
+
+def _gsi_cfg_text(port: int) -> str:
+    return f'''"Dota 2 Draft Assistant"
+{{
+    "uri"           "http://127.0.0.1:{port}/api/gsi"
+    "timeout"       "5.0"
+    "buffer"        "0.1"
+    "throttle"      "0.2"
+    "heartbeat"     "10.0"
+    "data"
+    {{
+        "provider"  "1"
+        "map"       "1"
+        "player"    "1"
+        "hero"      "1"
+        "draft"     "1"
+    }}
+    "auth"
+    {{
+        "token"     "{_gsi_token()}"
+    }}
+}}
+'''
+
+
+def _parse_gsi_payload(p: dict) -> dict:
+    """Pull picks/bans/team/phase out of a raw GSI payload. Returns a partial update dict."""
+    upd: dict = {}
+    m = p.get("map") or {}
+    if m:
+        upd["match_id"] = m.get("matchid") or None
+        upd["game_state"] = m.get("game_state") or ""
+    pl = p.get("player") or {}
+    team_name = (pl.get("team_name") or "").lower()
+    if team_name in ("radiant", "dire"):
+        upd["my_team"] = team_name
+
+    draft = p.get("draft") or {}
+    if draft:
+        picks = {"radiant": [], "dire": []}
+        bans: list[int] = []
+        for key, team in (("team2", "radiant"), ("team3", "dire")):
+            block = draft.get(key) or {}
+            slots = {}
+            for k, v in block.items():
+                mm = _re.match(r"^(pick|ban)(\d+)_id$", k)
+                if not mm:
+                    continue
+                try:
+                    hid = int(v)
+                except (TypeError, ValueError):
+                    continue
+                if hid > 0:
+                    slots[(mm.group(1), int(mm.group(2)))] = hid
+            for (kind, idx) in sorted(slots):
+                (picks[team] if kind == "pick" else bans).append(slots[(kind, idx)])
+        upd["radiant"], upd["dire"], upd["bans"] = picks["radiant"], picks["dire"], bans
+        at = draft.get("activeteam")
+        upd["active_team"] = {2: "radiant", 3: "dire"}.get(at) if isinstance(at, int) else None
+        upd["picking"] = draft.get("pick")
+    else:
+        # In-game (no draft block): at least keep the local player's hero on their side
+        hero = p.get("hero") or {}
+        hid = hero.get("id")
+        if isinstance(hid, int) and hid > 0 and team_name in ("radiant", "dire"):
+            upd.setdefault("_own_hero", (team_name, hid))
+    return upd
+
+
+@app.post("/api/gsi")
+async def gsi_ingest(request: Request):
+    if not _is_local(request):
+        raise HTTPException(403, "GSI is local only")
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(400, "Invalid JSON")
+    token = ((payload.get("auth") or {}).get("token") or "")
+    if token != _gsi_token():
+        raise HTTPException(403, "Bad GSI token")
+    upd = _parse_gsi_payload(payload)
+    with _gsi_lock:
+        if upd.get("match_id") and upd["match_id"] != _gsi_state.get("match_id"):
+            # New match: forget the previous draft
+            _gsi_state.update(radiant=[], dire=[], bans=[], active_team=None, picking=None)
+        own = upd.pop("_own_hero", None)
+        _gsi_state.update(upd)
+        if own:
+            team, hid = own
+            if hid not in _gsi_state[team] and hid not in _gsi_state["radiant"] + _gsi_state["dire"]:
+                _gsi_state[team] = list(_gsi_state[team]) + [hid]
+        _gsi_state["updated_at"] = time.time()
+    return {"ok": True}
+
+
+@app.get("/api/gsi/state")
+def gsi_state(request: Request):
+    if not _is_local(request):
+        raise HTTPException(403, "GSI is local only")
+    with _gsi_lock:
+        s = dict(_gsi_state)
+    age = time.time() - s["updated_at"] if s["updated_at"] else None
+    s["connected"] = age is not None and age < _GSI_STALE_SECS
+    s["age"] = round(age, 1) if age is not None else None
+    s["in_draft"] = s["game_state"] == "DOTA_GAMERULES_STATE_HERO_SELECTION"
+    return s
+
+
+@app.get("/api/gsi/setup")
+def gsi_setup(request: Request):
+    """Where the cfg would go / already is."""
+    if not _is_local(request):
+        raise HTTPException(403, "GSI is local only")
+    dirs = _gsi_candidate_dirs()
+    installed = [str(d / _GSI_CFG_NAME) for d in dirs if (d / _GSI_CFG_NAME).exists()]
+    return {"candidates": [str(d) for d in dirs], "installed": installed, "cfg_name": _GSI_CFG_NAME}
+
+
+@app.post("/api/gsi/install")
+def gsi_install(request: Request):
+    """Write the GSI cfg into every detected Dota 2 install. Dota reads it on next launch."""
+    if not _is_local(request):
+        raise HTTPException(403, "GSI is local only")
+    dirs = _gsi_candidate_dirs()
+    if not dirs:
+        raise HTTPException(404, "Could not find a Dota 2 install (…/dota 2 beta/game/dota/cfg). Install the cfg manually.")
+    port = int(os.environ.get("PORT", 8000))
+    written = []
+    for d in dirs:
+        try:
+            d.mkdir(parents=True, exist_ok=True)
+            (d / _GSI_CFG_NAME).write_text(_gsi_cfg_text(port), encoding="utf-8")
+            written.append(str(d / _GSI_CFG_NAME))
+        except Exception as e:
+            logger.warning("GSI cfg write failed for %s: %s", d, e)
+    if not written:
+        raise HTTPException(500, "Found Dota 2 but could not write the cfg (permissions?)")
+    return {"written": written}
+
+
+@app.get("/api/gsi/cfg")
+def gsi_cfg(request: Request):
+    """Raw cfg text for manual installation."""
+    if not _is_local(request):
+        raise HTTPException(403, "GSI is local only")
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(_gsi_cfg_text(int(os.environ.get("PORT", 8000))))
+
+
 class RefreshRequest(BaseModel):
     force: bool = False
 

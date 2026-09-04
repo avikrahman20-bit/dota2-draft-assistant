@@ -2115,3 +2115,21 @@ input[type="range"] {
 .toast.success { border-left-color: var(--score-high); }
 @keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
 .bracket-suggest-btn { margin-left: 6px; }
+
+
+/* ── Phase 6: live sync (GSI) ─────────────────────────────── */
+.live-pill {
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  border-radius: 12px; padding: 3px 10px; font-size: 12px; font-weight: 600;
+}
+.live-pill.on      { border-color: var(--score-high); color: var(--score-high); }
+.live-pill.waiting { border-color: var(--score-mid);  color: var(--score-mid); }
+.live-pill.off     { opacity: 0.7; }
+.gsi-section { border-top: 1px solid var(--border); padding-top: 14px; }
+.gsi-status { font-size: 13px; margin-bottom: 8px; }
+.gsi-status .ok { color: var(--score-high); }
+.gsi-status .warn { color: var(--score-mid); }
+.gsi-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.gsi-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; }
+.gsi-toggle input { accent-color: var(--accent); }
+.gsi-section code { background: var(--bg); padding: 0 4px; border-radius: 3px; font-size: 11px; }
