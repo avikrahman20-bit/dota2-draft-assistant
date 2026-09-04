@@ -23,6 +23,7 @@ from curl_cffi import requests as cffi_requests
 STRATZ_URL = "https://api.stratz.com/graphql"
 TMP_DIR = Path(__file__).parent.parent / ".tmp"
 MATCHUPS_DIR = TMP_DIR / "matchups_stratz"
+BUNDLE = TMP_DIR / "matchups_bundle.json"   # single committed file; per-hero dir is a local working cache
 DELAY = 0.5  # seconds between requests (conservative for free tier)
 
 _BRACKETS = ["DIVINE_IMMORTAL", "LEGEND_ANCIENT", "CRUSADER_ARCHON", "HERALD_GUARDIAN"]
@@ -185,6 +186,8 @@ def run(force: bool = False, progress_callback=None) -> int:
     hero_ids = load_hero_ids()
     total = len(hero_ids)
     fetched = 0
+    if not force:
+        _explode_bundle_if_needed()
 
     with cffi_requests.Session(impersonate="chrome110") as session:
         for i, hero_id in enumerate(hero_ids):
@@ -218,7 +221,34 @@ def run(force: bool = False, progress_callback=None) -> int:
 
     if fetched > 0:
         write_fetch_stamp()
+        write_bundle()
     return fetched
+
+
+def write_bundle() -> None:
+    """Pack every per-hero file into one JSON so git sees one diff instead of 128."""
+    data = {}
+    for path in MATCHUPS_DIR.glob("*.json"):
+        try:
+            data[path.stem] = json.loads(path.read_text())
+        except Exception as e:
+            print(f"[warn] skip {path.name}: {e}", flush=True)
+    if data:
+        BUNDLE.write_text(json.dumps(data, separators=(",", ":")))
+
+
+def _explode_bundle_if_needed() -> None:
+    """On a fresh checkout only the bundle exists; unpack it so the normal cache checks apply."""
+    if any(MATCHUPS_DIR.glob("*.json")) or not BUNDLE.exists():
+        return
+    try:
+        data = json.loads(BUNDLE.read_text())
+    except Exception as e:
+        print(f"[warn] Could not read matchup bundle: {e}", flush=True)
+        return
+    for hero_id, payload in data.items():
+        (MATCHUPS_DIR / f"{hero_id}.json").write_text(json.dumps(payload))
+    print(f"Unpacked {len(data)} heroes from matchup bundle", flush=True)
 
 
 FETCH_STAMP = TMP_DIR / "last_fetch.json"

@@ -1,3812 +1,3812 @@
 {
   "1": {
     "IMMORTAL": {
-      "wins": 4510,
-      "picks": 9290
+      "wins": 4271,
+      "picks": 8492
     },
     "DIVINE": {
-      "wins": 10364,
-      "picks": 21580
+      "wins": 13756,
+      "picks": 27860
     },
     "ANCIENT": {
-      "wins": 19376,
-      "picks": 40039
+      "wins": 35029,
+      "picks": 70654
     },
     "LEGEND": {
-      "wins": 34910,
-      "picks": 71603
+      "wins": 64282,
+      "picks": 128917
     },
     "ARCHON": {
-      "wins": 52745,
-      "picks": 107901
+      "wins": 83542,
+      "picks": 167272
     },
     "CRUSADER": {
-      "wins": 66859,
-      "picks": 136034
+      "wins": 86812,
+      "picks": 173557
     },
     "HERALD": {
-      "wins": 42180,
-      "picks": 85518
+      "wins": 17578,
+      "picks": 35726
     }
   },
   "2": {
     "IMMORTAL": {
-      "wins": 8299,
-      "picks": 16154
+      "wins": 13060,
+      "picks": 26809
     },
     "DIVINE": {
-      "wins": 18841,
-      "picks": 36577
+      "wins": 33678,
+      "picks": 69096
     },
     "ANCIENT": {
-      "wins": 33070,
-      "picks": 63825
+      "wins": 74426,
+      "picks": 151359
     },
     "LEGEND": {
-      "wins": 56615,
-      "picks": 108487
+      "wins": 120586,
+      "picks": 242119
     },
     "ARCHON": {
-      "wins": 81094,
-      "picks": 155196
+      "wins": 137534,
+      "picks": 272407
     },
     "CRUSADER": {
-      "wins": 97603,
-      "picks": 184400
+      "wins": 124561,
+      "picks": 243543
     },
     "HERALD": {
-      "wins": 48368,
-      "picks": 91063
+      "wins": 19513,
+      "picks": 37514
     }
   },
   "3": {
     "IMMORTAL": {
-      "wins": 2475,
-      "picks": 4963
+      "wins": 5499,
+      "picks": 10737
     },
     "DIVINE": {
-      "wins": 4298,
-      "picks": 8287
+      "wins": 10214,
+      "picks": 19851
     },
     "ANCIENT": {
-      "wins": 6210,
-      "picks": 12075
+      "wins": 18408,
+      "picks": 36210
     },
     "LEGEND": {
-      "wins": 9305,
-      "picks": 18481
+      "wins": 26706,
+      "picks": 53698
     },
     "ARCHON": {
-      "wins": 12221,
-      "picks": 24353
+      "wins": 30456,
+      "picks": 62196
     },
     "CRUSADER": {
-      "wins": 13805,
-      "picks": 28142
+      "wins": 28162,
+      "picks": 58621
     },
     "HERALD": {
-      "wins": 7150,
-      "picks": 15262
+      "wins": 4550,
+      "picks": 9618
     }
   },
   "4": {
     "IMMORTAL": {
-      "wins": 2494,
-      "picks": 4999
+      "wins": 1205,
+      "picks": 2350
     },
     "DIVINE": {
-      "wins": 4373,
-      "picks": 8489
+      "wins": 3960,
+      "picks": 7691
     },
     "ANCIENT": {
-      "wins": 7657,
-      "picks": 14858
+      "wins": 10416,
+      "picks": 19996
     },
     "LEGEND": {
-      "wins": 13216,
-      "picks": 25423
+      "wins": 18610,
+      "picks": 36086
     },
     "ARCHON": {
-      "wins": 20351,
-      "picks": 39562
+      "wins": 27464,
+      "picks": 53666
     },
     "CRUSADER": {
-      "wins": 27481,
-      "picks": 53404
+      "wins": 36503,
+      "picks": 72066
     },
     "HERALD": {
-      "wins": 34021,
-      "picks": 66245
+      "wins": 15636,
+      "picks": 30807
     }
   },
   "5": {
     "IMMORTAL": {
-      "wins": 6479,
-      "picks": 12833
+      "wins": 8389,
+      "picks": 17105
     },
     "DIVINE": {
-      "wins": 14461,
-      "picks": 28582
+      "wins": 23738,
+      "picks": 47375
     },
     "ANCIENT": {
-      "wins": 24949,
-      "picks": 48911
+      "wins": 54812,
+      "picks": 107587
     },
     "LEGEND": {
-      "wins": 41744,
-      "picks": 81472
+      "wins": 92266,
+      "picks": 179210
     },
     "ARCHON": {
-      "wins": 60912,
-      "picks": 118011
+      "wins": 114263,
+      "picks": 219692
     },
     "CRUSADER": {
-      "wins": 75286,
-      "picks": 143184
+      "wins": 113395,
+      "picks": 215568
     },
     "HERALD": {
-      "wins": 45559,
-      "picks": 85220
+      "wins": 20037,
+      "picks": 37452
     }
   },
   "6": {
     "IMMORTAL": {
-      "wins": 5471,
-      "picks": 10504
+      "wins": 6817,
+      "picks": 15252
     },
     "DIVINE": {
-      "wins": 13294,
-      "picks": 25814
+      "wins": 22133,
+      "picks": 48013
     },
     "ANCIENT": {
-      "wins": 24104,
-      "picks": 46950
+      "wins": 51381,
+      "picks": 110029
     },
     "LEGEND": {
-      "wins": 42566,
-      "picks": 83093
+      "wins": 89529,
+      "picks": 188412
     },
     "ARCHON": {
-      "wins": 63615,
-      "picks": 124683
+      "wins": 113780,
+      "picks": 237171
     },
     "CRUSADER": {
-      "wins": 80280,
-      "picks": 158218
+      "wins": 118750,
+      "picks": 244191
     },
     "HERALD": {
-      "wins": 54426,
-      "picks": 108408
+      "wins": 25430,
+      "picks": 51644
     }
   },
   "7": {
     "IMMORTAL": {
-      "wins": 7161,
-      "picks": 14284
+      "wins": 11110,
+      "picks": 21426
     },
     "DIVINE": {
-      "wins": 16672,
-      "picks": 32766
+      "wins": 30520,
+      "picks": 59962
     },
     "ANCIENT": {
-      "wins": 28432,
-      "picks": 56979
+      "wins": 66369,
+      "picks": 130402
     },
     "LEGEND": {
-      "wins": 48052,
-      "picks": 95572
+      "wins": 103008,
+      "picks": 204031
     },
     "ARCHON": {
-      "wins": 64637,
-      "picks": 131572
+      "wins": 115905,
+      "picks": 233061
     },
     "CRUSADER": {
-      "wins": 73662,
-      "picks": 150827
+      "wins": 109019,
+      "picks": 221530
     },
     "HERALD": {
-      "wins": 46018,
-      "picks": 93465
+      "wins": 21034,
+      "picks": 43070
     }
   },
   "8": {
     "IMMORTAL": {
-      "wins": 6414,
-      "picks": 12529
+      "wins": 12345,
+      "picks": 23825
     },
     "DIVINE": {
-      "wins": 16184,
-      "picks": 31559
+      "wins": 36753,
+      "picks": 69584
     },
     "ANCIENT": {
-      "wins": 29642,
-      "picks": 57593
+      "wins": 84238,
+      "picks": 158756
     },
     "LEGEND": {
-      "wins": 53302,
-      "picks": 102608
+      "wins": 135104,
+      "picks": 256586
     },
     "ARCHON": {
-      "wins": 76300,
-      "picks": 147915
+      "wins": 158570,
+      "picks": 300552
     },
     "CRUSADER": {
-      "wins": 90103,
-      "picks": 174839
+      "wins": 142999,
+      "picks": 275230
     },
     "HERALD": {
-      "wins": 48551,
-      "picks": 97569
+      "wins": 25502,
+      "picks": 50857
     }
   },
   "9": {
     "IMMORTAL": {
-      "wins": 3879,
-      "picks": 7770
+      "wins": 19005,
+      "picks": 38486
     },
     "DIVINE": {
-      "wins": 9172,
-      "picks": 18235
+      "wins": 41497,
+      "picks": 80769
     },
     "ANCIENT": {
-      "wins": 16597,
-      "picks": 32886
+      "wins": 79753,
+      "picks": 153934
     },
     "LEGEND": {
-      "wins": 28698,
-      "picks": 56685
+      "wins": 114905,
+      "picks": 218694
     },
     "ARCHON": {
-      "wins": 40389,
-      "picks": 79465
+      "wins": 116555,
+      "picks": 221250
     },
     "CRUSADER": {
-      "wins": 45150,
-      "picks": 89010
+      "wins": 87825,
+      "picks": 167094
     },
     "HERALD": {
-      "wins": 17540,
-      "picks": 34782
+      "wins": 8458,
+      "picks": 16317
     }
   },
   "10": {
     "IMMORTAL": {
-      "wins": 3327,
-      "picks": 7067
+      "wins": 3394,
+      "picks": 6974
     },
     "DIVINE": {
-      "wins": 6043,
-      "picks": 12746
+      "wins": 7489,
+      "picks": 15412
     },
     "ANCIENT": {
-      "wins": 9192,
-      "picks": 19539
+      "wins": 14386,
+      "picks": 29938
     },
     "LEGEND": {
-      "wins": 14280,
-      "picks": 30201
+      "wins": 21841,
+      "picks": 45701
     },
     "ARCHON": {
-      "wins": 19442,
-      "picks": 41373
+      "wins": 26438,
+      "picks": 55338
     },
     "CRUSADER": {
-      "wins": 23686,
-      "picks": 49906
+      "wins": 28013,
+      "picks": 57631
     },
     "HERALD": {
-      "wins": 17174,
-      "picks": 35062
+      "wins": 5777,
+      "picks": 11888
     }
   },
   "11": {
     "IMMORTAL": {
-      "wins": 6783,
-      "picks": 14601
+      "wins": 23362,
+      "picks": 48010
     },
     "DIVINE": {
-      "wins": 14883,
-      "picks": 31563
+      "wins": 50654,
+      "picks": 105689
     },
     "ANCIENT": {
-      "wins": 25123,
-      "picks": 53562
+      "wins": 101804,
+      "picks": 210962
     },
     "LEGEND": {
-      "wins": 43228,
-      "picks": 91614
+      "wins": 154337,
+      "picks": 321213
     },
     "ARCHON": {
-      "wins": 60242,
-      "picks": 128032
+      "wins": 175337,
+      "picks": 362604
     },
     "CRUSADER": {
-      "wins": 73164,
-      "picks": 154970
+      "wins": 170656,
+      "picks": 351438
     },
     "HERALD": {
-      "wins": 53995,
-      "picks": 115231
+      "wins": 33377,
+      "picks": 70236
     }
   },
   "12": {
     "IMMORTAL": {
-      "wins": 5915,
-      "picks": 10927
+      "wins": 11449,
+      "picks": 21458
     },
     "DIVINE": {
-      "wins": 10634,
-      "picks": 19658
+      "wins": 23337,
+      "picks": 43228
     },
     "ANCIENT": {
-      "wins": 16058,
-      "picks": 29948
+      "wins": 46744,
+      "picks": 86934
     },
     "LEGEND": {
-      "wins": 26864,
-      "picks": 49508
+      "wins": 75208,
+      "picks": 139756
     },
     "ARCHON": {
-      "wins": 40825,
-      "picks": 74939
+      "wins": 90494,
+      "picks": 168277
     },
     "CRUSADER": {
-      "wins": 53338,
-      "picks": 97705
+      "wins": 90372,
+      "picks": 168890
     },
     "HERALD": {
-      "wins": 38704,
-      "picks": 71466
+      "wins": 18203,
+      "picks": 33819
     }
   },
   "13": {
     "IMMORTAL": {
-      "wins": 4363,
-      "picks": 8794
+      "wins": 4633,
+      "picks": 9341
     },
     "DIVINE": {
-      "wins": 7828,
-      "picks": 16003
+      "wins": 8407,
+      "picks": 17296
     },
     "ANCIENT": {
-      "wins": 11187,
-      "picks": 23175
+      "wins": 14192,
+      "picks": 30365
     },
     "LEGEND": {
-      "wins": 16422,
-      "picks": 35116
+      "wins": 20273,
+      "picks": 43758
     },
     "ARCHON": {
-      "wins": 20125,
-      "picks": 43297
+      "wins": 20987,
+      "picks": 46077
     },
     "CRUSADER": {
-      "wins": 20528,
-      "picks": 45575
+      "wins": 18250,
+      "picks": 41447
     },
     "HERALD": {
-      "wins": 10853,
-      "picks": 24671
+      "wins": 3469,
+      "picks": 8087
     }
   },
   "14": {
     "IMMORTAL": {
-      "wins": 17978,
-      "picks": 35914
+      "wins": 26068,
+      "picks": 51486
     },
     "DIVINE": {
-      "wins": 37056,
-      "picks": 74213
+      "wins": 62643,
+      "picks": 123636
     },
     "ANCIENT": {
-      "wins": 62175,
-      "picks": 123768
+      "wins": 129662,
+      "picks": 255408
     },
     "LEGEND": {
-      "wins": 105257,
-      "picks": 210131
+      "wins": 213827,
+      "picks": 420933
     },
     "ARCHON": {
-      "wins": 153457,
-      "picks": 305901
+      "wins": 261591,
+      "picks": 512536
     },
     "CRUSADER": {
-      "wins": 184268,
-      "picks": 366140
+      "wins": 245038,
+      "picks": 476634
     },
     "HERALD": {
-      "wins": 86167,
-      "picks": 170875
+      "wins": 32642,
+      "picks": 64353
     }
   },
   "15": {
     "IMMORTAL": {
-      "wins": 3334,
-      "picks": 6971
+      "wins": 3852,
+      "picks": 7742
     },
     "DIVINE": {
-      "wins": 7649,
-      "picks": 15683
+      "wins": 11644,
+      "picks": 23056
     },
     "ANCIENT": {
-      "wins": 12997,
-      "picks": 26463
+      "wins": 25887,
+      "picks": 51511
     },
     "LEGEND": {
-      "wins": 22504,
-      "picks": 44955
+      "wins": 41075,
+      "picks": 81294
     },
     "ARCHON": {
-      "wins": 30828,
-      "picks": 61429
+      "wins": 48597,
+      "picks": 95633
     },
     "CRUSADER": {
-      "wins": 36587,
-      "picks": 73401
+      "wins": 48281,
+      "picks": 94950
     },
     "HERALD": {
-      "wins": 27740,
-      "picks": 55239
+      "wins": 12766,
+      "picks": 25064
     }
   },
   "16": {
     "IMMORTAL": {
-      "wins": 4016,
-      "picks": 8576
+      "wins": 2155,
+      "picks": 4637
     },
     "DIVINE": {
-      "wins": 8896,
-      "picks": 18684
+      "wins": 7216,
+      "picks": 15171
     },
     "ANCIENT": {
-      "wins": 14657,
-      "picks": 30071
+      "wins": 16611,
+      "picks": 34796
     },
     "LEGEND": {
-      "wins": 23525,
-      "picks": 48359
+      "wins": 29942,
+      "picks": 61639
     },
     "ARCHON": {
-      "wins": 32807,
-      "picks": 66378
+      "wins": 39263,
+      "picks": 79433
     },
     "CRUSADER": {
-      "wins": 38369,
-      "picks": 76071
+      "wins": 40850,
+      "picks": 80384
     },
     "HERALD": {
-      "wins": 21223,
-      "picks": 40424
+      "wins": 7635,
+      "picks": 14401
     }
   },
   "17": {
     "IMMORTAL": {
-      "wins": 5347,
-      "picks": 11244
+      "wins": 7021,
+      "picks": 14909
     },
     "DIVINE": {
-      "wins": 10287,
-      "picks": 21387
+      "wins": 15886,
+      "picks": 34406
     },
     "ANCIENT": {
-      "wins": 16011,
-      "picks": 34010
+      "wins": 31799,
+      "picks": 67831
     },
     "LEGEND": {
-      "wins": 25181,
-      "picks": 53188
+      "wins": 45977,
+      "picks": 99382
     },
     "ARCHON": {
-      "wins": 32391,
-      "picks": 68933
+      "wins": 51044,
+      "picks": 109972
     },
     "CRUSADER": {
-      "wins": 35163,
-      "picks": 75540
+      "wins": 47058,
+      "picks": 100471
     },
     "HERALD": {
-      "wins": 19538,
-      "picks": 42081
+      "wins": 8402,
+      "picks": 17955
     }
   },
   "18": {
     "IMMORTAL": {
-      "wins": 2409,
-      "picks": 4756
+      "wins": 8096,
+      "picks": 16053
     },
     "DIVINE": {
-      "wins": 4039,
-      "picks": 8132
+      "wins": 17022,
+      "picks": 33594
     },
     "ANCIENT": {
-      "wins": 7449,
-      "picks": 15205
+      "wins": 35005,
+      "picks": 69252
     },
     "LEGEND": {
-      "wins": 13340,
-      "picks": 26936
+      "wins": 54570,
+      "picks": 107501
     },
     "ARCHON": {
-      "wins": 20083,
-      "picks": 41001
+      "wins": 64502,
+      "picks": 127021
     },
     "CRUSADER": {
-      "wins": 25925,
-      "picks": 53020
+      "wins": 64253,
+      "picks": 126103
     },
     "HERALD": {
-      "wins": 19502,
-      "picks": 39624
+      "wins": 12464,
+      "picks": 24603
     }
   },
   "19": {
     "IMMORTAL": {
-      "wins": 6684,
-      "picks": 14202
+      "wins": 5314,
+      "picks": 11723
     },
     "DIVINE": {
-      "wins": 12236,
-      "picks": 26021
+      "wins": 11613,
+      "picks": 26215
     },
     "ANCIENT": {
-      "wins": 17529,
-      "picks": 38312
+      "wins": 21578,
+      "picks": 48884
     },
     "LEGEND": {
-      "wins": 25567,
-      "picks": 55970
+      "wins": 31679,
+      "picks": 72452
     },
     "ARCHON": {
-      "wins": 31127,
-      "picks": 68905
+      "wins": 36734,
+      "picks": 83664
     },
     "CRUSADER": {
-      "wins": 31249,
-      "picks": 69756
+      "wins": 37793,
+      "picks": 85138
     },
     "HERALD": {
-      "wins": 16755,
-      "picks": 36612
+      "wins": 7882,
+      "picks": 16759
     }
   },
   "20": {
     "IMMORTAL": {
-      "wins": 3933,
-      "picks": 7664
+      "wins": 6661,
+      "picks": 13220
     },
     "DIVINE": {
-      "wins": 9884,
-      "picks": 18877
+      "wins": 22783,
+      "picks": 43689
     },
     "ANCIENT": {
-      "wins": 18575,
-      "picks": 34844
+      "wins": 54032,
+      "picks": 101055
     },
     "LEGEND": {
-      "wins": 31610,
-      "picks": 58255
+      "wins": 89939,
+      "picks": 165953
     },
     "ARCHON": {
-      "wins": 43536,
-      "picks": 80394
+      "wins": 102113,
+      "picks": 185990
     },
     "CRUSADER": {
-      "wins": 48434,
-      "picks": 89538
+      "wins": 89119,
+      "picks": 161509
     },
     "HERALD": {
-      "wins": 23184,
-      "picks": 43419
+      "wins": 12084,
+      "picks": 22125
     }
   },
   "21": {
     "IMMORTAL": {
-      "wins": 5491,
-      "picks": 10921
+      "wins": 16456,
+      "picks": 33154
     },
     "DIVINE": {
-      "wins": 12653,
-      "picks": 26085
+      "wins": 38072,
+      "picks": 77351
     },
     "ANCIENT": {
-      "wins": 22513,
-      "picks": 46485
+      "wins": 75486,
+      "picks": 155255
     },
     "LEGEND": {
-      "wins": 37860,
-      "picks": 79511
+      "wins": 113945,
+      "picks": 235613
     },
     "ARCHON": {
-      "wins": 54834,
-      "picks": 115804
+      "wins": 125476,
+      "picks": 261351
     },
     "CRUSADER": {
-      "wins": 64979,
-      "picks": 138221
+      "wins": 114329,
+      "picks": 235310
     },
     "HERALD": {
-      "wins": 42490,
-      "picks": 87519
+      "wins": 20031,
+      "picks": 40011
     }
   },
   "22": {
     "IMMORTAL": {
-      "wins": 9238,
-      "picks": 18331
+      "wins": 9077,
+      "picks": 18689
     },
     "DIVINE": {
-      "wins": 21467,
-      "picks": 41942
+      "wins": 26751,
+      "picks": 53417
     },
     "ANCIENT": {
-      "wins": 37038,
-      "picks": 72182
+      "wins": 60783,
+      "picks": 121269
     },
     "LEGEND": {
-      "wins": 64468,
-      "picks": 125265
+      "wins": 102019,
+      "picks": 203409
     },
     "ARCHON": {
-      "wins": 92688,
-      "picks": 179553
+      "wins": 124442,
+      "picks": 245066
     },
     "CRUSADER": {
-      "wins": 107074,
-      "picks": 207539
+      "wins": 116799,
+      "picks": 230505
     },
     "HERALD": {
-      "wins": 53947,
-      "picks": 108473
+      "wins": 19887,
+      "picks": 41144
     }
   },
   "23": {
     "IMMORTAL": {
-      "wins": 2642,
-      "picks": 5338
+      "wins": 3039,
+      "picks": 6205
     },
     "DIVINE": {
-      "wins": 6009,
-      "picks": 11892
+      "wins": 8196,
+      "picks": 16650
     },
     "ANCIENT": {
-      "wins": 9889,
-      "picks": 20011
+      "wins": 18541,
+      "picks": 37163
     },
     "LEGEND": {
-      "wins": 16065,
-      "picks": 32902
+      "wins": 28739,
+      "picks": 58119
     },
     "ARCHON": {
-      "wins": 22231,
-      "picks": 45514
+      "wins": 31763,
+      "picks": 65324
     },
     "CRUSADER": {
-      "wins": 25266,
-      "picks": 52511
+      "wins": 29135,
+      "picks": 60768
     },
     "HERALD": {
-      "wins": 15319,
-      "picks": 31168
+      "wins": 5319,
+      "picks": 11002
     }
   },
   "25": {
     "IMMORTAL": {
-      "wins": 6118,
-      "picks": 12693
+      "wins": 21185,
+      "picks": 42203
     },
     "DIVINE": {
-      "wins": 14762,
-      "picks": 30316
+      "wins": 46918,
+      "picks": 93698
     },
     "ANCIENT": {
-      "wins": 24659,
-      "picks": 50666
+      "wins": 96608,
+      "picks": 192459
     },
     "LEGEND": {
-      "wins": 41120,
-      "picks": 85057
+      "wins": 147626,
+      "picks": 296196
     },
     "ARCHON": {
-      "wins": 58108,
-      "picks": 120826
+      "wins": 160123,
+      "picks": 324292
     },
     "CRUSADER": {
-      "wins": 68929,
-      "picks": 144806
+      "wins": 141714,
+      "picks": 290648
     },
     "HERALD": {
-      "wins": 48629,
-      "picks": 104088
+      "wins": 28520,
+      "picks": 60307
     }
   },
   "26": {
     "IMMORTAL": {
-      "wins": 14117,
-      "picks": 29058
+      "wins": 16648,
+      "picks": 33848
     },
     "DIVINE": {
-      "wins": 33104,
-      "picks": 68169
+      "wins": 46854,
+      "picks": 96062
     },
     "ANCIENT": {
-      "wins": 57444,
-      "picks": 117570
+      "wins": 105014,
+      "picks": 215641
     },
     "LEGEND": {
-      "wins": 96863,
-      "picks": 199830
+      "wins": 170665,
+      "picks": 351943
     },
     "ARCHON": {
-      "wins": 136263,
-      "picks": 280321
+      "wins": 196043,
+      "picks": 404628
     },
     "CRUSADER": {
-      "wins": 156477,
-      "picks": 319919
+      "wins": 177810,
+      "picks": 365920
     },
     "HERALD": {
-      "wins": 68118,
-      "picks": 139556
+      "wins": 26084,
+      "picks": 53522
     }
   },
   "27": {
     "IMMORTAL": {
-      "wins": 9573,
-      "picks": 18340
+      "wins": 7693,
+      "picks": 15000
     },
     "DIVINE": {
-      "wins": 19835,
-      "picks": 38294
+      "wins": 23673,
+      "picks": 45531
     },
     "ANCIENT": {
-      "wins": 31875,
-      "picks": 61551
+      "wins": 57216,
+      "picks": 109674
     },
     "LEGEND": {
-      "wins": 53788,
-      "picks": 103670
+      "wins": 99302,
+      "picks": 190299
     },
     "ARCHON": {
-      "wins": 77257,
-      "picks": 148010
+      "wins": 121341,
+      "picks": 232324
     },
     "CRUSADER": {
-      "wins": 92671,
-      "picks": 178825
+      "wins": 116448,
+      "picks": 224508
     },
     "HERALD": {
-      "wins": 52162,
-      "picks": 102042
+      "wins": 21198,
+      "picks": 40975
     }
   },
   "28": {
     "IMMORTAL": {
-      "wins": 6483,
-      "picks": 12692
+      "wins": 7197,
+      "picks": 15044
     },
     "DIVINE": {
-      "wins": 12173,
-      "picks": 23609
+      "wins": 17488,
+      "picks": 35482
     },
     "ANCIENT": {
-      "wins": 19025,
-      "picks": 36820
+      "wins": 36680,
+      "picks": 73290
     },
     "LEGEND": {
-      "wins": 30528,
-      "picks": 58837
+      "wins": 58398,
+      "picks": 115110
     },
     "ARCHON": {
-      "wins": 41591,
-      "picks": 80035
+      "wins": 66848,
+      "picks": 130039
     },
     "CRUSADER": {
-      "wins": 47310,
-      "picks": 92165
+      "wins": 62781,
+      "picks": 121120
     },
     "HERALD": {
-      "wins": 26295,
-      "picks": 50413
+      "wins": 10747,
+      "picks": 20284
     }
   },
   "29": {
     "IMMORTAL": {
-      "wins": 11416,
-      "picks": 22402
+      "wins": 5826,
+      "picks": 11773
     },
     "DIVINE": {
-      "wins": 21798,
-      "picks": 42201
+      "wins": 14532,
+      "picks": 29194
     },
     "ANCIENT": {
-      "wins": 33169,
-      "picks": 63449
+      "wins": 30588,
+      "picks": 61296
     },
     "LEGEND": {
-      "wins": 51490,
-      "picks": 97671
+      "wins": 49840,
+      "picks": 98278
     },
     "ARCHON": {
-      "wins": 66268,
-      "picks": 125375
+      "wins": 56961,
+      "picks": 111453
     },
     "CRUSADER": {
-      "wins": 71410,
-      "picks": 134931
+      "wins": 50359,
+      "picks": 98049
     },
     "HERALD": {
-      "wins": 27543,
-      "picks": 52873
+      "wins": 7454,
+      "picks": 14589
     }
   },
   "30": {
     "IMMORTAL": {
-      "wins": 5971,
-      "picks": 12304
+      "wins": 6423,
+      "picks": 12914
     },
     "DIVINE": {
-      "wins": 16997,
-      "picks": 34010
+      "wins": 21789,
+      "picks": 42804
     },
     "ANCIENT": {
-      "wins": 32421,
-      "picks": 64210
+      "wins": 57349,
+      "picks": 111580
     },
     "LEGEND": {
-      "wins": 59440,
-      "picks": 116898
+      "wins": 104724,
+      "picks": 201867
     },
     "ARCHON": {
-      "wins": 89462,
-      "picks": 174394
+      "wins": 130319,
+      "picks": 248837
     },
     "CRUSADER": {
-      "wins": 110038,
-      "picks": 212166
+      "wins": 120464,
+      "picks": 228197
     },
     "HERALD": {
-      "wins": 49608,
-      "picks": 95128
+      "wins": 16969,
+      "picks": 31653
     }
   },
   "31": {
     "IMMORTAL": {
-      "wins": 7613,
-      "picks": 15319
+      "wins": 9020,
+      "picks": 17456
     },
     "DIVINE": {
-      "wins": 18040,
-      "picks": 35116
+      "wins": 24073,
+      "picks": 46039
     },
     "ANCIENT": {
-      "wins": 29475,
-      "picks": 57333
+      "wins": 49517,
+      "picks": 94376
     },
     "LEGEND": {
-      "wins": 46358,
-      "picks": 89622
+      "wins": 73841,
+      "picks": 139538
     },
     "ARCHON": {
-      "wins": 60773,
-      "picks": 116916
+      "wins": 77042,
+      "picks": 145272
     },
     "CRUSADER": {
-      "wins": 64716,
-      "picks": 123738
+      "wins": 64679,
+      "picks": 122329
     },
     "HERALD": {
-      "wins": 29028,
-      "picks": 55682
+      "wins": 10046,
+      "picks": 19073
     }
   },
   "32": {
     "IMMORTAL": {
-      "wins": 2526,
-      "picks": 4808
+      "wins": 2330,
+      "picks": 4541
     },
     "DIVINE": {
-      "wins": 5497,
-      "picks": 10556
+      "wins": 8466,
+      "picks": 16101
     },
     "ANCIENT": {
-      "wins": 9695,
-      "picks": 18635
+      "wins": 19609,
+      "picks": 37603
     },
     "LEGEND": {
-      "wins": 18410,
-      "picks": 35195
+      "wins": 34175,
+      "picks": 66152
     },
     "ARCHON": {
-      "wins": 29190,
-      "picks": 56150
+      "wins": 48181,
+      "picks": 92812
     },
     "CRUSADER": {
-      "wins": 39871,
-      "picks": 76187
+      "wins": 53728,
+      "picks": 103364
     },
     "HERALD": {
-      "wins": 32653,
-      "picks": 61731
+      "wins": 12147,
+      "picks": 23596
     }
   },
   "33": {
     "IMMORTAL": {
-      "wins": 1807,
-      "picks": 3365
+      "wins": 6429,
+      "picks": 11110
     },
     "DIVINE": {
-      "wins": 3896,
-      "picks": 7334
+      "wins": 10088,
+      "picks": 18579
     },
     "ANCIENT": {
-      "wins": 6967,
-      "picks": 13617
+      "wins": 19758,
+      "picks": 37089
     },
     "LEGEND": {
-      "wins": 12677,
-      "picks": 25151
+      "wins": 31675,
+      "picks": 61462
     },
     "ARCHON": {
-      "wins": 19170,
-      "picks": 38635
+      "wins": 40731,
+      "picks": 80476
     },
     "CRUSADER": {
-      "wins": 23741,
-      "picks": 48199
+      "wins": 40608,
+      "picks": 81485
     },
     "HERALD": {
-      "wins": 13510,
-      "picks": 28771
+      "wins": 6659,
+      "picks": 13987
     }
   },
   "34": {
     "IMMORTAL": {
-      "wins": 2597,
-      "picks": 5478
+      "wins": 4479,
+      "picks": 8804
     },
     "DIVINE": {
-      "wins": 5463,
-      "picks": 11603
+      "wins": 9920,
+      "picks": 20308
     },
     "ANCIENT": {
-      "wins": 8585,
-      "picks": 18771
+      "wins": 18818,
+      "picks": 39348
     },
     "LEGEND": {
-      "wins": 13582,
-      "picks": 30231
+      "wins": 28465,
+      "picks": 60644
     },
     "ARCHON": {
-      "wins": 18810,
-      "picks": 41937
+      "wins": 33240,
+      "picks": 72464
     },
     "CRUSADER": {
-      "wins": 22872,
-      "picks": 51513
+      "wins": 34827,
+      "picks": 78788
     },
     "HERALD": {
-      "wins": 19035,
-      "picks": 44326
+      "wins": 7206,
+      "picks": 17021
     }
   },
   "35": {
     "IMMORTAL": {
-      "wins": 5605,
-      "picks": 12015
+      "wins": 6253,
+      "picks": 13229
     },
     "DIVINE": {
-      "wins": 18587,
-      "picks": 38003
+      "wins": 28367,
+      "picks": 58014
     },
     "ANCIENT": {
-      "wins": 40550,
-      "picks": 80779
+      "wins": 78807,
+      "picks": 157212
     },
     "LEGEND": {
-      "wins": 79839,
-      "picks": 156504
+      "wins": 149902,
+      "picks": 295481
     },
     "ARCHON": {
-      "wins": 125111,
-      "picks": 242565
+      "wins": 194868,
+      "picks": 379781
     },
     "CRUSADER": {
-      "wins": 153166,
-      "picks": 296210
+      "wins": 189335,
+      "picks": 365880
     },
     "HERALD": {
-      "wins": 86221,
-      "picks": 165383
+      "wins": 34380,
+      "picks": 64819
     }
   },
   "36": {
     "IMMORTAL": {
-      "wins": 7260,
-      "picks": 14277
+      "wins": 13131,
+      "picks": 26761
     },
     "DIVINE": {
-      "wins": 15943,
-      "picks": 31885
+      "wins": 32695,
+      "picks": 65338
     },
     "ANCIENT": {
-      "wins": 28202,
-      "picks": 54890
+      "wins": 70809,
+      "picks": 140408
     },
     "LEGEND": {
-      "wins": 48686,
-      "picks": 95423
+      "wins": 114418,
+      "picks": 224081
     },
     "ARCHON": {
-      "wins": 72171,
-      "picks": 138845
+      "wins": 131562,
+      "picks": 255374
     },
     "CRUSADER": {
-      "wins": 86841,
-      "picks": 166011
+      "wins": 120279,
+      "picks": 231419
     },
     "HERALD": {
-      "wins": 49122,
-      "picks": 89513
+      "wins": 19924,
+      "picks": 36420
     }
   },
   "37": {
     "IMMORTAL": {
-      "wins": 4579,
-      "picks": 9776
+      "wins": 2523,
+      "picks": 5498
     },
     "DIVINE": {
-      "wins": 10068,
-      "picks": 20964
+      "wins": 8000,
+      "picks": 17030
     },
     "ANCIENT": {
-      "wins": 16600,
-      "picks": 34323
+      "wins": 20417,
+      "picks": 42601
     },
     "LEGEND": {
-      "wins": 28112,
-      "picks": 56393
+      "wins": 37727,
+      "picks": 77282
     },
     "ARCHON": {
-      "wins": 39551,
-      "picks": 79035
+      "wins": 47127,
+      "picks": 95310
     },
     "CRUSADER": {
-      "wins": 45998,
-      "picks": 91340
+      "wins": 44305,
+      "picks": 88364
     },
     "HERALD": {
-      "wins": 20346,
-      "picks": 39988
+      "wins": 6356,
+      "picks": 12753
     }
   },
   "38": {
     "IMMORTAL": {
-      "wins": 6748,
-      "picks": 13536
+      "wins": 1903,
+      "picks": 3992
     },
     "DIVINE": {
-      "wins": 10675,
-      "picks": 22133
+      "wins": 3483,
+      "picks": 7589
     },
     "ANCIENT": {
-      "wins": 14728,
-      "picks": 31350
+      "wins": 6649,
+      "picks": 15123
     },
     "LEGEND": {
-      "wins": 22365,
-      "picks": 47752
+      "wins": 10988,
+      "picks": 25625
     },
     "ARCHON": {
-      "wins": 29382,
-      "picks": 63006
+      "wins": 14225,
+      "picks": 33143
     },
     "CRUSADER": {
-      "wins": 35122,
-      "picks": 74540
+      "wins": 15948,
+      "picks": 36406
     },
     "HERALD": {
-      "wins": 21427,
-      "picks": 44144
+      "wins": 3260,
+      "picks": 7202
     }
   },
   "39": {
     "IMMORTAL": {
-      "wins": 11917,
-      "picks": 23819
+      "wins": 6593,
+      "picks": 14058
     },
     "DIVINE": {
-      "wins": 23297,
-      "picks": 46700
+      "wins": 18530,
+      "picks": 39596
     },
     "ANCIENT": {
-      "wins": 35689,
-      "picks": 72401
+      "wins": 39921,
+      "picks": 85656
     },
     "LEGEND": {
-      "wins": 55051,
-      "picks": 112841
+      "wins": 63726,
+      "picks": 135891
     },
     "ARCHON": {
-      "wins": 68976,
-      "picks": 143367
+      "wins": 68654,
+      "picks": 147749
     },
     "CRUSADER": {
-      "wins": 69801,
-      "picks": 146951
+      "wins": 57993,
+      "picks": 124206
     },
     "HERALD": {
-      "wins": 26923,
-      "picks": 58391
+      "wins": 8686,
+      "picks": 18602
     }
   },
   "40": {
     "IMMORTAL": {
-      "wins": 8519,
-      "picks": 17855
+      "wins": 2784,
+      "picks": 5995
     },
     "DIVINE": {
-      "wins": 18194,
-      "picks": 38107
+      "wins": 9829,
+      "picks": 21146
     },
     "ANCIENT": {
-      "wins": 30871,
-      "picks": 65133
+      "wins": 25857,
+      "picks": 55450
     },
     "LEGEND": {
-      "wins": 51343,
-      "picks": 107692
+      "wins": 48615,
+      "picks": 103387
     },
     "ARCHON": {
-      "wins": 70929,
-      "picks": 149149
+      "wins": 63654,
+      "picks": 134639
     },
     "CRUSADER": {
-      "wins": 78985,
-      "picks": 166621
+      "wins": 61267,
+      "picks": 129606
     },
     "HERALD": {
-      "wins": 33489,
-      "picks": 70999
+      "wins": 9384,
+      "picks": 19955
     }
   },
   "41": {
     "IMMORTAL": {
-      "wins": 6466,
-      "picks": 12934
+      "wins": 5024,
+      "picks": 9909
     },
     "DIVINE": {
-      "wins": 14963,
-      "picks": 28836
+      "wins": 16228,
+      "picks": 31898
     },
     "ANCIENT": {
-      "wins": 26100,
-      "picks": 49996
+      "wins": 37440,
+      "picks": 74016
     },
     "LEGEND": {
-      "wins": 44171,
-      "picks": 84826
+      "wins": 62482,
+      "picks": 125296
     },
     "ARCHON": {
-      "wins": 59524,
-      "picks": 114736
+      "wins": 75484,
+      "picks": 151999
     },
     "CRUSADER": {
-      "wins": 65769,
-      "picks": 128545
+      "wins": 70418,
+      "picks": 140941
     },
     "HERALD": {
-      "wins": 32297,
-      "picks": 64356
+      "wins": 11615,
+      "picks": 23399
     }
   },
   "42": {
     "IMMORTAL": {
-      "wins": 5125,
-      "picks": 10346
+      "wins": 4565,
+      "picks": 8745
     },
     "DIVINE": {
-      "wins": 12992,
-      "picks": 25409
+      "wins": 17877,
+      "picks": 33842
     },
     "ANCIENT": {
-      "wins": 25074,
-      "picks": 47503
+      "wins": 48524,
+      "picks": 90739
     },
     "LEGEND": {
-      "wins": 45654,
-      "picks": 84697
+      "wins": 87903,
+      "picks": 161347
     },
     "ARCHON": {
-      "wins": 67378,
-      "picks": 123367
+      "wins": 108871,
+      "picks": 196054
     },
     "CRUSADER": {
-      "wins": 81281,
-      "picks": 147724
+      "wins": 101364,
+      "picks": 180812
     },
     "HERALD": {
-      "wins": 44785,
-      "picks": 80892
+      "wins": 17338,
+      "picks": 30855
     }
   },
   "43": {
     "IMMORTAL": {
-      "wins": 3530,
-      "picks": 7230
+      "wins": 2959,
+      "picks": 5960
     },
     "DIVINE": {
-      "wins": 6193,
-      "picks": 12884
+      "wins": 6353,
+      "picks": 12751
     },
     "ANCIENT": {
-      "wins": 9479,
-      "picks": 19651
+      "wins": 13127,
+      "picks": 26498
     },
     "LEGEND": {
-      "wins": 15179,
-      "picks": 31183
+      "wins": 20223,
+      "picks": 41620
     },
     "ARCHON": {
-      "wins": 20807,
-      "picks": 43392
+      "wins": 24789,
+      "picks": 51431
     },
     "CRUSADER": {
-      "wins": 25619,
-      "picks": 53438
+      "wins": 25718,
+      "picks": 53912
     },
     "HERALD": {
-      "wins": 22078,
-      "picks": 46062
+      "wins": 7492,
+      "picks": 15693
     }
   },
   "44": {
     "IMMORTAL": {
-      "wins": 6060,
-      "picks": 12594
+      "wins": 3991,
+      "picks": 7890
     },
     "DIVINE": {
-      "wins": 15376,
-      "picks": 31073
+      "wins": 16643,
+      "picks": 32670
     },
     "ANCIENT": {
-      "wins": 28827,
-      "picks": 57469
+      "wins": 46506,
+      "picks": 90769
     },
     "LEGEND": {
-      "wins": 52926,
-      "picks": 104106
+      "wins": 93898,
+      "picks": 180108
     },
     "ARCHON": {
-      "wins": 81741,
-      "picks": 158245
+      "wins": 133689,
+      "picks": 253948
     },
     "CRUSADER": {
-      "wins": 103335,
-      "picks": 198256
+      "wins": 144979,
+      "picks": 273708
     },
     "HERALD": {
-      "wins": 70616,
-      "picks": 133324
+      "wins": 31862,
+      "picks": 59654
     }
   },
   "45": {
     "IMMORTAL": {
-      "wins": 2301,
-      "picks": 4400
+      "wins": 2433,
+      "picks": 4839
     },
     "DIVINE": {
-      "wins": 5161,
-      "picks": 10107
+      "wins": 7675,
+      "picks": 15045
     },
     "ANCIENT": {
-      "wins": 8705,
-      "picks": 17048
+      "wins": 16987,
+      "picks": 33077
     },
     "LEGEND": {
-      "wins": 14087,
-      "picks": 28237
+      "wins": 27548,
+      "picks": 54075
     },
     "ARCHON": {
-      "wins": 19956,
-      "picks": 40210
+      "wins": 32355,
+      "picks": 64978
     },
     "CRUSADER": {
-      "wins": 23240,
-      "picks": 47820
+      "wins": 30225,
+      "picks": 61930
     },
     "HERALD": {
-      "wins": 13879,
-      "picks": 29309
+      "wins": 5188,
+      "picks": 11107
     }
   },
   "46": {
     "IMMORTAL": {
-      "wins": 3219,
-      "picks": 7387
+      "wins": 3940,
+      "picks": 8854
     },
     "DIVINE": {
-      "wins": 6121,
-      "picks": 13515
+      "wins": 9197,
+      "picks": 20533
     },
     "ANCIENT": {
-      "wins": 9687,
-      "picks": 21224
+      "wins": 19709,
+      "picks": 43049
     },
     "LEGEND": {
-      "wins": 15298,
-      "picks": 33842
+      "wins": 31084,
+      "picks": 68172
     },
     "ARCHON": {
-      "wins": 21405,
-      "picks": 47313
+      "wins": 36919,
+      "picks": 80847
     },
     "CRUSADER": {
-      "wins": 26703,
-      "picks": 58767
+      "wins": 36874,
+      "picks": 81480
     },
     "HERALD": {
-      "wins": 17215,
-      "picks": 37857
+      "wins": 7383,
+      "picks": 15855
     }
   },
   "47": {
     "IMMORTAL": {
-      "wins": 3839,
-      "picks": 7685
+      "wins": 3841,
+      "picks": 7729
     },
     "DIVINE": {
-      "wins": 7597,
-      "picks": 15281
+      "wins": 9785,
+      "picks": 19942
     },
     "ANCIENT": {
-      "wins": 13221,
-      "picks": 26546
+      "wins": 23163,
+      "picks": 47536
     },
     "LEGEND": {
-      "wins": 23350,
-      "picks": 47859
+      "wins": 43409,
+      "picks": 89235
     },
     "ARCHON": {
-      "wins": 37436,
-      "picks": 76996
+      "wins": 61203,
+      "picks": 127052
     },
     "CRUSADER": {
-      "wins": 51380,
-      "picks": 106332
+      "wins": 74198,
+      "picks": 153577
     },
     "HERALD": {
-      "wins": 48554,
-      "picks": 100769
+      "wins": 22824,
+      "picks": 46308
     }
   },
   "48": {
     "IMMORTAL": {
-      "wins": 6998,
-      "picks": 13870
+      "wins": 12230,
+      "picks": 24420
     },
     "DIVINE": {
-      "wins": 11819,
-      "picks": 23562
+      "wins": 23866,
+      "picks": 47838
     },
     "ANCIENT": {
-      "wins": 17676,
-      "picks": 35249
+      "wins": 44197,
+      "picks": 88366
     },
     "LEGEND": {
-      "wins": 26928,
-      "picks": 54187
+      "wins": 64472,
+      "picks": 128596
     },
     "ARCHON": {
-      "wins": 36352,
-      "picks": 72786
+      "wins": 72237,
+      "picks": 142724
     },
     "CRUSADER": {
-      "wins": 41158,
-      "picks": 81479
+      "wins": 69742,
+      "picks": 136296
     },
     "HERALD": {
-      "wins": 25522,
-      "picks": 49337
+      "wins": 13567,
+      "picks": 25658
     }
   },
   "49": {
     "IMMORTAL": {
-      "wins": 2225,
-      "picks": 4755
+      "wins": 5583,
+      "picks": 10903
     },
     "DIVINE": {
-      "wins": 4106,
-      "picks": 8675
+      "wins": 12322,
+      "picks": 23978
     },
     "ANCIENT": {
-      "wins": 7831,
-      "picks": 16136
+      "wins": 24644,
+      "picks": 47831
     },
     "LEGEND": {
-      "wins": 14248,
-      "picks": 29315
+      "wins": 38659,
+      "picks": 74957
     },
     "ARCHON": {
-      "wins": 22401,
-      "picks": 45267
+      "wins": 44266,
+      "picks": 85743
     },
     "CRUSADER": {
-      "wins": 28807,
-      "picks": 58237
+      "wins": 40392,
+      "picks": 78359
     },
     "HERALD": {
-      "wins": 18231,
-      "picks": 36638
+      "wins": 7127,
+      "picks": 13716
     }
   },
   "50": {
     "IMMORTAL": {
-      "wins": 2632,
-      "picks": 4992
+      "wins": 3467,
+      "picks": 6507
     },
     "DIVINE": {
-      "wins": 5381,
-      "picks": 10501
+      "wins": 7509,
+      "picks": 14709
     },
     "ANCIENT": {
-      "wins": 8816,
-      "picks": 17300
+      "wins": 17140,
+      "picks": 33117
     },
     "LEGEND": {
-      "wins": 14934,
-      "picks": 29465
+      "wins": 28736,
+      "picks": 56087
     },
     "ARCHON": {
-      "wins": 21769,
-      "picks": 43139
+      "wins": 35973,
+      "picks": 71236
     },
     "CRUSADER": {
-      "wins": 26537,
-      "picks": 52748
+      "wins": 34009,
+      "picks": 68646
     },
     "HERALD": {
-      "wins": 12564,
-      "picks": 26067
+      "wins": 4993,
+      "picks": 10384
     }
   },
   "51": {
     "IMMORTAL": {
-      "wins": 2373,
-      "picks": 4504
+      "wins": 6418,
+      "picks": 12625
     },
     "DIVINE": {
-      "wins": 4551,
-      "picks": 9246
+      "wins": 12186,
+      "picks": 24454
     },
     "ANCIENT": {
-      "wins": 7522,
-      "picks": 15340
+      "wins": 21055,
+      "picks": 43429
     },
     "LEGEND": {
-      "wins": 12275,
-      "picks": 25269
+      "wins": 28908,
+      "picks": 59605
     },
     "ARCHON": {
-      "wins": 16458,
-      "picks": 33953
+      "wins": 30539,
+      "picks": 62960
     },
     "CRUSADER": {
-      "wins": 17434,
-      "picks": 35957
+      "wins": 26237,
+      "picks": 53960
     },
     "HERALD": {
-      "wins": 7356,
-      "picks": 15136
+      "wins": 2990,
+      "picks": 6189
     }
   },
   "52": {
     "IMMORTAL": {
-      "wins": 3019,
-      "picks": 6287
+      "wins": 2238,
+      "picks": 4304
     },
     "DIVINE": {
-      "wins": 5643,
-      "picks": 11203
+      "wins": 4905,
+      "picks": 9373
     },
     "ANCIENT": {
-      "wins": 8458,
-      "picks": 16891
+      "wins": 9215,
+      "picks": 17828
     },
     "LEGEND": {
-      "wins": 13296,
-      "picks": 26607
+      "wins": 13543,
+      "picks": 26260
     },
     "ARCHON": {
-      "wins": 17392,
-      "picks": 34792
+      "wins": 16691,
+      "picks": 32483
     },
     "CRUSADER": {
-      "wins": 19307,
-      "picks": 38616
+      "wins": 17266,
+      "picks": 33412
     },
     "HERALD": {
-      "wins": 10088,
-      "picks": 19609
+      "wins": 3106,
+      "picks": 6028
     }
   },
   "53": {
     "IMMORTAL": {
-      "wins": 2939,
-      "picks": 6590
+      "wins": 8430,
+      "picks": 19143
     },
     "DIVINE": {
-      "wins": 6355,
-      "picks": 14360
+      "wins": 18814,
+      "picks": 44228
     },
     "ANCIENT": {
-      "wins": 11357,
-      "picks": 25868
+      "wins": 39298,
+      "picks": 93060
     },
     "LEGEND": {
-      "wins": 20709,
-      "picks": 48075
+      "wins": 64041,
+      "picks": 153184
     },
     "ARCHON": {
-      "wins": 31651,
-      "picks": 73574
+      "wins": 79220,
+      "picks": 188250
     },
     "CRUSADER": {
-      "wins": 42020,
-      "picks": 98299
+      "wins": 81867,
+      "picks": 190227
     },
     "HERALD": {
-      "wins": 29138,
-      "picks": 62962
+      "wins": 14328,
+      "picks": 30490
     }
   },
   "54": {
     "IMMORTAL": {
-      "wins": 9036,
-      "picks": 17638
+      "wins": 18879,
+      "picks": 36176
     },
     "DIVINE": {
-      "wins": 18755,
-      "picks": 35884
+      "wins": 43459,
+      "picks": 81615
     },
     "ANCIENT": {
-      "wins": 29713,
-      "picks": 56644
+      "wins": 87294,
+      "picks": 163687
     },
     "LEGEND": {
-      "wins": 47509,
-      "picks": 90668
+      "wins": 129586,
+      "picks": 242760
     },
     "ARCHON": {
-      "wins": 62922,
-      "picks": 120356
+      "wins": 132914,
+      "picks": 250975
     },
     "CRUSADER": {
-      "wins": 70438,
-      "picks": 135210
+      "wins": 110590,
+      "picks": 210803
     },
     "HERALD": {
-      "wins": 31699,
-      "picks": 62298
+      "wins": 15287,
+      "picks": 30079
     }
   },
   "55": {
     "IMMORTAL": {
-      "wins": 1525,
-      "picks": 2895
+      "wins": 10254,
+      "picks": 19800
     },
     "DIVINE": {
-      "wins": 2691,
-      "picks": 5405
+      "wins": 17394,
+      "picks": 34093
     },
     "ANCIENT": {
-      "wins": 4891,
-      "picks": 9551
+      "wins": 28702,
+      "picks": 57124
     },
     "LEGEND": {
-      "wins": 8023,
-      "picks": 15812
+      "wins": 40273,
+      "picks": 80579
     },
     "ARCHON": {
-      "wins": 11322,
-      "picks": 22313
+      "wins": 43630,
+      "picks": 87340
     },
     "CRUSADER": {
-      "wins": 13077,
-      "picks": 25758
+      "wins": 39046,
+      "picks": 78037
     },
     "HERALD": {
-      "wins": 6497,
-      "picks": 13009
+      "wins": 4869,
+      "picks": 9683
     }
   },
   "56": {
     "IMMORTAL": {
-      "wins": 3395,
-      "picks": 6393
+      "wins": 3710,
+      "picks": 7076
     },
     "DIVINE": {
-      "wins": 6648,
-      "picks": 12873
+      "wins": 9041,
+      "picks": 17723
     },
     "ANCIENT": {
-      "wins": 10676,
-      "picks": 20837
+      "wins": 18285,
+      "picks": 36459
     },
     "LEGEND": {
-      "wins": 18748,
-      "picks": 36839
+      "wins": 31122,
+      "picks": 62619
     },
     "ARCHON": {
-      "wins": 28767,
-      "picks": 57164
+      "wins": 43586,
+      "picks": 87844
     },
     "CRUSADER": {
-      "wins": 40477,
-      "picks": 79975
+      "wins": 51941,
+      "picks": 105294
     },
     "HERALD": {
-      "wins": 37469,
-      "picks": 75433
+      "wins": 13995,
+      "picks": 27836
     }
   },
   "57": {
     "IMMORTAL": {
-      "wins": 1919,
-      "picks": 3823
+      "wins": 1806,
+      "picks": 3519
     },
     "DIVINE": {
-      "wins": 4046,
-      "picks": 7864
+      "wins": 4781,
+      "picks": 9129
     },
     "ANCIENT": {
-      "wins": 6437,
-      "picks": 12876
+      "wins": 9770,
+      "picks": 19012
     },
     "LEGEND": {
-      "wins": 10439,
-      "picks": 20875
+      "wins": 16093,
+      "picks": 31369
     },
     "ARCHON": {
-      "wins": 14203,
-      "picks": 28785
+      "wins": 19885,
+      "picks": 39326
     },
     "CRUSADER": {
-      "wins": 15852,
-      "picks": 32550
+      "wins": 19490,
+      "picks": 39327
     },
     "HERALD": {
-      "wins": 7948,
-      "picks": 16668
+      "wins": 3165,
+      "picks": 6554
     }
   },
   "58": {
     "IMMORTAL": {
-      "wins": 1734,
-      "picks": 3287
+      "wins": 3010,
+      "picks": 6171
     },
     "DIVINE": {
-      "wins": 2818,
-      "picks": 5898
+      "wins": 5573,
+      "picks": 11639
     },
     "ANCIENT": {
-      "wins": 4277,
-      "picks": 8829
+      "wins": 10244,
+      "picks": 21721
     },
     "LEGEND": {
-      "wins": 7125,
-      "picks": 14702
+      "wins": 16540,
+      "picks": 34737
     },
     "ARCHON": {
-      "wins": 11374,
-      "picks": 23399
+      "wins": 22847,
+      "picks": 46953
     },
     "CRUSADER": {
-      "wins": 15974,
-      "picks": 32574
+      "wins": 26894,
+      "picks": 54824
     },
     "HERALD": {
-      "wins": 15535,
-      "picks": 30843
+      "wins": 6566,
+      "picks": 12887
     }
   },
   "59": {
     "IMMORTAL": {
-      "wins": 4733,
-      "picks": 9495
+      "wins": 2797,
+      "picks": 5980
     },
     "DIVINE": {
-      "wins": 7340,
-      "picks": 14614
+      "wins": 5518,
+      "picks": 12028
     },
     "ANCIENT": {
-      "wins": 11436,
-      "picks": 23121
+      "wins": 11651,
+      "picks": 25985
     },
     "LEGEND": {
-      "wins": 18353,
-      "picks": 37724
+      "wins": 19577,
+      "picks": 43518
     },
     "ARCHON": {
-      "wins": 26820,
-      "picks": 55785
+      "wins": 26807,
+      "picks": 60282
     },
     "CRUSADER": {
-      "wins": 35466,
-      "picks": 74289
+      "wins": 33889,
+      "picks": 75867
     },
     "HERALD": {
-      "wins": 36939,
-      "picks": 75819
+      "wins": 12917,
+      "picks": 27541
     }
   },
   "60": {
     "IMMORTAL": {
-      "wins": 6720,
-      "picks": 12714
+      "wins": 9595,
+      "picks": 18367
     },
     "DIVINE": {
-      "wins": 12146,
-      "picks": 22945
+      "wins": 19695,
+      "picks": 37114
     },
     "ANCIENT": {
-      "wins": 16934,
-      "picks": 32319
+      "wins": 35893,
+      "picks": 68224
     },
     "LEGEND": {
-      "wins": 24798,
-      "picks": 47799
+      "wins": 47940,
+      "picks": 92077
     },
     "ARCHON": {
-      "wins": 30625,
-      "picks": 59147
+      "wins": 43835,
+      "picks": 86179
     },
     "CRUSADER": {
-      "wins": 29972,
-      "picks": 59084
+      "wins": 33813,
+      "picks": 68835
     },
     "HERALD": {
-      "wins": 11748,
-      "picks": 24366
+      "wins": 4491,
+      "picks": 9766
     }
   },
   "61": {
     "IMMORTAL": {
-      "wins": 1536,
-      "picks": 3313
+      "wins": 1071,
+      "picks": 2116
     },
     "DIVINE": {
-      "wins": 2305,
-      "picks": 4803
+      "wins": 2082,
+      "picks": 4232
     },
     "ANCIENT": {
-      "wins": 3736,
-      "picks": 7713
+      "wins": 4528,
+      "picks": 9085
     },
     "LEGEND": {
-      "wins": 6927,
-      "picks": 14382
+      "wins": 8060,
+      "picks": 16790
     },
     "ARCHON": {
-      "wins": 12369,
-      "picks": 25707
+      "wins": 12143,
+      "picks": 25695
     },
     "CRUSADER": {
-      "wins": 21288,
-      "picks": 43611
+      "wins": 17661,
+      "picks": 36608
     },
     "HERALD": {
-      "wins": 27212,
-      "picks": 54090
+      "wins": 6271,
+      "picks": 12620
     }
   },
   "62": {
     "IMMORTAL": {
-      "wins": 3455,
-      "picks": 6674
+      "wins": 17172,
+      "picks": 30447
     },
     "DIVINE": {
-      "wins": 6265,
-      "picks": 11939
+      "wins": 26798,
+      "picks": 48516
     },
     "ANCIENT": {
-      "wins": 9549,
-      "picks": 19022
+      "wins": 45996,
+      "picks": 84524
     },
     "LEGEND": {
-      "wins": 16271,
-      "picks": 32474
+      "wins": 61222,
+      "picks": 115295
     },
     "ARCHON": {
-      "wins": 23293,
-      "picks": 47822
+      "wins": 63786,
+      "picks": 123806
     },
     "CRUSADER": {
-      "wins": 29400,
-      "picks": 61080
+      "wins": 58079,
+      "picks": 116033
     },
     "HERALD": {
-      "wins": 19176,
-      "picks": 39598
+      "wins": 8880,
+      "picks": 17820
     }
   },
   "63": {
     "IMMORTAL": {
-      "wins": 5735,
-      "picks": 12097
+      "wins": 2914,
+      "picks": 6152
     },
     "DIVINE": {
-      "wins": 11771,
-      "picks": 24933
+      "wins": 8403,
+      "picks": 17722
     },
     "ANCIENT": {
-      "wins": 19485,
-      "picks": 41316
+      "wins": 18379,
+      "picks": 38683
     },
     "LEGEND": {
-      "wins": 33356,
-      "picks": 70690
+      "wins": 33334,
+      "picks": 69872
     },
     "ARCHON": {
-      "wins": 47795,
-      "picks": 100696
+      "wins": 45152,
+      "picks": 94272
     },
     "CRUSADER": {
-      "wins": 56805,
-      "picks": 119683
+      "wins": 49345,
+      "picks": 101502
     },
     "HERALD": {
-      "wins": 35465,
-      "picks": 73576
+      "wins": 11628,
+      "picks": 23456
     }
   },
   "64": {
     "IMMORTAL": {
-      "wins": 5327,
-      "picks": 11562
+      "wins": 3731,
+      "picks": 8216
     },
     "DIVINE": {
-      "wins": 11756,
-      "picks": 25606
+      "wins": 13845,
+      "picks": 29716
     },
     "ANCIENT": {
-      "wins": 21068,
-      "picks": 45343
+      "wins": 35425,
+      "picks": 74729
     },
     "LEGEND": {
-      "wins": 36723,
-      "picks": 78469
+      "wins": 65621,
+      "picks": 135897
     },
     "ARCHON": {
-      "wins": 51380,
-      "picks": 109464
+      "wins": 84811,
+      "picks": 173336
     },
     "CRUSADER": {
-      "wins": 56831,
-      "picks": 120149
+      "wins": 81758,
+      "picks": 163561
     },
     "HERALD": {
-      "wins": 21577,
-      "picks": 43908
+      "wins": 11304,
+      "picks": 22211
     }
   },
   "65": {
     "IMMORTAL": {
-      "wins": 6052,
-      "picks": 11233
+      "wins": 1049,
+      "picks": 2204
     },
     "DIVINE": {
-      "wins": 7767,
-      "picks": 15423
+      "wins": 1945,
+      "picks": 4354
     },
     "ANCIENT": {
-      "wins": 9490,
-      "picks": 18684
+      "wins": 3573,
+      "picks": 8341
     },
     "LEGEND": {
-      "wins": 12662,
-      "picks": 25943
+      "wins": 5805,
+      "picks": 13762
     },
     "ARCHON": {
-      "wins": 14973,
-      "picks": 31274
+      "wins": 7657,
+      "picks": 18175
     },
     "CRUSADER": {
-      "wins": 15666,
-      "picks": 33060
+      "wins": 8175,
+      "picks": 19447
     },
     "HERALD": {
-      "wins": 6468,
-      "picks": 13867
+      "wins": 1462,
+      "picks": 3356
     }
   },
   "66": {
     "IMMORTAL": {
-      "wins": 807,
-      "picks": 1467
+      "wins": 448,
+      "picks": 842
     },
     "DIVINE": {
-      "wins": 985,
-      "picks": 1963
+      "wins": 825,
+      "picks": 1777
     },
     "ANCIENT": {
-      "wins": 1395,
-      "picks": 2955
+      "wins": 1687,
+      "picks": 3629
     },
     "LEGEND": {
-      "wins": 2057,
-      "picks": 4728
+      "wins": 2485,
+      "picks": 5821
     },
     "ARCHON": {
-      "wins": 2998,
-      "picks": 6879
+      "wins": 3585,
+      "picks": 8540
     },
     "CRUSADER": {
-      "wins": 3779,
-      "picks": 8822
+      "wins": 4031,
+      "picks": 9739
     },
     "HERALD": {
-      "wins": 2664,
-      "picks": 6145
+      "wins": 783,
+      "picks": 1777
     }
   },
   "67": {
     "IMMORTAL": {
-      "wins": 3300,
-      "picks": 6678
+      "wins": 9484,
+      "picks": 17585
     },
     "DIVINE": {
-      "wins": 9934,
-      "picks": 18818
+      "wins": 23641,
+      "picks": 43604
     },
     "ANCIENT": {
-      "wins": 19500,
-      "picks": 36355
+      "wins": 51936,
+      "picks": 95846
     },
     "LEGEND": {
-      "wins": 35818,
-      "picks": 65220
+      "wins": 85194,
+      "picks": 155723
     },
     "ARCHON": {
-      "wins": 52003,
-      "picks": 93580
+      "wins": 98208,
+      "picks": 179075
     },
     "CRUSADER": {
-      "wins": 61704,
-      "picks": 110247
+      "wins": 89713,
+      "picks": 161777
     },
     "HERALD": {
-      "wins": 34509,
-      "picks": 60191
+      "wins": 14498,
+      "picks": 25823
     }
   },
   "68": {
     "IMMORTAL": {
-      "wins": 3715,
-      "picks": 7606
+      "wins": 3322,
+      "picks": 6853
     },
     "DIVINE": {
-      "wins": 8223,
-      "picks": 17013
+      "wins": 12159,
+      "picks": 23934
     },
     "ANCIENT": {
-      "wins": 15340,
-      "picks": 31087
+      "wins": 30224,
+      "picks": 58578
     },
     "LEGEND": {
-      "wins": 26732,
-      "picks": 53621
+      "wins": 53297,
+      "picks": 102322
     },
     "ARCHON": {
-      "wins": 38955,
-      "picks": 77043
+      "wins": 64696,
+      "picks": 122980
     },
     "CRUSADER": {
-      "wins": 43865,
-      "picks": 87154
+      "wins": 59417,
+      "picks": 112791
     },
     "HERALD": {
-      "wins": 21048,
-      "picks": 42004
+      "wins": 7805,
+      "picks": 15247
     }
   },
   "69": {
     "IMMORTAL": {
-      "wins": 6410,
-      "picks": 13251
+      "wins": 9073,
+      "picks": 18297
     },
     "DIVINE": {
-      "wins": 11834,
-      "picks": 24991
+      "wins": 17697,
+      "picks": 36141
     },
     "ANCIENT": {
-      "wins": 17132,
-      "picks": 36471
+      "wins": 31119,
+      "picks": 64634
     },
     "LEGEND": {
-      "wins": 25328,
-      "picks": 54494
+      "wins": 41768,
+      "picks": 88705
     },
     "ARCHON": {
-      "wins": 30361,
-      "picks": 66851
+      "wins": 41991,
+      "picks": 90278
     },
     "CRUSADER": {
-      "wins": 30872,
-      "picks": 68243
+      "wins": 35233,
+      "picks": 76109
     },
     "HERALD": {
-      "wins": 11878,
-      "picks": 25989
+      "wins": 4884,
+      "picks": 10561
     }
   },
   "70": {
     "IMMORTAL": {
-      "wins": 5366,
-      "picks": 11156
+      "wins": 3142,
+      "picks": 6525
     },
     "DIVINE": {
-      "wins": 9747,
-      "picks": 20173
+      "wins": 9555,
+      "picks": 19704
     },
     "ANCIENT": {
-      "wins": 15891,
-      "picks": 32784
+      "wins": 21257,
+      "picks": 44158
     },
     "LEGEND": {
-      "wins": 25316,
-      "picks": 52362
+      "wins": 34365,
+      "picks": 71518
     },
     "ARCHON": {
-      "wins": 34171,
-      "picks": 70968
+      "wins": 40538,
+      "picks": 84362
     },
     "CRUSADER": {
-      "wins": 38470,
-      "picks": 80502
+      "wins": 39100,
+      "picks": 82557
     },
     "HERALD": {
-      "wins": 23215,
-      "picks": 51668
+      "wins": 9695,
+      "picks": 21051
     }
   },
   "71": {
     "IMMORTAL": {
-      "wins": 11891,
-      "picks": 23459
+      "wins": 13195,
+      "picks": 25158
     },
     "DIVINE": {
-      "wins": 25298,
-      "picks": 51154
+      "wins": 29197,
+      "picks": 56732
     },
     "ANCIENT": {
-      "wins": 42212,
-      "picks": 85982
+      "wins": 64881,
+      "picks": 126273
     },
     "LEGEND": {
-      "wins": 71486,
-      "picks": 144732
+      "wins": 105330,
+      "picks": 206499
     },
     "ARCHON": {
-      "wins": 98853,
-      "picks": 199863
+      "wins": 124894,
+      "picks": 246987
     },
     "CRUSADER": {
-      "wins": 113112,
-      "picks": 226215
+      "wins": 122721,
+      "picks": 243274
     },
     "HERALD": {
-      "wins": 58906,
-      "picks": 115374
+      "wins": 23411,
+      "picks": 45887
     }
   },
   "72": {
     "IMMORTAL": {
-      "wins": 2169,
-      "picks": 4667
+      "wins": 1748,
+      "picks": 3885
     },
     "DIVINE": {
-      "wins": 4569,
-      "picks": 10262
+      "wins": 4852,
+      "picks": 10703
     },
     "ANCIENT": {
-      "wins": 7720,
-      "picks": 17498
+      "wins": 11517,
+      "picks": 25199
     },
     "LEGEND": {
-      "wins": 13113,
-      "picks": 29673
+      "wins": 18890,
+      "picks": 41584
     },
     "ARCHON": {
-      "wins": 18206,
-      "picks": 41145
+      "wins": 22738,
+      "picks": 50040
     },
     "CRUSADER": {
-      "wins": 19357,
-      "picks": 44259
+      "wins": 19742,
+      "picks": 43809
     },
     "HERALD": {
-      "wins": 8244,
-      "picks": 19029
+      "wins": 3049,
+      "picks": 6663
     }
   },
   "73": {
     "IMMORTAL": {
-      "wins": 11565,
-      "picks": 23101
+      "wins": 1554,
+      "picks": 3436
     },
     "DIVINE": {
-      "wins": 21991,
-      "picks": 43567
+      "wins": 4983,
+      "picks": 10620
     },
     "ANCIENT": {
-      "wins": 33745,
-      "picks": 66473
+      "wins": 12012,
+      "picks": 25903
     },
     "LEGEND": {
-      "wins": 50286,
-      "picks": 98932
+      "wins": 21201,
+      "picks": 44657
     },
     "ARCHON": {
-      "wins": 62342,
-      "picks": 122436
+      "wins": 27425,
+      "picks": 57480
     },
     "CRUSADER": {
-      "wins": 61779,
-      "picks": 120778
+      "wins": 28012,
+      "picks": 57303
     },
     "HERALD": {
-      "wins": 20167,
-      "picks": 39559
+      "wins": 4115,
+      "picks": 8418
     }
   },
   "74": {
     "IMMORTAL": {
-      "wins": 13850,
-      "picks": 26027
+      "wins": 20741,
+      "picks": 39894
     },
     "DIVINE": {
-      "wins": 30756,
-      "picks": 58313
+      "wins": 50566,
+      "picks": 97495
     },
     "ANCIENT": {
-      "wins": 51796,
-      "picks": 98303
+      "wins": 100959,
+      "picks": 198385
     },
     "LEGEND": {
-      "wins": 84703,
-      "picks": 160916
+      "wins": 151407,
+      "picks": 298324
     },
     "ARCHON": {
-      "wins": 112578,
-      "picks": 216860
+      "wins": 163978,
+      "picks": 328856
     },
     "CRUSADER": {
-      "wins": 122191,
-      "picks": 238346
+      "wins": 147533,
+      "picks": 300897
     },
     "HERALD": {
-      "wins": 58404,
-      "picks": 116983
+      "wins": 21779,
+      "picks": 46201
     }
   },
   "75": {
     "IMMORTAL": {
-      "wins": 5633,
-      "picks": 11224
+      "wins": 5679,
+      "picks": 11607
     },
     "DIVINE": {
-      "wins": 12938,
-      "picks": 25886
+      "wins": 16739,
+      "picks": 34034
     },
     "ANCIENT": {
-      "wins": 23404,
-      "picks": 46248
+      "wins": 40706,
+      "picks": 82192
     },
     "LEGEND": {
-      "wins": 40668,
-      "picks": 80481
+      "wins": 71744,
+      "picks": 142899
     },
     "ARCHON": {
-      "wins": 59801,
-      "picks": 116775
+      "wins": 87973,
+      "picks": 173522
     },
     "CRUSADER": {
-      "wins": 71171,
-      "picks": 137891
+      "wins": 81120,
+      "picks": 155646
     },
     "HERALD": {
-      "wins": 30282,
-      "picks": 57318
+      "wins": 9902,
+      "picks": 18539
     }
   },
   "76": {
     "IMMORTAL": {
-      "wins": 2662,
-      "picks": 5323
+      "wins": 8508,
+      "picks": 15954
     },
     "DIVINE": {
-      "wins": 5720,
-      "picks": 11662
+      "wins": 18381,
+      "picks": 34158
     },
     "ANCIENT": {
-      "wins": 9959,
-      "picks": 20270
+      "wins": 36889,
+      "picks": 67998
     },
     "LEGEND": {
-      "wins": 15896,
-      "picks": 32430
+      "wins": 51633,
+      "picks": 96306
     },
     "ARCHON": {
-      "wins": 21848,
-      "picks": 44838
+      "wins": 51537,
+      "picks": 97866
     },
     "CRUSADER": {
-      "wins": 24723,
-      "picks": 51360
+      "wins": 39884,
+      "picks": 78119
     },
     "HERALD": {
-      "wins": 12178,
-      "picks": 26593
+      "wins": 6198,
+      "picks": 13040
     }
   },
   "77": {
     "IMMORTAL": {
-      "wins": 1282,
-      "picks": 2339
+      "wins": 1931,
+      "picks": 3633
     },
     "DIVINE": {
-      "wins": 1458,
-      "picks": 2992
+      "wins": 2719,
+      "picks": 5374
     },
     "ANCIENT": {
-      "wins": 2127,
-      "picks": 4441
+      "wins": 4686,
+      "picks": 9661
     },
     "LEGEND": {
-      "wins": 3177,
-      "picks": 6826
+      "wins": 6906,
+      "picks": 14616
     },
     "ARCHON": {
-      "wins": 4610,
-      "picks": 10199
+      "wins": 8471,
+      "picks": 18268
     },
     "CRUSADER": {
-      "wins": 5932,
-      "picks": 13203
+      "wins": 8869,
+      "picks": 19436
     },
     "HERALD": {
-      "wins": 4103,
-      "picks": 9093
+      "wins": 1667,
+      "picks": 3689
     }
   },
   "78": {
     "IMMORTAL": {
-      "wins": 1706,
-      "picks": 3502
+      "wins": 2514,
+      "picks": 4712
     },
     "DIVINE": {
-      "wins": 2765,
-      "picks": 5320
+      "wins": 4423,
+      "picks": 8194
     },
     "ANCIENT": {
-      "wins": 3429,
-      "picks": 6974
+      "wins": 6672,
+      "picks": 13112
     },
     "LEGEND": {
-      "wins": 5009,
-      "picks": 10244
+      "wins": 8467,
+      "picks": 17043
     },
     "ARCHON": {
-      "wins": 6562,
-      "picks": 13420
+      "wins": 9361,
+      "picks": 19072
     },
     "CRUSADER": {
-      "wins": 7411,
-      "picks": 15322
+      "wins": 8894,
+      "picks": 18489
     },
     "HERALD": {
-      "wins": 5123,
-      "picks": 10268
+      "wins": 1714,
+      "picks": 3563
     }
   },
   "79": {
     "IMMORTAL": {
-      "wins": 2740,
-      "picks": 5592
+      "wins": 2385,
+      "picks": 5187
     },
     "DIVINE": {
-      "wins": 4982,
-      "picks": 10630
+      "wins": 5793,
+      "picks": 12289
     },
     "ANCIENT": {
-      "wins": 6735,
-      "picks": 14629
+      "wins": 10423,
+      "picks": 22421
     },
     "LEGEND": {
-      "wins": 9565,
-      "picks": 20837
+      "wins": 14911,
+      "picks": 32468
     },
     "ARCHON": {
-      "wins": 11474,
-      "picks": 25620
+      "wins": 15139,
+      "picks": 33761
     },
     "CRUSADER": {
-      "wins": 11323,
-      "picks": 25556
+      "wins": 13097,
+      "picks": 30083
     },
     "HERALD": {
-      "wins": 4874,
-      "picks": 11650
+      "wins": 1991,
+      "picks": 4831
     }
   },
   "80": {
     "IMMORTAL": {
-      "wins": 2797,
-      "picks": 5194
+      "wins": 4008,
+      "picks": 8312
     },
     "DIVINE": {
-      "wins": 4497,
-      "picks": 8382
+      "wins": 8199,
+      "picks": 17199
     },
     "ANCIENT": {
-      "wins": 6152,
-      "picks": 11711
+      "wins": 15682,
+      "picks": 33799
     },
     "LEGEND": {
-      "wins": 8831,
-      "picks": 17157
+      "wins": 24388,
+      "picks": 53104
     },
     "ARCHON": {
-      "wins": 11619,
-      "picks": 23003
+      "wins": 29048,
+      "picks": 62993
     },
     "CRUSADER": {
-      "wins": 15090,
-      "picks": 29628
+      "wins": 29652,
+      "picks": 63635
     },
     "HERALD": {
-      "wins": 8789,
-      "picks": 17583
+      "wins": 4474,
+      "picks": 9392
     }
   },
   "81": {
     "IMMORTAL": {
-      "wins": 2401,
-      "picks": 4741
+      "wins": 2014,
+      "picks": 3833
     },
     "DIVINE": {
-      "wins": 3784,
-      "picks": 7557
+      "wins": 6200,
+      "picks": 11941
     },
     "ANCIENT": {
-      "wins": 7136,
-      "picks": 14026
+      "wins": 14748,
+      "picks": 28116
     },
     "LEGEND": {
-      "wins": 12753,
-      "picks": 25207
+      "wins": 27393,
+      "picks": 52546
     },
     "ARCHON": {
-      "wins": 20369,
-      "picks": 39768
+      "wins": 39754,
+      "picks": 75605
     },
     "CRUSADER": {
-      "wins": 27660,
-      "picks": 53463
+      "wins": 45120,
+      "picks": 84768
     },
     "HERALD": {
-      "wins": 21749,
-      "picks": 41654
+      "wins": 10178,
+      "picks": 18587
     }
   },
   "82": {
     "IMMORTAL": {
-      "wins": 2275,
-      "picks": 4519
+      "wins": 1256,
+      "picks": 2347
     },
     "DIVINE": {
-      "wins": 3649,
-      "picks": 7417
+      "wins": 2691,
+      "picks": 5077
     },
     "ANCIENT": {
-      "wins": 5513,
-      "picks": 11135
+      "wins": 5257,
+      "picks": 10280
     },
     "LEGEND": {
-      "wins": 8415,
-      "picks": 18010
+      "wins": 8698,
+      "picks": 17295
     },
     "ARCHON": {
-      "wins": 12318,
-      "picks": 26092
+      "wins": 11650,
+      "picks": 23575
     },
     "CRUSADER": {
-      "wins": 15597,
-      "picks": 33059
+      "wins": 14818,
+      "picks": 30492
     },
     "HERALD": {
-      "wins": 16788,
-      "picks": 33790
+      "wins": 5519,
+      "picks": 10622
     }
   },
   "83": {
     "IMMORTAL": {
-      "wins": 2641,
-      "picks": 5089
+      "wins": 12047,
+      "picks": 22954
     },
     "DIVINE": {
-      "wins": 3819,
-      "picks": 7423
+      "wins": 15294,
+      "picks": 30622
     },
     "ANCIENT": {
-      "wins": 5191,
-      "picks": 10502
+      "wins": 23710,
+      "picks": 48579
     },
     "LEGEND": {
-      "wins": 8600,
-      "picks": 17822
+      "wins": 32413,
+      "picks": 67039
     },
     "ARCHON": {
-      "wins": 12025,
-      "picks": 25157
+      "wins": 33644,
+      "picks": 70303
     },
     "CRUSADER": {
-      "wins": 14669,
-      "picks": 30974
+      "wins": 29135,
+      "picks": 61457
     },
     "HERALD": {
-      "wins": 8424,
-      "picks": 17615
+      "wins": 3799,
+      "picks": 7954
     }
   },
   "84": {
     "IMMORTAL": {
-      "wins": 5658,
-      "picks": 11393
+      "wins": 6828,
+      "picks": 14484
     },
     "DIVINE": {
-      "wins": 16868,
-      "picks": 33439
+      "wins": 27074,
+      "picks": 54534
     },
     "ANCIENT": {
-      "wins": 35835,
-      "picks": 69524
+      "wins": 72388,
+      "picks": 141765
     },
     "LEGEND": {
-      "wins": 69829,
-      "picks": 133579
+      "wins": 136798,
+      "picks": 265464
     },
     "ARCHON": {
-      "wins": 109739,
-      "picks": 208252
+      "wins": 181758,
+      "picks": 348803
     },
     "CRUSADER": {
-      "wins": 135664,
-      "picks": 256640
+      "wins": 177849,
+      "picks": 336100
     },
     "HERALD": {
-      "wins": 64373,
-      "picks": 119425
+      "wins": 24616,
+      "picks": 45587
     }
   },
   "85": {
     "IMMORTAL": {
-      "wins": 5383,
-      "picks": 10744
+      "wins": 15252,
+      "picks": 31564
     },
     "DIVINE": {
-      "wins": 11122,
-      "picks": 21001
+      "wins": 33252,
+      "picks": 66931
     },
     "ANCIENT": {
-      "wins": 18157,
-      "picks": 34740
+      "wins": 66494,
+      "picks": 133195
     },
     "LEGEND": {
-      "wins": 30560,
-      "picks": 58980
+      "wins": 102799,
+      "picks": 204284
     },
     "ARCHON": {
-      "wins": 44914,
-      "picks": 86606
+      "wins": 112541,
+      "picks": 223112
     },
     "CRUSADER": {
-      "wins": 54432,
-      "picks": 105241
+      "wins": 96104,
+      "picks": 189445
     },
     "HERALD": {
-      "wins": 25057,
-      "picks": 49411
+      "wins": 11813,
+      "picks": 23486
     }
   },
   "86": {
     "IMMORTAL": {
-      "wins": 18134,
-      "picks": 35063
+      "wins": 24127,
+      "picks": 47926
     },
     "DIVINE": {
-      "wins": 38216,
-      "picks": 74122
+      "wins": 59074,
+      "picks": 117536
     },
     "ANCIENT": {
-      "wins": 63091,
-      "picks": 122413
+      "wins": 120242,
+      "picks": 238755
     },
     "LEGEND": {
-      "wins": 98799,
-      "picks": 194219
+      "wins": 171426,
+      "picks": 343750
     },
     "ARCHON": {
-      "wins": 124818,
-      "picks": 246984
+      "wins": 171866,
+      "picks": 345487
     },
     "CRUSADER": {
-      "wins": 121114,
-      "picks": 242202
+      "wins": 127954,
+      "picks": 260796
     },
     "HERALD": {
-      "wins": 37022,
-      "picks": 75690
+      "wins": 12962,
+      "picks": 26678
     }
   },
   "87": {
     "IMMORTAL": {
-      "wins": 6768,
-      "picks": 13300
+      "wins": 9000,
+      "picks": 17741
     },
     "DIVINE": {
-      "wins": 12151,
-      "picks": 24714
+      "wins": 20295,
+      "picks": 39896
     },
     "ANCIENT": {
-      "wins": 18355,
-      "picks": 36954
+      "wins": 38951,
+      "picks": 77779
     },
     "LEGEND": {
-      "wins": 27580,
-      "picks": 56035
+      "wins": 54867,
+      "picks": 110330
     },
     "ARCHON": {
-      "wins": 33921,
-      "picks": 69282
+      "wins": 54133,
+      "picks": 110337
     },
     "CRUSADER": {
-      "wins": 34135,
-      "picks": 70582
+      "wins": 40568,
+      "picks": 83553
     },
     "HERALD": {
-      "wins": 10514,
-      "picks": 22147
+      "wins": 4164,
+      "picks": 8550
     }
   },
   "88": {
     "IMMORTAL": {
-      "wins": 4820,
-      "picks": 9253
+      "wins": 5860,
+      "picks": 11108
     },
     "DIVINE": {
-      "wins": 10954,
-      "picks": 20864
+      "wins": 15934,
+      "picks": 30154
     },
     "ANCIENT": {
-      "wins": 18706,
-      "picks": 35649
+      "wins": 33489,
+      "picks": 63609
     },
     "LEGEND": {
-      "wins": 30092,
-      "picks": 57670
+      "wins": 51799,
+      "picks": 98540
     },
     "ARCHON": {
-      "wins": 40442,
-      "picks": 77663
+      "wins": 58484,
+      "picks": 111631
     },
     "CRUSADER": {
-      "wins": 41183,
-      "picks": 79989
+      "wins": 50859,
+      "picks": 97647
     },
     "HERALD": {
-      "wins": 16432,
-      "picks": 31994
+      "wins": 6034,
+      "picks": 12012
     }
   },
   "89": {
     "IMMORTAL": {
-      "wins": 1578,
-      "picks": 2872
+      "wins": 788,
+      "picks": 1535
     },
     "DIVINE": {
-      "wins": 2239,
-      "picks": 4307
+      "wins": 1740,
+      "picks": 3527
     },
     "ANCIENT": {
-      "wins": 3395,
-      "picks": 6692
+      "wins": 4264,
+      "picks": 8590
     },
     "LEGEND": {
-      "wins": 5809,
-      "picks": 11517
+      "wins": 8238,
+      "picks": 16804
     },
     "ARCHON": {
-      "wins": 9600,
-      "picks": 18958
+      "wins": 13449,
+      "picks": 27281
     },
     "CRUSADER": {
-      "wins": 14612,
-      "picks": 28525
+      "wins": 18765,
+      "picks": 37822
     },
     "HERALD": {
-      "wins": 20319,
-      "picks": 37904
+      "wins": 6138,
+      "picks": 11575
     }
   },
   "90": {
     "IMMORTAL": {
-      "wins": 5177,
-      "picks": 9885
+      "wins": 7964,
+      "picks": 15163
     },
     "DIVINE": {
-      "wins": 8541,
-      "picks": 16307
+      "wins": 13811,
+      "picks": 26312
     },
     "ANCIENT": {
-      "wins": 11646,
-      "picks": 22513
+      "wins": 24263,
+      "picks": 47700
     },
     "LEGEND": {
-      "wins": 16997,
-      "picks": 33555
+      "wins": 36577,
+      "picks": 72933
     },
     "ARCHON": {
-      "wins": 22192,
-      "picks": 44363
+      "wins": 43156,
+      "picks": 88375
     },
     "CRUSADER": {
-      "wins": 26384,
-      "picks": 53102
+      "wins": 43787,
+      "picks": 92196
     },
     "HERALD": {
-      "wins": 15685,
-      "picks": 33194
+      "wins": 8566,
+      "picks": 18836
     }
   },
   "91": {
     "IMMORTAL": {
-      "wins": 3528,
-      "picks": 6791
+      "wins": 5457,
+      "picks": 11171
     },
     "DIVINE": {
-      "wins": 6044,
-      "picks": 11593
+      "wins": 11537,
+      "picks": 23792
     },
     "ANCIENT": {
-      "wins": 8744,
-      "picks": 16979
+      "wins": 22117,
+      "picks": 45770
     },
     "LEGEND": {
-      "wins": 13866,
-      "picks": 26999
+      "wins": 33309,
+      "picks": 69588
     },
     "ARCHON": {
-      "wins": 17954,
-      "picks": 35483
+      "wins": 39619,
+      "picks": 82761
     },
     "CRUSADER": {
-      "wins": 22084,
-      "picks": 43593
+      "wins": 38977,
+      "picks": 80835
     },
     "HERALD": {
-      "wins": 12563,
-      "picks": 25188
+      "wins": 6009,
+      "picks": 12446
     }
   },
   "92": {
     "IMMORTAL": {
-      "wins": 1902,
-      "picks": 3436
+      "wins": 2114,
+      "picks": 3800
     },
     "DIVINE": {
-      "wins": 2745,
-      "picks": 5030
+      "wins": 3157,
+      "picks": 5833
     },
     "ANCIENT": {
-      "wins": 3669,
-      "picks": 6849
+      "wins": 5194,
+      "picks": 9794
     },
     "LEGEND": {
-      "wins": 5207,
-      "picks": 10213
+      "wins": 7855,
+      "picks": 15215
     },
     "ARCHON": {
-      "wins": 7328,
-      "picks": 14443
+      "wins": 9289,
+      "picks": 18355
     },
     "CRUSADER": {
-      "wins": 9603,
-      "picks": 19416
+      "wins": 10122,
+      "picks": 20609
     },
     "HERALD": {
-      "wins": 7975,
-      "picks": 16027
+      "wins": 1875,
+      "picks": 3908
     }
   },
   "93": {
     "IMMORTAL": {
-      "wins": 11407,
-      "picks": 21946
+      "wins": 9126,
+      "picks": 17634
     },
     "DIVINE": {
-      "wins": 22857,
-      "picks": 44803
+      "wins": 23255,
+      "picks": 45880
     },
     "ANCIENT": {
-      "wins": 37121,
-      "picks": 72968
+      "wins": 50030,
+      "picks": 99526
     },
     "LEGEND": {
-      "wins": 61020,
-      "picks": 119992
+      "wins": 77483,
+      "picks": 155492
     },
     "ARCHON": {
-      "wins": 81925,
-      "picks": 161332
+      "wins": 87096,
+      "picks": 173548
     },
     "CRUSADER": {
-      "wins": 90845,
-      "picks": 177795
+      "wins": 76394,
+      "picks": 149544
     },
     "HERALD": {
-      "wins": 38014,
-      "picks": 73494
+      "wins": 10627,
+      "picks": 20360
     }
   },
   "94": {
     "IMMORTAL": {
-      "wins": 2353,
-      "picks": 4551
+      "wins": 1246,
+      "picks": 2679
     },
     "DIVINE": {
-      "wins": 4910,
-      "picks": 9783
+      "wins": 4491,
+      "picks": 9080
     },
     "ANCIENT": {
-      "wins": 9004,
-      "picks": 17798
+      "wins": 12060,
+      "picks": 23691
     },
     "LEGEND": {
-      "wins": 16307,
-      "picks": 31781
+      "wins": 21865,
+      "picks": 42983
     },
     "ARCHON": {
-      "wins": 24436,
-      "picks": 46605
+      "wins": 28485,
+      "picks": 55133
     },
     "CRUSADER": {
-      "wins": 29413,
-      "picks": 56060
+      "wins": 28576,
+      "picks": 54328
     },
     "HERALD": {
-      "wins": 14127,
-      "picks": 27311
+      "wins": 4378,
+      "picks": 8552
     }
   },
   "95": {
     "IMMORTAL": {
-      "wins": 1321,
-      "picks": 2739
+      "wins": 1293,
+      "picks": 2474
     },
     "DIVINE": {
-      "wins": 2151,
-      "picks": 4390
+      "wins": 3971,
+      "picks": 7810
     },
     "ANCIENT": {
-      "wins": 4227,
-      "picks": 8611
+      "wins": 8793,
+      "picks": 17152
     },
     "LEGEND": {
-      "wins": 7846,
-      "picks": 15664
+      "wins": 16313,
+      "picks": 31601
     },
     "ARCHON": {
-      "wins": 12550,
-      "picks": 24913
+      "wins": 23353,
+      "picks": 44811
     },
     "CRUSADER": {
-      "wins": 18504,
-      "picks": 35721
+      "wins": 28592,
+      "picks": 54209
     },
     "HERALD": {
-      "wins": 21185,
-      "picks": 40011
+      "wins": 9361,
+      "picks": 17162
     }
   },
   "96": {
     "IMMORTAL": {
-      "wins": 3206,
-      "picks": 6354
+      "wins": 7749,
+      "picks": 16006
     },
     "DIVINE": {
-      "wins": 5885,
-      "picks": 12338
+      "wins": 21539,
+      "picks": 43501
     },
     "ANCIENT": {
-      "wins": 10547,
-      "picks": 21683
+      "wins": 45532,
+      "picks": 89958
     },
     "LEGEND": {
-      "wins": 17944,
-      "picks": 36295
+      "wins": 69307,
+      "picks": 136022
     },
     "ARCHON": {
-      "wins": 24985,
-      "picks": 50426
+      "wins": 72054,
+      "picks": 139314
     },
     "CRUSADER": {
-      "wins": 28325,
-      "picks": 56972
+      "wins": 56219,
+      "picks": 107639
     },
     "HERALD": {
-      "wins": 11936,
-      "picks": 23681
+      "wins": 5822,
+      "picks": 10998
     }
   },
   "97": {
     "IMMORTAL": {
-      "wins": 6948,
-      "picks": 14096
+      "wins": 9881,
+      "picks": 19953
     },
     "DIVINE": {
-      "wins": 17255,
-      "picks": 34800
+      "wins": 28654,
+      "picks": 57819
     },
     "ANCIENT": {
-      "wins": 28803,
-      "picks": 58724
+      "wins": 61901,
+      "picks": 124990
     },
     "LEGEND": {
-      "wins": 45419,
-      "picks": 93010
+      "wins": 89324,
+      "picks": 181486
     },
     "ARCHON": {
-      "wins": 56429,
-      "picks": 116404
+      "wins": 89199,
+      "picks": 184581
     },
     "CRUSADER": {
-      "wins": 53104,
-      "picks": 111103
+      "wins": 67958,
+      "picks": 143326
     },
     "HERALD": {
-      "wins": 13428,
-      "picks": 29169
+      "wins": 6083,
+      "picks": 12930
     }
   },
   "98": {
     "IMMORTAL": {
-      "wins": 2240,
-      "picks": 5271
+      "wins": 5750,
+      "picks": 12774
     },
     "DIVINE": {
-      "wins": 4142,
-      "picks": 9538
+      "wins": 11472,
+      "picks": 25569
     },
     "ANCIENT": {
-      "wins": 6628,
-      "picks": 15186
+      "wins": 20857,
+      "picks": 46372
     },
     "LEGEND": {
-      "wins": 9916,
-      "picks": 22755
+      "wins": 30356,
+      "picks": 67331
     },
     "ARCHON": {
-      "wins": 13072,
-      "picks": 29851
+      "wins": 32305,
+      "picks": 71481
     },
     "CRUSADER": {
-      "wins": 14818,
-      "picks": 33542
+      "wins": 29674,
+      "picks": 64712
     },
     "HERALD": {
-      "wins": 9314,
-      "picks": 20577
+      "wins": 4893,
+      "picks": 10385
     }
   },
   "99": {
     "IMMORTAL": {
-      "wins": 4665,
-      "picks": 9812
+      "wins": 1770,
+      "picks": 3875
     },
     "DIVINE": {
-      "wins": 8941,
-      "picks": 18608
+      "wins": 6021,
+      "picks": 12945
     },
     "ANCIENT": {
-      "wins": 14980,
-      "picks": 30400
+      "wins": 16438,
+      "picks": 34937
     },
     "LEGEND": {
-      "wins": 25885,
-      "picks": 52002
+      "wins": 35923,
+      "picks": 73984
     },
     "ARCHON": {
-      "wins": 41346,
-      "picks": 81450
+      "wins": 57781,
+      "picks": 116434
     },
     "CRUSADER": {
-      "wins": 59250,
-      "picks": 113519
+      "wins": 75501,
+      "picks": 145702
     },
     "HERALD": {
-      "wins": 50845,
-      "picks": 88905
+      "wins": 19050,
+      "picks": 34020
     }
   },
   "100": {
     "IMMORTAL": {
-      "wins": 7222,
-      "picks": 14418
+      "wins": 9116,
+      "picks": 18534
     },
     "DIVINE": {
-      "wins": 12823,
-      "picks": 25836
+      "wins": 19113,
+      "picks": 38551
     },
     "ANCIENT": {
-      "wins": 18101,
-      "picks": 37266
+      "wins": 32323,
+      "picks": 65980
     },
     "LEGEND": {
-      "wins": 25502,
-      "picks": 52959
+      "wins": 41226,
+      "picks": 86413
     },
     "ARCHON": {
-      "wins": 29348,
-      "picks": 61546
+      "wins": 40010,
+      "picks": 84171
     },
     "CRUSADER": {
-      "wins": 27805,
-      "picks": 59783
+      "wins": 31231,
+      "picks": 67896
     },
     "HERALD": {
-      "wins": 10078,
-      "picks": 22496
+      "wins": 3829,
+      "picks": 8434
     }
   },
   "101": {
     "IMMORTAL": {
-      "wins": 6605,
-      "picks": 13988
+      "wins": 7378,
+      "picks": 15147
     },
     "DIVINE": {
-      "wins": 15033,
-      "picks": 31094
+      "wins": 20589,
+      "picks": 41640
     },
     "ANCIENT": {
-      "wins": 25461,
-      "picks": 52653
+      "wins": 45739,
+      "picks": 92369
     },
     "LEGEND": {
-      "wins": 43136,
-      "picks": 88379
+      "wins": 78455,
+      "picks": 156699
     },
     "ARCHON": {
-      "wins": 62924,
-      "picks": 127426
+      "wins": 96096,
+      "picks": 192581
     },
     "CRUSADER": {
-      "wins": 75134,
-      "picks": 151438
+      "wins": 95808,
+      "picks": 190348
     },
     "HERALD": {
-      "wins": 42098,
-      "picks": 83684
+      "wins": 17108,
+      "picks": 33817
     }
   },
   "102": {
     "IMMORTAL": {
-      "wins": 1900,
-      "picks": 4057
+      "wins": 2050,
+      "picks": 4044
     },
     "DIVINE": {
-      "wins": 4379,
-      "picks": 8533
+      "wins": 6269,
+      "picks": 12358
     },
     "ANCIENT": {
-      "wins": 7495,
-      "picks": 14812
+      "wins": 14373,
+      "picks": 28191
     },
     "LEGEND": {
-      "wins": 12505,
-      "picks": 24294
+      "wins": 25047,
+      "picks": 48339
     },
     "ARCHON": {
-      "wins": 16922,
-      "picks": 32975
+      "wins": 31011,
+      "picks": 59329
     },
     "CRUSADER": {
-      "wins": 18915,
-      "picks": 36878
+      "wins": 30520,
+      "picks": 58817
     },
     "HERALD": {
-      "wins": 10366,
-      "picks": 20728
+      "wins": 5785,
+      "picks": 11503
     }
   },
   "103": {
     "IMMORTAL": {
-      "wins": 981,
-      "picks": 2043
+      "wins": 1410,
+      "picks": 2675
     },
     "DIVINE": {
-      "wins": 1794,
-      "picks": 3395
+      "wins": 2972,
+      "picks": 5544
     },
     "ANCIENT": {
-      "wins": 2539,
-      "picks": 4958
+      "wins": 4934,
+      "picks": 9325
     },
     "LEGEND": {
-      "wins": 4041,
-      "picks": 7780
+      "wins": 7499,
+      "picks": 14362
     },
     "ARCHON": {
-      "wins": 5675,
-      "picks": 11151
+      "wins": 9288,
+      "picks": 18318
     },
     "CRUSADER": {
-      "wins": 6744,
-      "picks": 13559
+      "wins": 9590,
+      "picks": 19211
     },
     "HERALD": {
-      "wins": 4614,
-      "picks": 9756
+      "wins": 1581,
+      "picks": 3217
     }
   },
   "104": {
     "IMMORTAL": {
-      "wins": 7352,
-      "picks": 14557
+      "wins": 7364,
+      "picks": 14039
     },
     "DIVINE": {
-      "wins": 17407,
-      "picks": 33820
+      "wins": 21429,
+      "picks": 40724
     },
     "ANCIENT": {
-      "wins": 30853,
-      "picks": 60181
+      "wins": 51807,
+      "picks": 99185
     },
     "LEGEND": {
-      "wins": 53673,
-      "picks": 105463
+      "wins": 88967,
+      "picks": 170942
     },
     "ARCHON": {
-      "wins": 79364,
-      "picks": 154909
+      "wins": 104012,
+      "picks": 200832
     },
     "CRUSADER": {
-      "wins": 95117,
-      "picks": 184584
+      "wins": 95726,
+      "picks": 185612
     },
     "HERALD": {
-      "wins": 48737,
-      "picks": 92455
+      "wins": 14814,
+      "picks": 28591
     }
   },
   "105": {
     "IMMORTAL": {
-      "wins": 7082,
-      "picks": 13503
+      "wins": 7710,
+      "picks": 15437
     },
     "DIVINE": {
-      "wins": 13908,
-      "picks": 26833
+      "wins": 18983,
+      "picks": 38276
     },
     "ANCIENT": {
-      "wins": 22294,
-      "picks": 43850
+      "wins": 40812,
+      "picks": 82200
     },
     "LEGEND": {
-      "wins": 37383,
-      "picks": 73941
+      "wins": 66922,
+      "picks": 135252
     },
     "ARCHON": {
-      "wins": 53320,
-      "picks": 105452
+      "wins": 83352,
+      "picks": 168270
     },
     "CRUSADER": {
-      "wins": 65811,
-      "picks": 129467
+      "wins": 85040,
+      "picks": 172301
     },
     "HERALD": {
-      "wins": 42123,
-      "picks": 81799
+      "wins": 15551,
+      "picks": 30871
     }
   },
   "106": {
     "IMMORTAL": {
-      "wins": 7223,
-      "picks": 14258
+      "wins": 14103,
+      "picks": 28292
     },
     "DIVINE": {
-      "wins": 13594,
-      "picks": 26913
+      "wins": 25990,
+      "picks": 52180
     },
     "ANCIENT": {
-      "wins": 19199,
-      "picks": 38499
+      "wins": 45878,
+      "picks": 92771
     },
     "LEGEND": {
-      "wins": 26918,
-      "picks": 54737
+      "wins": 60329,
+      "picks": 123803
     },
     "ARCHON": {
-      "wins": 32305,
-      "picks": 66424
+      "wins": 57954,
+      "picks": 121341
     },
     "CRUSADER": {
-      "wins": 31081,
-      "picks": 65302
+      "wins": 47311,
+      "picks": 100572
     },
     "HERALD": {
-      "wins": 13028,
-      "picks": 28990
+      "wins": 6676,
+      "picks": 14785
     }
   },
   "107": {
     "IMMORTAL": {
-      "wins": 3704,
-      "picks": 7139
+      "wins": 12832,
+      "picks": 24839
     },
     "DIVINE": {
-      "wins": 6904,
-      "picks": 13437
+      "wins": 24369,
+      "picks": 47526
     },
     "ANCIENT": {
-      "wins": 9868,
-      "picks": 19264
+      "wins": 42880,
+      "picks": 85322
     },
     "LEGEND": {
-      "wins": 14128,
-      "picks": 28281
+      "wins": 55002,
+      "picks": 112128
     },
     "ARCHON": {
-      "wins": 16428,
-      "picks": 33704
+      "wins": 51700,
+      "picks": 107548
     },
     "CRUSADER": {
-      "wins": 15686,
-      "picks": 32985
+      "wins": 38844,
+      "picks": 82434
     },
     "HERALD": {
-      "wins": 6437,
-      "picks": 14327
+      "wins": 4108,
+      "picks": 8824
     }
   },
   "108": {
     "IMMORTAL": {
-      "wins": 3511,
-      "picks": 7237
+      "wins": 13302,
+      "picks": 28380
     },
     "DIVINE": {
-      "wins": 8135,
-      "picks": 16134
+      "wins": 32084,
+      "picks": 66063
     },
     "ANCIENT": {
-      "wins": 12773,
-      "picks": 25233
+      "wins": 64205,
+      "picks": 129642
     },
     "LEGEND": {
-      "wins": 20637,
-      "picks": 40131
+      "wins": 94421,
+      "picks": 187487
     },
     "ARCHON": {
-      "wins": 27253,
-      "picks": 52131
+      "wins": 95417,
+      "picks": 184787
     },
     "CRUSADER": {
-      "wins": 29161,
-      "picks": 55548
+      "wins": 70199,
+      "picks": 133095
     },
     "HERALD": {
-      "wins": 11483,
-      "picks": 21850
+      "wins": 6737,
+      "picks": 12603
     }
   },
   "109": {
     "IMMORTAL": {
-      "wins": 3192,
-      "picks": 6298
+      "wins": 7251,
+      "picks": 15083
     },
     "DIVINE": {
-      "wins": 4401,
-      "picks": 8705
+      "wins": 11766,
+      "picks": 24719
     },
     "ANCIENT": {
-      "wins": 5678,
-      "picks": 11590
+      "wins": 20380,
+      "picks": 43588
     },
     "LEGEND": {
-      "wins": 8654,
-      "picks": 18231
+      "wins": 31319,
+      "picks": 66769
     },
     "ARCHON": {
-      "wins": 12718,
-      "picks": 26253
+      "wins": 37882,
+      "picks": 80513
     },
     "CRUSADER": {
-      "wins": 16520,
-      "picks": 34539
+      "wins": 41453,
+      "picks": 86727
     },
     "HERALD": {
-      "wins": 15009,
-      "picks": 30870
+      "wins": 9741,
+      "picks": 19803
     }
   },
   "110": {
     "IMMORTAL": {
-      "wins": 8904,
-      "picks": 16745
+      "wins": 6767,
+      "picks": 13233
     },
     "DIVINE": {
-      "wins": 14924,
-      "picks": 28105
+      "wins": 13632,
+      "picks": 26558
     },
     "ANCIENT": {
-      "wins": 20287,
-      "picks": 38435
+      "wins": 24883,
+      "picks": 48871
     },
     "LEGEND": {
-      "wins": 29210,
-      "picks": 55633
+      "wins": 35314,
+      "picks": 69087
     },
     "ARCHON": {
-      "wins": 34904,
-      "picks": 66930
+      "wins": 35820,
+      "picks": 70443
     },
     "CRUSADER": {
-      "wins": 34692,
-      "picks": 67067
+      "wins": 28402,
+      "picks": 56365
     },
     "HERALD": {
-      "wins": 11745,
-      "picks": 23344
+      "wins": 3208,
+      "picks": 6558
     }
   },
   "111": {
     "IMMORTAL": {
-      "wins": 3065,
-      "picks": 5862
+      "wins": 4728,
+      "picks": 8853
     },
     "DIVINE": {
-      "wins": 6259,
-      "picks": 12151
+      "wins": 9952,
+      "picks": 19017
     },
     "ANCIENT": {
-      "wins": 9374,
-      "picks": 18305
+      "wins": 18556,
+      "picks": 35864
     },
     "LEGEND": {
-      "wins": 14317,
-      "picks": 28333
+      "wins": 26635,
+      "picks": 52755
     },
     "ARCHON": {
-      "wins": 17627,
-      "picks": 35656
+      "wins": 27610,
+      "picks": 55998
     },
     "CRUSADER": {
-      "wins": 17760,
-      "picks": 36259
+      "wins": 22310,
+      "picks": 46996
     },
     "HERALD": {
-      "wins": 6462,
-      "picks": 14344
+      "wins": 2631,
+      "picks": 5956
     }
   },
   "112": {
     "IMMORTAL": {
-      "wins": 4935,
-      "picks": 9104
+      "wins": 12713,
+      "picks": 24484
     },
     "DIVINE": {
-      "wins": 7053,
-      "picks": 13428
+      "wins": 19992,
+      "picks": 38714
     },
     "ANCIENT": {
-      "wins": 9708,
-      "picks": 18819
+      "wins": 33092,
+      "picks": 65425
     },
     "LEGEND": {
-      "wins": 14223,
-      "picks": 28010
+      "wins": 45353,
+      "picks": 90557
     },
     "ARCHON": {
-      "wins": 19050,
-      "picks": 38261
+      "wins": 48075,
+      "picks": 97367
     },
     "CRUSADER": {
-      "wins": 21911,
-      "picks": 44240
+      "wins": 42508,
+      "picks": 86323
     },
     "HERALD": {
-      "wins": 10162,
-      "picks": 21019
+      "wins": 5666,
+      "picks": 11708
     }
   },
   "113": {
     "IMMORTAL": {
-      "wins": 1868,
-      "picks": 3959
+      "wins": 3288,
+      "picks": 6138
     },
     "DIVINE": {
-      "wins": 3460,
-      "picks": 7237
+      "wins": 7562,
+      "picks": 14165
     },
     "ANCIENT": {
-      "wins": 5737,
-      "picks": 11958
+      "wins": 15030,
+      "picks": 28421
     },
     "LEGEND": {
-      "wins": 9889,
-      "picks": 20076
+      "wins": 24665,
+      "picks": 47247
     },
     "ARCHON": {
-      "wins": 14624,
-      "picks": 30077
+      "wins": 29753,
+      "picks": 57545
     },
     "CRUSADER": {
-      "wins": 19791,
-      "picks": 41179
+      "wins": 31287,
+      "picks": 62777
     },
     "HERALD": {
-      "wins": 16038,
-      "picks": 35233
+      "wins": 6112,
+      "picks": 13176
     }
   },
   "114": {
     "IMMORTAL": {
-      "wins": 8237,
-      "picks": 17025
+      "wins": 3130,
+      "picks": 6733
     },
     "DIVINE": {
-      "wins": 15286,
-      "picks": 31923
+      "wins": 8986,
+      "picks": 19164
     },
     "ANCIENT": {
-      "wins": 22804,
-      "picks": 47909
+      "wins": 18690,
+      "picks": 40058
     },
     "LEGEND": {
-      "wins": 33102,
-      "picks": 70388
+      "wins": 29389,
+      "picks": 64293
     },
     "ARCHON": {
-      "wins": 42149,
-      "picks": 90768
+      "wins": 36172,
+      "picks": 79457
     },
     "CRUSADER": {
-      "wins": 45568,
-      "picks": 99028
+      "wins": 39113,
+      "picks": 85349
     },
     "HERALD": {
-      "wins": 25259,
-      "picks": 54672
+      "wins": 9236,
+      "picks": 19632
     }
   },
   "119": {
     "IMMORTAL": {
-      "wins": 3710,
-      "picks": 7411
+      "wins": 10070,
+      "picks": 20074
     },
     "DIVINE": {
-      "wins": 6972,
-      "picks": 14187
+      "wins": 18669,
+      "picks": 37809
     },
     "ANCIENT": {
-      "wins": 10644,
-      "picks": 21763
+      "wins": 33792,
+      "picks": 68889
     },
     "LEGEND": {
-      "wins": 16408,
-      "picks": 34050
+      "wins": 46093,
+      "picks": 95498
     },
     "ARCHON": {
-      "wins": 22431,
-      "picks": 47778
+      "wins": 48784,
+      "picks": 102823
     },
     "CRUSADER": {
-      "wins": 25997,
-      "picks": 55617
+      "wins": 44428,
+      "picks": 93918
     },
     "HERALD": {
-      "wins": 14815,
-      "picks": 31641
+      "wins": 7132,
+      "picks": 15115
     }
   },
   "120": {
     "IMMORTAL": {
-      "wins": 9737,
-      "picks": 19621
+      "wins": 6233,
+      "picks": 13452
     },
     "DIVINE": {
-      "wins": 16407,
-      "picks": 33098
+      "wins": 12581,
+      "picks": 26818
     },
     "ANCIENT": {
-      "wins": 21418,
-      "picks": 43113
+      "wins": 20705,
+      "picks": 44676
     },
     "LEGEND": {
-      "wins": 28696,
-      "picks": 57845
+      "wins": 26690,
+      "picks": 57592
     },
     "ARCHON": {
-      "wins": 31411,
-      "picks": 64063
+      "wins": 25582,
+      "picks": 55971
     },
     "CRUSADER": {
-      "wins": 28887,
-      "picks": 60171
+      "wins": 21062,
+      "picks": 46727
     },
     "HERALD": {
-      "wins": 10347,
-      "picks": 22043
+      "wins": 2823,
+      "picks": 6559
     }
   },
   "121": {
     "IMMORTAL": {
-      "wins": 3977,
-      "picks": 7816
+      "wins": 6511,
+      "picks": 12444
     },
     "DIVINE": {
-      "wins": 7587,
-      "picks": 14536
+      "wins": 14430,
+      "picks": 27320
     },
     "ANCIENT": {
-      "wins": 11736,
-      "picks": 22412
+      "wins": 27946,
+      "picks": 54014
     },
     "LEGEND": {
-      "wins": 18567,
-      "picks": 35458
+      "wins": 40663,
+      "picks": 78242
     },
     "ARCHON": {
-      "wins": 24223,
-      "picks": 46205
+      "wins": 42783,
+      "picks": 82031
     },
     "CRUSADER": {
-      "wins": 25748,
-      "picks": 49732
+      "wins": 34130,
+      "picks": 66159
     },
     "HERALD": {
-      "wins": 10556,
-      "picks": 21306
+      "wins": 4220,
+      "picks": 8493
     }
   },
   "123": {
     "IMMORTAL": {
-      "wins": 6570,
-      "picks": 13048
+      "wins": 14407,
+      "picks": 30196
     },
     "DIVINE": {
-      "wins": 12602,
-      "picks": 25494
+      "wins": 29536,
+      "picks": 62416
     },
     "ANCIENT": {
-      "wins": 20012,
-      "picks": 40571
+      "wins": 56853,
+      "picks": 119900
     },
     "LEGEND": {
-      "wins": 32109,
-      "picks": 65614
+      "wins": 83073,
+      "picks": 175696
     },
     "ARCHON": {
-      "wins": 43247,
-      "picks": 89407
+      "wins": 89318,
+      "picks": 190382
     },
     "CRUSADER": {
-      "wins": 50374,
-      "picks": 104399
+      "wins": 79342,
+      "picks": 169126
     },
     "HERALD": {
-      "wins": 32077,
-      "picks": 67148
+      "wins": 13713,
+      "picks": 29713
     }
   },
   "126": {
     "IMMORTAL": {
-      "wins": 7180,
-      "picks": 14902
+      "wins": 5234,
+      "picks": 10659
     },
     "DIVINE": {
-      "wins": 12941,
-      "picks": 26186
+      "wins": 11633,
+      "picks": 23266
     },
     "ANCIENT": {
-      "wins": 18545,
-      "picks": 36966
+      "wins": 21238,
+      "picks": 42347
     },
     "LEGEND": {
-      "wins": 26163,
-      "picks": 51988
+      "wins": 28626,
+      "picks": 57136
     },
     "ARCHON": {
-      "wins": 29020,
-      "picks": 58693
+      "wins": 29935,
+      "picks": 60895
     },
     "CRUSADER": {
-      "wins": 28990,
-      "picks": 59096
+      "wins": 27013,
+      "picks": 56441
     },
     "HERALD": {
-      "wins": 14459,
-      "picks": 30514
+      "wins": 5185,
+      "picks": 10990
     }
   },
   "128": {
     "IMMORTAL": {
-      "wins": 4277,
-      "picks": 8789
+      "wins": 12477,
+      "picks": 25776
     },
     "DIVINE": {
-      "wins": 8762,
-      "picks": 18273
+      "wins": 31022,
+      "picks": 63066
     },
     "ANCIENT": {
-      "wins": 13660,
-      "picks": 28760
+      "wins": 59451,
+      "picks": 121077
     },
     "LEGEND": {
-      "wins": 21519,
-      "picks": 45086
+      "wins": 82429,
+      "picks": 168711
     },
     "ARCHON": {
-      "wins": 27288,
-      "picks": 58106
+      "wins": 79994,
+      "picks": 164405
     },
     "CRUSADER": {
-      "wins": 28945,
-      "picks": 61476
+      "wins": 61722,
+      "picks": 127768
     },
     "HERALD": {
-      "wins": 11952,
-      "picks": 25616
+      "wins": 7760,
+      "picks": 16561
     }
   },
   "129": {
     "IMMORTAL": {
-      "wins": 6784,
-      "picks": 14830
+      "wins": 4292,
+      "picks": 9101
     },
     "DIVINE": {
-      "wins": 12345,
-      "picks": 27703
+      "wins": 11337,
+      "picks": 23850
     },
     "ANCIENT": {
-      "wins": 19247,
-      "picks": 42612
+      "wins": 21397,
+      "picks": 45121
     },
     "LEGEND": {
-      "wins": 28108,
-      "picks": 62092
+      "wins": 29538,
+      "picks": 61739
     },
     "ARCHON": {
-      "wins": 33860,
-      "picks": 74568
+      "wins": 28899,
+      "picks": 60642
     },
     "CRUSADER": {
-      "wins": 33260,
-      "picks": 73249
+      "wins": 22744,
+      "picks": 48164
     },
     "HERALD": {
-      "wins": 12530,
-      "picks": 27510
+      "wins": 3145,
+      "picks": 6812
     }
   },
   "131": {
     "IMMORTAL": {
-      "wins": 4155,
-      "picks": 8433
+      "wins": 7643,
+      "picks": 15410
     },
     "DIVINE": {
-      "wins": 7059,
-      "picks": 14312
+      "wins": 14471,
+      "picks": 29486
     },
     "ANCIENT": {
-      "wins": 9452,
-      "picks": 19476
+      "wins": 25179,
+      "picks": 51879
     },
     "LEGEND": {
-      "wins": 13310,
-      "picks": 27607
+      "wins": 34194,
+      "picks": 70663
     },
     "ARCHON": {
-      "wins": 15475,
-      "picks": 32094
+      "wins": 33482,
+      "picks": 69852
     },
     "CRUSADER": {
-      "wins": 15038,
-      "picks": 31400
+      "wins": 26635,
+      "picks": 56686
     },
     "HERALD": {
-      "wins": 5939,
-      "picks": 12808
+      "wins": 3322,
+      "picks": 7300
     }
   },
   "135": {
     "IMMORTAL": {
-      "wins": 8171,
-      "picks": 15413
+      "wins": 11639,
+      "picks": 22483
     },
     "DIVINE": {
-      "wins": 13705,
-      "picks": 25606
+      "wins": 23135,
+      "picks": 44796
     },
     "ANCIENT": {
-      "wins": 18607,
-      "picks": 35032
+      "wins": 44234,
+      "picks": 84409
     },
     "LEGEND": {
-      "wins": 26942,
-      "picks": 50617
+      "wins": 59011,
+      "picks": 112907
     },
     "ARCHON": {
-      "wins": 32632,
-      "picks": 60871
+      "wins": 55563,
+      "picks": 107073
     },
     "CRUSADER": {
-      "wins": 32414,
-      "picks": 61355
+      "wins": 42041,
+      "picks": 82371
     },
     "HERALD": {
-      "wins": 14660,
-      "picks": 28656
+      "wins": 6323,
+      "picks": 12478
     }
   },
   "136": {
     "IMMORTAL": {
-      "wins": 3221,
-      "picks": 6654
+      "wins": 3718,
+      "picks": 7107
     },
     "DIVINE": {
-      "wins": 6056,
-      "picks": 12372
+      "wins": 7918,
+      "picks": 15624
     },
     "ANCIENT": {
-      "wins": 8465,
-      "picks": 17737
+      "wins": 14858,
+      "picks": 29844
     },
     "LEGEND": {
-      "wins": 13471,
-      "picks": 28145
+      "wins": 22347,
+      "picks": 45101
     },
     "ARCHON": {
-      "wins": 18344,
-      "picks": 38686
+      "wins": 26160,
+      "picks": 53924
     },
     "CRUSADER": {
-      "wins": 22946,
-      "picks": 48054
+      "wins": 28413,
+      "picks": 59075
     },
     "HERALD": {
-      "wins": 19059,
-      "picks": 40884
+      "wins": 7761,
+      "picks": 16433
     }
   },
   "137": {
     "IMMORTAL": {
-      "wins": 4210,
-      "picks": 8003
+      "wins": 3122,
+      "picks": 5941
     },
     "DIVINE": {
-      "wins": 7874,
-      "picks": 15248
+      "wins": 6699,
+      "picks": 12870
     },
     "ANCIENT": {
-      "wins": 11838,
-      "picks": 22685
+      "wins": 11513,
+      "picks": 22628
     },
     "LEGEND": {
-      "wins": 17048,
-      "picks": 32726
+      "wins": 17242,
+      "picks": 34105
     },
     "ARCHON": {
-      "wins": 21442,
-      "picks": 41537
+      "wins": 20683,
+      "picks": 41553
     },
     "CRUSADER": {
-      "wins": 23942,
-      "picks": 46488
+      "wins": 21395,
+      "picks": 42873
     },
     "HERALD": {
-      "wins": 13644,
-      "picks": 26872
+      "wins": 4008,
+      "picks": 8203
     }
   },
   "138": {
     "IMMORTAL": {
-      "wins": 5228,
-      "picks": 10520
+      "wins": 2277,
+      "picks": 4751
     },
     "DIVINE": {
-      "wins": 9418,
-      "picks": 19572
+      "wins": 6192,
+      "picks": 13068
     },
     "ANCIENT": {
-      "wins": 14408,
-      "picks": 29319
+      "wins": 12818,
+      "picks": 26947
     },
     "LEGEND": {
-      "wins": 22015,
-      "picks": 45145
+      "wins": 21462,
+      "picks": 44494
     },
     "ARCHON": {
-      "wins": 29262,
-      "picks": 59274
+      "wins": 28186,
+      "picks": 57197
     },
     "CRUSADER": {
-      "wins": 33221,
-      "picks": 66274
+      "wins": 31004,
+      "picks": 62083
     },
     "HERALD": {
-      "wins": 21472,
-      "picks": 41939
+      "wins": 7775,
+      "picks": 15214
     }
   },
   "145": {
     "IMMORTAL": {
-      "wins": 3832,
-      "picks": 7710
+      "wins": 5283,
+      "picks": 11721
     },
     "DIVINE": {
-      "wins": 6690,
-      "picks": 13857
+      "wins": 10883,
+      "picks": 24727
     },
     "ANCIENT": {
-      "wins": 9826,
-      "picks": 20621
+      "wins": 20111,
+      "picks": 46414
     },
     "LEGEND": {
-      "wins": 13868,
-      "picks": 29642
+      "wins": 29000,
+      "picks": 67251
     },
     "ARCHON": {
-      "wins": 17020,
-      "picks": 36193
+      "wins": 32379,
+      "picks": 74115
     },
     "CRUSADER": {
-      "wins": 18106,
-      "picks": 38509
+      "wins": 32974,
+      "picks": 74130
     },
     "HERALD": {
-      "wins": 12696,
-      "picks": 26815
+      "wins": 7341,
+      "picks": 15486
     }
   },
   "155": {
     "IMMORTAL": {
-      "wins": 1639,
-      "picks": 3457
+      "wins": 3141,
+      "picks": 6202
     },
     "DIVINE": {
-      "wins": 3139,
-      "picks": 6246
+      "wins": 5714,
+      "picks": 11624
     },
     "ANCIENT": {
-      "wins": 4756,
-      "picks": 9805
+      "wins": 9926,
+      "picks": 20422
     },
     "LEGEND": {
-      "wins": 7412,
-      "picks": 15251
+      "wins": 13187,
+      "picks": 27647
     },
     "ARCHON": {
-      "wins": 9610,
-      "picks": 20235
+      "wins": 13929,
+      "picks": 29766
     },
     "CRUSADER": {
-      "wins": 10052,
-      "picks": 21653
+      "wins": 12518,
+      "picks": 27027
     },
     "HERALD": {
-      "wins": 4817,
-      "picks": 10560
+      "wins": 1933,
+      "picks": 4320
     }
   }
 }

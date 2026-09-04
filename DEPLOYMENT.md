@@ -1,116 +1,50 @@
-# Deployment, Rollback & Operations
+# Deployment & Operations
 
----
+## Railway (production)
 
-## Pre-Deploy Checklist
+- Service `dota2-draft-assistant` in project `optimistic-nourishment`, linked to GitHub `avikrahman20-bit/dota2-draft-assistant`.
+- **Every push to `master` auto-deploys.** Check with `railway status` / `railway deployment list`.
+- URL: https://dota2-draft-assistant-production.up.railway.app
+- Env vars set in Railway: `STRATZ_API_KEY`, `ANTHROPIC_API_KEY`, `JWT_SECRET`, `RAILWAY_ENVIRONMENT` (auto). `PORT` is injected.
+- The committed `.tmp/` cache (hero list, stats, role map, `matchups_bundle.json`) means a deploy starts serving in seconds. The server unpacks the bundle into `.tmp/matchups_stratz/` on first start and refreshes from Stratz in the background once the data is older than 24 h (`.tmp/last_fetch.json` carries the true fetch time across checkouts).
+- The container filesystem is ephemeral: `users.db` and refreshed cache files are lost on redeploy unless a volume is attached. Attach a Railway volume at the project root (or set `DB_PATH`) before relying on accounts in production.
+- `/api/refresh` is refused off-localhost; the UI hides the button.
 
-- [ ] `.env` exists with valid `STRATZ_API_KEY` and `ANTHROPIC_API_KEY`
-- [ ] `python -m pytest tests/ -v` passes
-- [ ] Server starts cleanly: `python app.py` — no import errors
-- [ ] Cache loads fully (progress bar reaches 100%, app unlocks)
-- [ ] `/api/status` returns `{"ready": true}` in browser
-- [ ] Auth: register a test user, log in, save profile, log out
-- [ ] Draft: add 3 picks each side — recommendations appear
-- [ ] Chat: send one message — AI replies (confirms Anthropic key works)
-- [ ] Stratz link: enter a real Friend ID — stats populate
-- [ ] `.tmp/` populated with hero + matchup JSON files
-- [ ] Commit all changes before going live: `git add -A && git commit`
+## Pre-deploy checklist
 
----
+- [ ] `python -m pytest tests/ -v` passes (scoring + API)
+- [ ] `python tests/browser_smoke.py` passes against a local server
+- [ ] `git status` shows only intended changes (cache refreshes touch `.tmp/matchups_bundle.json` and `.tmp/last_fetch.json`)
+- [ ] Commit, push — Railway builds automatically
 
-## Deployment (Local / LAN)
+## Post-deploy verification
 
-This app is designed for **local-only use** on `127.0.0.1:8000`.
+1. `curl <url>/api/status` → `"ready": true` within ~30 s
+2. Open the site: board renders, add one pick each side → recommendations and Threats tab populate
+3. Log in, send one chat message → streamed reply
 
-```bash
-python app.py
-```
+## Local / LAN
 
-To expose on LAN (e.g. for a friend to connect):
-- Change `uvicorn.run(app, host="127.0.0.1", ...)` → `host="0.0.0.0"` in `app.py`
-- Open firewall port 8000
-- **WARNING**: This removes the localhost-only restriction on `/api/refresh`. Add auth before doing this.
+`python app.py` binds `127.0.0.1:8000`. `launch.bat` does the same from a double-click. `launch.ps1` also opens a Cloudflare quick tunnel for sharing.
 
----
-
-## Post-Deploy Verification
-
-After starting the server, verify:
-
-1. `http://127.0.0.1:8000` loads splash screen
-2. Progress bar animates and app unlocks within ~3 min on first run (instant on subsequent runs)
-3. Hero grid shows 120+ heroes
-4. Adding 1+ enemy picks shows recommendations
-5. Chat responds to "who counters Axe?"
-6. No ERROR lines in terminal output
-
----
-
-## Rollback Checklist
-
-If something breaks after a code change:
+## Rollback
 
 ```bash
-# 1. Find the last good commit
 git log --oneline -10
-
-# 2. Hard-reset to it (WARNING: discards uncommitted changes)
-git checkout <commit-hash>
-
-# 3. If dependencies changed
-pip install -r requirements.txt
-
-# 4. Restart server
-python app.py
+git revert <bad-commit>       # preferred: keeps history, Railway redeploys
+# or
+git reset --hard <good-commit> && git push --force origin master
 ```
 
-**Database rollback** (`users.db`): SQLite — back up by copying the file.
-```bash
-cp users.db users.db.bak    # before risky migration
-cp users.db.bak users.db    # to restore
-```
+Database: `users.db` is SQLite — copy the file to back up, copy it back to restore.
+Cache: delete `.tmp/matchups_stratz/` (or the whole `.tmp/`) to force a fresh Stratz fetch; the bundle is regenerated after the next fetch.
 
-**Cache rollback** (`.tmp/`): Delete to force a fresh Stratz fetch.
-```bash
-# Windows
-rmdir /s /q .tmp
-```
+## Known risks
 
----
-
-## Known Risks
-
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Stratz API down | Medium | Cache load fails on first run | `.tmp/` cache persists; only affects fresh installs or forced refresh |
-| Stratz API key revoked | Low | App starts but matchup data stale | Re-generate key at stratz.com/api |
-| Anthropic API key exhausted | Low | Chat returns 429 | UI shows clear error; rest of app still works |
-| Port 8000 already in use | High (dev) | Server fails to start | Kill existing process; error is logged |
-| `users.db` corruption | Very Low | Auth unavailable | Delete `users.db` to reset (loses all accounts) |
-| JWT_SECRET rotated | Low | All existing sessions invalidated | Don't change `JWT_SECRET` unless intentional; users must re-login |
-| Patch after cache load | Medium | Recommendations slightly stale | Use Refresh Data button or wait for next startup |
-| Hero pool/weights in localStorage cleared | Low | User settings lost | Only affects frontend prefs; profile (roles, pool, notes) is server-side |
-
----
-
-## Maintenance
-
-**Refresh Stratz data:**
-- Automatic: delete `.tmp/` and restart
-- Manual (server running): `POST http://127.0.0.1:8000/api/refresh` (localhost only)
-
-**View logs:**
-- Server output in terminal
-- All API requests logged: `METHOD /api/path → STATUS (Xs)`
-- Warnings on 4xx/5xx and rate limit hits
-
-**Database:**
-- Location: `users.db` in project root
-- Auto-migrates schema on startup — no manual migrations needed
-- Back up before any schema changes
-
-**Dependency updates:**
-```bash
-pip install --upgrade -r requirements.txt
-```
-Upper bounds in `requirements.txt` protect against breaking major versions. Test after upgrading.
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Stratz API down | First-run fetch fails; refresh skipped | Committed bundle keeps serving; auto-refresh retries every 30 min |
+| Stratz key revoked | Data goes stale | Regenerate at stratz.com/api-token |
+| Anthropic key missing/exhausted | Chat disabled / 429 | Drafting unaffected; UI says so |
+| Railway redeploy | `users.db` wiped without a volume | Attach a volume |
+| JWT_SECRET changed | All sessions invalid | Users log in again |

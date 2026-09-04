@@ -41,7 +41,7 @@ index.html                 /api/status                     Stratz GraphQL  (matc
 app.js        ←──────────→ /api/heroes                     Stratz REST     (hero list, stats, player)
 style.css                  /api/recommend          ──────→ Anthropic Claude (chat)
                            /api/draft_analysis             Dota2 Datafeed  (patch notes)
-                           /api/chat
+                           /api/chat, /api/chat/stream (SSE), /api/chat/quota
                            /api/refresh
                            /api/register, /api/login
                            /api/profile (GET/PUT)
@@ -53,13 +53,15 @@ style.css                  /api/recommend          ──────→ Anthrop
 - `auth.py` — JWT (HS256, 30-day expiry) + bcrypt password hashing; `JWT_SECRET` auto-generated into `.env`
 - `database.py` — SQLite (`users.db`); tables: `users`, `user_profiles`, `chat_feedback`; auto-migrates schema
 - `tools/fetch_hero_data.py` — Stratz REST: hero list + bracket win rates → `.tmp/heroes.json`, `.tmp/hero_stats.json`, `.tmp/role_map.json`
-- `tools/fetch_matchups.py` — Stratz GraphQL: vs + with matchup data per hero → `.tmp/matchups_stratz/<hero_id>.json`
+- `tools/fetch_matchups.py` — Stratz GraphQL: vs + with matchup data per hero → `.tmp/matchups_stratz/<hero_id>.json` (local, gitignored) packed into `.tmp/matchups_bundle.json` (committed); `.tmp/last_fetch.json` stamps the real fetch time
+- `tools/utils.py` — `hero_name()` shared helper
 - `tools/scoring_engine.py` — Pure scoring logic (no I/O); `score_candidates()` + `analyze_draft()`
 - `tools/assistant.py` — Claude chat; injects live meta + patch notes + draft state as context
 - `tools/patch_notes.py` — Fetches dota2.com datafeed patch notes (1-hour TTL)
 - `tools/fetch_player.py` — Stratz player summary by Dota2 Friend ID
 - `.env` — `STRATZ_API_KEY`, `ANTHROPIC_API_KEY`, `JWT_SECRET` (auto-appended)
-- `.tmp/` — Disposable cache. Delete to force re-fetch from Stratz.
+- `.tmp/` — Stratz cache. Delete to force re-fetch. Server auto-refreshes in the background once data is >24h old.
+- `tests/test_scoring_engine.py` — pure scoring tests; `tests/test_api.py` — FastAPI TestClient smoke (needs `.tmp` cache); `tests/browser_smoke.py` — Edge/CDP end-to-end (needs running server, run manually)
 
 ## Key Data Flows
 
@@ -95,8 +97,12 @@ _cache["matchups"] = {
 ## Frontend State (`app.js`)
 - `state.add_target` — `"my-pick"`, `"enemy-pick"` or `"ban"`. EVERY add path (grid, search Enter, rec cards, prediction cards) goes through `handleHeroCardClick()` and follows this toggle. User explicitly wants one rule: the toggle decides, always.
 - `state.threats` — array from backend, one entry per enemy hero (not per pair). Fields: `enemy_id, enemy_name, enemy_img, enemy_roles, avg_win_rate, matchups[]`.
-- `state.recommendations` — top 20 scored heroes for your team
+- `state.recommendations` — top 20 scored heroes for your team (UI shows 5, "Show more" reveals the rest)
 - `state.enemy_predictions` — top 15 scored heroes for the enemy team
+- `state.bans` — up to 14; `add_target === 'ban'` routes adds here. Undo stack via `pushUndo()` before every mutation; draft persisted to `localStorage['draft_state_v1']`
+- Layout: left column = board + picker; right column = insight tabs (`switchTab()`), panels keep their old ids (`rec-list`, `threat-panel`, `enemy-predictions-panel`, `winprob-panel`)
+- Scores shown as 0-100 (`Math.round(total_score*100)`); `/api/heroes` includes `positions[]`; `/api/draft_analysis` accepts 1-5 per side and returns `complete`
+- Weights/bracket sync to the profile (`custom_weights`, `mmr_bracket`) when logged in; profile edits auto-save
 
 ## Auth Flow
 - Register/login → JWT returned → stored in `localStorage` as `authToken`

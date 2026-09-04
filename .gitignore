@@ -3,8 +3,9 @@
 credentials.json
 token.json
 
-# Temp files — committed so Railway doesn't re-fetch on startup
-# .tmp/
+# Stratz cache: the single bundle + small JSONs are committed so Railway skips the fetch;
+# the per-hero working dir is unpacked from the bundle at startup.
+.tmp/matchups_stratz/
 
 # Python
 __pycache__/
@@ -19,3 +20,4 @@ users.db
 # OS
 .DS_Store
 Thumbs.db
+backups/
