@@ -19,6 +19,8 @@ const state = {
   weights: loadWeights(),
   mmr_bracket: loadMmrBracket(),
   role_filter: loadRoleFilter(),
+  can_refresh: false,   // /api/refresh only works from localhost
+  chat_enabled: true,   // false when server has no ANTHROPIC_API_KEY
 };
 
 function loadWeights() {
@@ -175,7 +177,9 @@ async function handleAuthSubmit(e) {
     }
     setAuthState(data.token, data.user);
     closeAuthModal();
+    chatGateShown = false;
     await loadProfile();
+    fetchRecommendations();
   } catch (err) {
     errorEl.textContent = 'Network error';
     errorEl.classList.remove('hidden');
@@ -188,6 +192,7 @@ async function handleAuthSubmit(e) {
 function openProfilePanel() {
   document.getElementById('profile-panel').classList.remove('hidden');
   populateProfileForm();
+  document.getElementById('profile-dota-id').focus();
 }
 
 function closeProfilePanel() {
@@ -259,7 +264,7 @@ function setupHeroSearch() {
     matches.forEach(hero => {
       const item = document.createElement('div');
       item.className = 'hero-dropdown-item';
-      item.innerHTML = `<img src="${hero.img_url}" onerror="this.style.display='none'" /> <span>${hero.localized_name}</span>`;
+      item.innerHTML = `<img src="${_esc(hero.img_url)}" alt="" onerror="this.style.display='none'" /> <span>${_esc(hero.localized_name)}</span>`;
       item.addEventListener('click', () => {
         addHeroToPool(hero.id);
         input.value = '';
@@ -328,7 +333,7 @@ function setupHeroLookup() {
     matches.forEach(hero => {
       const item = document.createElement('div');
       item.className = 'hero-dropdown-item';
-      item.innerHTML = `<img src="${hero.img_url}" onerror="this.style.display='none'" /> <span>${hero.localized_name}</span>`;
+      item.innerHTML = `<img src="${_esc(hero.img_url)}" alt="" onerror="this.style.display='none'" /> <span>${_esc(hero.localized_name)}</span>`;
       item.addEventListener('click', () => {
         input.value = hero.localized_name;
         closeLookupDropdown();
@@ -373,7 +378,9 @@ function setupHeroLookup() {
   });
 }
 
+let lookupSeq = 0;
 async function lookupHeroScore(heroId) {
+  const seq = ++lookupSeq;
   const resultEl = document.getElementById('hero-lookup-result');
   resultEl.innerHTML = '<div style="color:var(--text-muted);font-style:italic;padding:6px 0;font-size:12px">Loading…</div>';
 
@@ -399,13 +406,18 @@ async function lookupHeroScore(heroId) {
         role_filter: state.role_filter,
       }),
     });
+    if (seq !== lookupSeq) return;  // a newer lookup superseded this one
     if (!res.ok) {
-      resultEl.innerHTML = `<div style="color:var(--score-low);font-size:12px">Error: ${(await res.json()).detail || res.status}</div>`;
+      let detail = res.status;
+      try { detail = (await res.json()).detail || res.status; } catch (_) {}
+      resultEl.innerHTML = `<div style="color:var(--score-low);font-size:12px">Error: ${_esc(detail)}</div>`;
       return;
     }
     const rec = await res.json();
+    if (seq !== lookupSeq) return;
     renderLookupResult(rec, enemyPicks, resultEl);
   } catch (err) {
+    if (seq !== lookupSeq) return;
     resultEl.innerHTML = `<div style="color:var(--score-low);font-size:12px">Request failed</div>`;
   }
 }
@@ -425,14 +437,14 @@ function renderLookupResult(rec, enemyPicks, container) {
     const labels = goodCounters.map(c => {
       const pct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
       const g   = c.games ? ` (${c.games}g)` : '';
-      return `${shortName(c.vs_hero)} ${pct}%${g}`;
+      return `${_esc(shortName(c.vs_hero))} ${pct}%${g}`;
     });
     tags.push(`<span class="tag tag-counter">vs ${labels.join(' · ')}</span>`);
   }
   for (const c of badCounters) {
     const pct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
     const g   = c.games ? ` (${c.games}g)` : '';
-    tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${pct}%${g}</span>`);
+    tags.push(`<span class="tag tag-weak">weak vs ${_esc(shortName(c.vs_hero))} ${pct}%${g}</span>`);
   }
   tags.push(`<span class="tag tag-wr">WR ${rec.breakdown?.win_rate_pct ?? '?'}%</span>`);
   if (rec.breakdown?.synergy_score > 0.6) tags.push(`<span class="tag tag-role">Synergy</span>`);
@@ -465,7 +477,7 @@ function renderHeroPoolDisplay(heroIds) {
     if (!hero) return;
     const chip = document.createElement('span');
     chip.className = 'hero-chip';
-    chip.innerHTML = `<img src="${hero.img_url}" onerror="this.style.display='none'" />${hero.localized_name}<button class="chip-remove" data-id="${id}">×</button>`;
+    chip.innerHTML = `<img src="${_esc(hero.img_url)}" alt="" onerror="this.style.display='none'" />${_esc(hero.localized_name)}<button type="button" class="chip-remove" data-id="${id}" aria-label="Remove ${_esc(hero.localized_name)} from pool">×</button>`;
     container.appendChild(chip);
   });
 
@@ -591,10 +603,10 @@ function showAccountStatus(playerData) {
   const infoEl = document.getElementById('account-info');
   statusEl.classList.remove('hidden');
   infoEl.innerHTML = `
-    <span class="account-name">${playerData.name || 'Unknown'}</span>
-    <span class="account-rank">${playerData.rank || ''}</span>
-    <span class="account-wr">${playerData.overall_wr || 0}% WR</span>
-    <span class="account-matches">${(playerData.total_matches || 0).toLocaleString()} matches</span>
+    <span class="account-name">${_esc(playerData.name || 'Unknown')}</span>
+    <span class="account-rank">${_esc(playerData.rank || '')}</span>
+    <span class="account-wr">${_esc(playerData.overall_wr || 0)}% WR</span>
+    <span class="account-matches">${_esc((playerData.total_matches || 0).toLocaleString())} matches</span>
   `;
 }
 
@@ -615,10 +627,10 @@ function renderPlayerStats(data) {
         const wrClass = h.win_rate >= 55 ? 'stat-high' : h.win_rate >= 48 ? 'stat-mid' : 'stat-low';
         return `
           <div class="player-hero-row">
-            <img src="${heroData.img_url || ''}" onerror="this.style.display='none'" />
-            <span class="ph-name">${h.hero_name}</span>
-            <span class="ph-matches">${h.matches} games</span>
-            <span class="ph-wr ${wrClass}">${h.win_rate}%</span>
+            <img src="${_esc(heroData.img_url || '')}" alt="" onerror="this.style.display='none'" />
+            <span class="ph-name">${_esc(h.hero_name)}</span>
+            <span class="ph-matches">${_esc(h.matches)} games</span>
+            <span class="ph-wr ${wrClass}">${_esc(h.win_rate)}%</span>
           </div>`;
       }).join('')}
     </div>
@@ -693,6 +705,8 @@ async function pollStatus() {
 
     if (data.ready) {
       clearInterval(pollInterval);
+      state.can_refresh  = !!data.can_refresh;
+      state.chat_enabled = data.chat_enabled !== false;
       await initApp();
     }
   } catch (_) {
@@ -735,6 +749,14 @@ async function initApp() {
   renderDraftBoard();
   fetchRecommendations();
 
+  // Server capability gating
+  if (!state.can_refresh) document.getElementById('refresh-btn').classList.add('hidden');
+  if (!state.chat_enabled) {
+    const fab = document.getElementById('chat-fab');
+    fab.title = 'AI chat is not configured on this server';
+    fab.classList.add('chat-fab-disabled');
+  }
+
   // Auth: restore login state + load profile
   updateAuthUI();
   if (authState.token) await loadProfile();
@@ -775,8 +797,15 @@ function renderHeroGrid(filter = '') {
   grid.innerHTML = '';
   for (const hero of filtered) {
     const card = document.createElement('div');
-    card.className = 'hero-card' + (used.has(hero.id) ? ' used' : '');
+    const isUsed = used.has(hero.id);
+    card.className = 'hero-card' + (isUsed ? ' used' : '');
     card.dataset.heroId = hero.id;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', hero.localized_name);
+    card.tabIndex = isUsed ? -1 : 0;
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
 
     const img = document.createElement('img');
     img.src = hero.img_url;
@@ -801,7 +830,9 @@ function updateHeroGridUsed() {
   const used = getUsedSet();
   document.querySelectorAll('#hero-grid .hero-card').forEach(card => {
     const id = parseInt(card.dataset.heroId);
-    card.classList.toggle('used', used.has(id));
+    const isUsed = used.has(id);
+    card.classList.toggle('used', isUsed);
+    card.tabIndex = isUsed ? -1 : 0;
   });
 }
 
@@ -828,7 +859,7 @@ function updateSearchModeStyle() {
     'my-pick':    myTeam === 'radiant' ? 'Radiant (Me)' : 'Dire (Me)',
     'enemy-pick': myTeam === 'radiant' ? 'Dire (Enemy)' : 'Radiant (Enemy)',
   };
-  el.placeholder = `Search — ${labels[state.add_target] || ''} — Tab to switch`;
+  el.placeholder = `Search — ${labels[state.add_target] || ''} — Space to switch team`;
 }
 
 // ── Hero selection logic ──────────────────────────────────────
@@ -910,9 +941,12 @@ function renderPickSlots(team, picks) {
       label.className = 'slot-label';
       label.textContent = hero.localized_name;
 
-      const rmBtn = document.createElement('div');
+      const rmBtn = document.createElement('button');
+      rmBtn.type = 'button';
       rmBtn.className = 'slot-remove';
       rmBtn.textContent = '×';
+      rmBtn.setAttribute('aria-label', `Remove ${hero.localized_name}`);
+      rmBtn.title = `Remove ${hero.localized_name}`;
       rmBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         picks.splice(i, 1);
@@ -957,24 +991,24 @@ function renderThreatPanel() {
   panel.classList.remove('hidden');
 
   const threats  = state.threats; // sorted by avg_win_rate desc
-  const critical = threats.slice(0, 2);
-  const minor    = threats.slice(2);
+  const critical = threats.filter(t => t.avg_win_rate >= 0.53);
+  const minor    = threats.filter(t => t.avg_win_rate <  0.53);
 
   let html = '';
 
   // ── Critical Threats ──────────────────────────────────────
-  html += `<div class="threat-tier-label critical">CRITICAL THREATS</div>`;
+  if (critical.length) html += `<div class="threat-tier-label critical">CRITICAL THREATS</div>`;
 
   critical.forEach(t => {
     const avgPct = (t.avg_win_rate * 100).toFixed(1);
-    const severity = t.avg_win_rate >= 0.53 ? 'CRITICAL' : 'MODERATE';
-    const sevCls   = severity === 'CRITICAL' ? 'sev-critical' : 'sev-moderate';
+    const severity = 'CRITICAL';
+    const sevCls   = 'sev-critical';
 
     // Worst matchup tags (max 3, only show if win_rate > 0.5)
     const badMatchups = t.matchups
       .filter(m => m.win_rate > 0.5)
       .slice(0, 3)
-      .map(m => `<span class="threat-tag">${m.ally_name} <span class="threat-tag-pct">${(m.win_rate*100).toFixed(0)}%</span></span>`)
+      .map(m => `<span class="threat-tag">${_esc(m.ally_name)} <span class="threat-tag-pct">${(m.win_rate*100).toFixed(0)}%</span></span>`)
       .join('');
 
     html += `
@@ -993,12 +1027,12 @@ function renderThreatPanel() {
 
   // ── Minor Threats ─────────────────────────────────────────
   if (minor.length) {
-    html += `<div class="threat-tier-label minor">MINOR THREATS</div>`;
+    html += `<div class="threat-tier-label minor">${critical.length ? 'MINOR THREATS' : 'THREATS'}</div>`;
     minor.forEach(t => {
       const worstAlly = t.matchups[0];
       const avgPct    = (t.avg_win_rate * 100).toFixed(1);
-      const severity  = t.avg_win_rate >= 0.53 ? 'CRITICAL' : 'MODERATE';
-      const sevCls    = severity === 'CRITICAL' ? 'sev-critical' : 'sev-moderate';
+      const severity  = t.avg_win_rate >= 0.50 ? 'MODERATE' : 'LOW';
+      const sevCls    = severity === 'MODERATE' ? 'sev-moderate' : 'sev-low';
       html += `
         <div class="threat-card minor">
           <img class="threat-card-img" src="${_esc(t.enemy_img)}" onerror="this.style.display='none'" alt="${_esc(t.enemy_name)}">
@@ -1018,7 +1052,9 @@ function renderThreatPanel() {
 }
 
 // ── Win Probability ───────────────────────────────────────
+let analysisSeq = 0;
 async function fetchDraftAnalysis() {
+  const seq = ++analysisSeq;
   try {
     const res = await fetch('/api/draft_analysis', {
       method: 'POST',
@@ -1030,7 +1066,10 @@ async function fetchDraftAnalysis() {
       }),
     });
     if (!res.ok) return;
-    renderWinProb(await res.json());
+    const data = await res.json();
+    if (seq !== analysisSeq) return;  // draft changed while this was in flight
+    if (state.radiant_picks.length !== 5 || state.dire_picks.length !== 5) return;
+    renderWinProb(data);
   } catch (_) {}
 }
 
@@ -1051,34 +1090,51 @@ function renderWinProb(data) {
   function favored(val) { return val >= 0 ? 'Radiant' : 'Dire'; }
 
   function matchupRow(pair, radiantFavored) {
-    const winPct      = (pair.win_rate * 100).toFixed(1);
+    // pair.win_rate is Radiant hero's WR vs Dire hero; flip for Dire-favored rows
+    const wr          = radiantFavored ? pair.win_rate : 1 - pair.win_rate;
+    const winPct      = (wr * 100).toFixed(1);
     const winnerImg   = radiantFavored ? pair.radiant_img  : pair.dire_img;
     const winnerName  = radiantFavored ? pair.radiant_name : pair.dire_name;
     const loserImg    = radiantFavored ? pair.dire_img     : pair.radiant_img;
     const loserName   = radiantFavored ? pair.dire_name    : pair.radiant_name;
     const cls         = radiantFavored ? 'matchup-radiant' : 'matchup-dire';
+    const games       = pair.games ? ` <span class="wp-games">${_esc(pair.games.toLocaleString())}g</span>` : '';
     return `
       <div class="wp-matchup-row ${cls}">
-        <img src="${winnerImg}"  onerror="this.style.display='none'" />
-        <span class="wp-mname">${winnerName}</span>
+        <img src="${_esc(winnerImg)}" alt="" onerror="this.style.display='none'" />
+        <span class="wp-mname">${_esc(winnerName)}</span>
         <span class="wp-arrow">beats</span>
-        <img src="${loserImg}"   onerror="this.style.display='none'" />
-        <span class="wp-mname">${loserName}</span>
-        <span class="wp-pct">${winPct}%</span>
+        <img src="${_esc(loserImg)}" alt="" onerror="this.style.display='none'" />
+        <span class="wp-mname">${_esc(loserName)}</span>
+        <span class="wp-pct">${winPct}%</span>${games}
       </div>`;
   }
 
   function synRow(pair, team) {
     const winPct = (pair.win_rate * 100).toFixed(1);
     const cls    = team === 'radiant' ? 'syn-radiant' : 'syn-dire';
+    const games  = pair.games ? ` <span class="wp-games">${_esc(pair.games.toLocaleString())}g</span>` : '';
     return `
       <div class="wp-syn-row ${cls}">
-        <img src="${pair.hero1_img}" onerror="this.style.display='none'" />
-        <span class="wp-mname">${pair.hero1_name}</span>
+        <img src="${_esc(pair.hero1_img)}" alt="" onerror="this.style.display='none'" />
+        <span class="wp-mname">${_esc(pair.hero1_name)}</span>
         <span class="wp-arrow">+</span>
-        <img src="${pair.hero2_img}" onerror="this.style.display='none'" />
-        <span class="wp-mname">${pair.hero2_name}</span>
-        <span class="wp-pct">${winPct}%</span>
+        <img src="${_esc(pair.hero2_img)}" alt="" onerror="this.style.display='none'" />
+        <span class="wp-mname">${_esc(pair.hero2_name)}</span>
+        <span class="wp-pct">${winPct}%</span>${games}
+      </div>`;
+  }
+
+  function factorRow(label, val) {
+    // val is +ve when Radiant is favoured, in percentage points
+    const cls = val >= 0 ? 'adv-radiant' : 'adv-dire';
+    const who = val >= 0 ? 'Radiant' : 'Dire';
+    const width = Math.min(100, Math.abs(val) * 8);  // ±12.5pp fills the bar
+    return `
+      <div class="wp-factor-row ${cls}">
+        <span class="wp-factor-name">${label}</span>
+        <div class="wp-factor-bar-wrap"><div class="wp-factor-bar" style="width:${width}%"></div></div>
+        <span class="wp-factor-val">${who} ${(val >= 0 ? '+' : '') + val.toFixed(1)}pp</span>
       </div>`;
   }
 
@@ -1115,6 +1171,14 @@ function renderWinProb(data) {
         </div>` : ''}
     </div>` : '';
 
+  const factorsSection = `
+    <div class="wp-factors">
+      <div class="wp-section-label">WHY</div>
+      ${factorRow('Matchups', comp.matchup_adv ?? 0)}
+      ${factorRow('Synergy',  comp.synergy_adv ?? 0)}
+      ${factorRow('Win rates', comp.wr_adv ?? 0)}
+    </div>`;
+
   content.innerHTML = `
     <div class="wp-bar-section">
       <div class="wp-bar-labels">
@@ -1129,15 +1193,20 @@ function renderWinProb(data) {
         <span class="wp-prob ${dProb > rProb ? 'wp-winner' : ''}" style="color:var(--dire)">${dProb}%</span>
       </div>
     </div>
+    ${factorsSection}
+    ${matchupSection}
+    ${synSection}
   `;
 }
 
 // ── Recommendations ───────────────────────────────────────────
 let recDebounceTimer = null;
+let recSeq = 0;
 
 async function fetchRecommendations() {
   clearTimeout(recDebounceTimer);
   recDebounceTimer = setTimeout(async () => {
+    const seq = ++recSeq;
     const myTeam = state.my_team;
     const allyPicks = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
     const enemyPicks = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
@@ -1158,6 +1227,7 @@ async function fetchRecommendations() {
         }),
       });
 
+      if (seq !== recSeq) return;  // a newer request superseded this one
       if (!res.ok) {
         let errorMsg = '';
         if (res.status === 503) {
@@ -1178,6 +1248,7 @@ async function fetchRecommendations() {
       }
 
       const data = await res.json();
+      if (seq !== recSeq) return;
       // Handle both old list format and new {top, all_scores, threats} format
       if (Array.isArray(data)) {
         state.recommendations = data;
@@ -1194,6 +1265,7 @@ async function fetchRecommendations() {
       renderThreatPanel();
       renderEnemyPredictions();
     } catch (err) {
+      if (seq !== recSeq) return;
       document.getElementById('rec-hint').textContent = 'Network error fetching recommendations';
     }
   }, 150);
@@ -1253,14 +1325,14 @@ function renderRecommendations() {
       const counterLabels = goodCounters.map(c => {
         const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
         const games = c.games ? ` (${c.games}g)` : '';
-        return `${shortName(c.vs_hero)} ${winPct}%${games}`;
+        return `${_esc(shortName(c.vs_hero))} ${winPct}%${games}`;
       });
       tags.push(`<span class="tag tag-counter">vs ${counterLabels.join(' · ')}</span>`);
     }
     for (const c of badCounters) {
       const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
       const games = c.games ? ` (${c.games}g)` : '';
-      tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${winPct}%${games}</span>`);
+      tags.push(`<span class="tag tag-weak">weak vs ${_esc(shortName(c.vs_hero))} ${winPct}%${games}</span>`);
     }
     tags.push(`<span class="tag tag-wr">WR ${rec.breakdown.win_rate_pct}%</span>`);
     if (rec.breakdown.synergy_score > 0.6) {
@@ -1270,12 +1342,18 @@ function renderRecommendations() {
       tags.push(`<span class="tag tag-pool">Pool</span>`);
     }
 
+    card.setAttribute('role', 'button');
+    card.tabIndex = 0;
+    card.setAttribute('aria-label', `Add ${rec.localized_name} to your team`);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
     card.innerHTML = `
       <div class="rec-rank">${i + 1}</div>
-      <img class="rec-img" src="${rec.img_url}" alt="${rec.localized_name}"
+      <img class="rec-img" src="${_esc(rec.img_url)}" alt=""
            onerror="this.style.display='none'" />
       <div class="rec-info">
-        <div class="rec-name">${rec.localized_name}</div>
+        <div class="rec-name">${_esc(rec.localized_name)}</div>
         <div class="rec-score-bar-wrap">
           <div class="rec-score-bar" style="width:${barPct}%;background:${barColor}"></div>
         </div>
@@ -1284,22 +1362,15 @@ function renderRecommendations() {
       <div class="rec-score-num ${scoreClass}">${rec.total_score > 0 ? '+' : ''}${rec.total_score.toFixed(3)}</div>
     `;
 
-    // Click a recommendation to add (respects add_target mode)
+    // Recommendations are scored FOR your team — clicking always adds to your side.
+    // (add_target only governs the hero grid / search box.)
     card.addEventListener('click', () => {
-      if (state.add_target === 'my-pick') {
-        const allyArr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
-        if (allyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
-          allyArr.push(rec.hero_id);
-          onStateChange();
-          document.getElementById('hero-search').focus();
-        }
-      } else if (state.add_target === 'enemy-pick') {
-        const enemyArr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
-        if (enemyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
-          enemyArr.push(rec.hero_id);
-          onStateChange();
-          document.getElementById('hero-search').focus();
-        }
+      const allyArr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
+      if (allyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
+        allyArr.push(rec.hero_id);
+        if (allyArr.length >= 5 && state.add_target === 'my-pick') setAddTarget('enemy-pick');
+        onStateChange();
+        document.getElementById('hero-search').focus();
       }
     });
 
@@ -1342,14 +1413,14 @@ function renderEnemyPredictions() {
       const counterLabels = goodCounters.map(c => {
         const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
         const games = c.games ? ` (${c.games}g)` : '';
-        return `${shortName(c.vs_hero)} ${winPct}%${games}`;
+        return `${_esc(shortName(c.vs_hero))} ${winPct}%${games}`;
       });
       tags.push(`<span class="tag tag-enemy-counter">vs ${counterLabels.join(' · ')}</span>`);
     }
     for (const c of badCounters) {
       const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
       const games = c.games ? ` (${c.games}g)` : '';
-      tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${winPct}%${games}</span>`);
+      tags.push(`<span class="tag tag-weak">weak vs ${_esc(shortName(c.vs_hero))} ${winPct}%${games}</span>`);
     }
 
     // Only show synergy tag when enemy actually has picks
@@ -1359,12 +1430,18 @@ function renderEnemyPredictions() {
 
     tags.push(`<span class="tag tag-wr">WR ${pred.breakdown.win_rate_pct}%</span>`);
 
+    card.setAttribute('role', 'button');
+    card.tabIndex = 0;
+    card.setAttribute('aria-label', `Add ${pred.localized_name} to enemy team`);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
     card.innerHTML = `
       <div class="rec-rank">${i + 1}</div>
-      <img class="rec-img" src="${pred.img_url}" alt="${pred.localized_name}"
+      <img class="rec-img" src="${_esc(pred.img_url)}" alt=""
            onerror="this.style.display='none'" />
       <div class="rec-info">
-        <div class="rec-name">${pred.localized_name}</div>
+        <div class="rec-name">${_esc(pred.localized_name)}</div>
         <div class="rec-score-bar-wrap">
           <div class="rec-score-bar" style="width:${barPct}%;background:var(--dire)"></div>
         </div>
@@ -1378,6 +1455,7 @@ function renderEnemyPredictions() {
       const enemyArr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
       if (enemyArr.length < 5 && !getUsedSet().has(pred.hero_id)) {
         enemyArr.push(pred.hero_id);
+        if (enemyArr.length >= 5 && state.add_target === 'enemy-pick') setAddTarget('my-pick');
         onStateChange();
         document.getElementById('hero-search').focus();
       }
@@ -1430,7 +1508,8 @@ document.getElementById('hero-search').addEventListener('keydown', (e) => {
     e.preventDefault();
     const firstCard = document.querySelector('#hero-grid .hero-card:not(.used)');
     if (firstCard) handleHeroCardClick(parseInt(firstCard.dataset.heroId));
-  } else if (e.key === 'Tab') {
+  } else if (e.key === ' ' && e.target.value === '') {
+    // Space on an empty search box flips the target team. Tab stays native.
     e.preventDefault();
     const modes = ['my-pick', 'enemy-pick'];
     const idx = modes.indexOf(state.add_target);
@@ -1488,7 +1567,14 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
   btn.disabled = true;
   btn.textContent = 'Refreshing...';
   try {
-    await fetch('/api/refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ force: true }) });
+    const res = await fetch('/api/refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ force: true }) });
+    if (!res.ok) {
+      let detail = `Error ${res.status}`;
+      try { detail = (await res.json()).detail || detail; } catch (_) {}
+      btn.textContent = '↻ ' + detail;
+      setTimeout(() => { btn.disabled = false; btn.textContent = '↻ Refresh Data'; }, 4000);
+      return;
+    }
     btn.textContent = '↻ Refreshing in background';
     setTimeout(() => { btn.disabled = false; btn.textContent = '↻ Refresh Data'; }, 5000);
   } catch (_) {
@@ -1541,9 +1627,31 @@ document.querySelectorAll('.enemy-role-btn').forEach(btn => {
 // ── Chat Assistant ────────────────────────────────────────────
 const chatHistory = [];  // [{role, content}] kept for multi-turn context
 
+let chatGateShown = false;
 function chatOpen() {
   document.getElementById('chat-panel').classList.remove('hidden');
-  document.getElementById('chat-input').focus();
+  const input = document.getElementById('chat-input');
+  const send  = document.getElementById('chat-send-btn');
+  if (!state.chat_enabled) {
+    input.disabled = true; send.disabled = true;
+    input.placeholder = 'AI chat is not configured on this server';
+    if (!chatGateShown) { appendChatMsg('assistant', 'AI chat is unavailable: the server has no Anthropic API key. Drafting still works.'); chatGateShown = true; }
+    return;
+  }
+  if (!authState.user) {
+    input.disabled = true; send.disabled = true;
+    input.placeholder = 'Log in to use AI chat';
+    if (!chatGateShown) {
+      const el = appendChatMsg('assistant', '');
+      el.innerHTML = 'Log in to use the AI assistant. <button type="button" class="btn-link" id="chat-login-link">Log in</button>';
+      el.querySelector('#chat-login-link').addEventListener('click', () => { chatClose(); openAuthModal('login'); });
+      chatGateShown = true;
+    }
+    return;
+  }
+  input.disabled = false; send.disabled = false;
+  input.placeholder = 'e.g. best offlane right now?';
+  input.focus();
 }
 function chatClose() {
   document.getElementById('chat-panel').classList.add('hidden');
@@ -1624,6 +1732,8 @@ async function sendChatMessage() {
 document.getElementById('login-btn').addEventListener('click', () => openAuthModal('login'));
 document.getElementById('logout-btn').addEventListener('click', () => {
   setAuthState(null, null);
+  chatGateShown = false;
+  fetchRecommendations();
 });
 document.getElementById('profile-btn').addEventListener('click', openProfilePanel);
 document.getElementById('auth-modal-close').addEventListener('click', closeAuthModal);
@@ -1642,6 +1752,46 @@ document.getElementById('profile-form').addEventListener('submit', handleProfile
 document.getElementById('profile-panel').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) closeProfilePanel();
 });
+
+// ── Global keyboard: Escape closes modals, Tab is trapped inside them ──
+function _openModal() {
+  return ['auth-modal', 'profile-panel']
+    .map(id => document.getElementById(id))
+    .find(el => el && !el.classList.contains('hidden')) || null;
+}
+document.addEventListener('keydown', (e) => {
+  const modal = _openModal();
+  if (e.key === 'Escape') {
+    if (modal) {
+      e.preventDefault();
+      if (modal.id === 'auth-modal') closeAuthModal(); else closeProfilePanel();
+      return;
+    }
+    const chat = document.getElementById('chat-panel');
+    if (!chat.classList.contains('hidden') && chat.contains(document.activeElement)) {
+      chatClose();
+      document.getElementById('chat-fab').focus();
+    }
+    return;
+  }
+  if (e.key === 'Tab' && modal) {
+    const focusables = modal.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    const first = focusables[0], last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+// Make the chat FAB keyboard-operable
+(() => {
+  const fab = document.getElementById('chat-fab');
+  fab.setAttribute('role', 'button');
+  fab.setAttribute('aria-label', 'Open draft assistant chat');
+  fab.tabIndex = 0;
+  fab.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fab.click(); }
+  });
+})();
 
 // ── Start polling ─────────────────────────────────────────────
 pollInterval = setInterval(pollStatus, 600);

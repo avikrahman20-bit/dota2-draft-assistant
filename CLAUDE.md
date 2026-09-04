@@ -93,7 +93,7 @@ _cache["matchups"] = {
 `fetch_hero_data.py` uses `"IMMORTAL"` but `fetch_matchups.py` uses `"DIVINE_IMMORTAL"` for the same bracket. Each module has its own `BRACKET_ENUM` map. Always check which module you're touching.
 
 ## Frontend State (`app.js`)
-- `state.add_target` — `"my-pick"` or `"enemy-pick"`. All hero-add paths (hero grid, rec cards, enemy prediction cards) MUST check this before deciding which team array to push to.
+- `state.add_target` — `"my-pick"` or `"enemy-pick"`. Governs the hero grid and search box ONLY. Recommendation cards always add to YOUR team (they are scored for it); enemy-prediction cards always add to the ENEMY team. Do not make those cards follow `add_target`.
 - `state.threats` — array from backend, one entry per enemy hero (not per pair). Fields: `enemy_id, enemy_name, enemy_img, enemy_roles, avg_win_rate, matchups[]`.
 - `state.recommendations` — top 20 scored heroes for your team
 - `state.enemy_predictions` — top 15 scored heroes for the enemy team
@@ -112,4 +112,7 @@ _cache["matchups"] = {
 - Browser caching: Ctrl+Shift+R after any frontend change
 - Patch notes API uses `hero_id` (int) not names — must resolve via heroes.json cache
 - `compute_threats` returns one entry per enemy hero (grouped), not per (enemy, ally) pair
-- Adding heroes from rec/prediction cards must respect `state.add_target` (was a bug, now fixed)
+- Rec/prediction cards must NOT follow `state.add_target` — rec cards → your team, prediction cards → enemy. (An earlier "fix" made rec cards follow the toggle, which let a your-team recommendation land on the enemy side.)
+- Every string interpolated into `innerHTML` must go through `_esc()`. Steam display names are attacker-controlled.
+- `/api/status` returns `can_refresh` (localhost only) and `chat_enabled` (ANTHROPIC_API_KEY present). Frontend hides/gates on these.
+- `ANTHROPIC_API_KEY` is optional: without it the server boots and `/api/chat` returns 503. `JWT_SECRET` is owned by `auth.py`, not validated in `app.py`.

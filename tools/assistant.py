@@ -158,6 +158,7 @@ def _build_draft_context(
     recommendations: list[dict] | None = None,
     my_team: str = "radiant",
     hero_pool: list[int] | None = None,
+    weights: dict | None = None,
 ) -> str:
     """Summarizes the current draft state + scoring engine recommendations for the LLM."""
     if not radiant_ids and not dire_ids:
@@ -195,7 +196,12 @@ def _build_draft_context(
     # Scoring engine recommendations (same data as the on-screen panel)
     if recommendations:
         lines.append("\n=== Top Recommendations (from scoring engine — matches the on-screen panel) ===")
-        lines.append("These are scored by: counter matchups (55%), synergy (20%), win rate (15%), hero pool (10%)")
+        w = weights or {}
+        labels = [("counter", "counter matchups"), ("synergy", "synergy"), ("win_rate", "win rate"),
+                  ("hero_pool", "hero pool"), ("meta", "meta pick rate")]
+        parts = [f"{lbl} ({w.get(k, 0) * 100:.0f}%)" for k, lbl in labels if w.get(k, 0) > 0]
+        lines.append(("Scored by the user's current weights: " + ", ".join(parts)) if parts else
+                     "Scored by counter matchups, synergy, win rate, hero pool, meta pick rate")
         for i, rec in enumerate(recommendations[:10], 1):
             name = rec.get("localized_name", "?")
             score = rec.get("total_score", 0)
@@ -427,6 +433,7 @@ def answer(
     user_profile: dict | None = None,
     recommendations: list[dict] | None = None,
     my_team: str = "radiant",
+    weights: dict | None = None,
 ) -> str:
     """
     Main entry point. Returns Claude's answer as a string.
@@ -443,6 +450,7 @@ def answer(
         recommendations=recommendations,
         my_team=my_team,
         hero_pool=hero_pool,
+        weights=weights,
     )
     user_ctx    = _build_user_context(user_profile, heroes)
     matchup_ref = _build_matchup_lookup(heroes, hero_stats, matchups, role_map, bracket)

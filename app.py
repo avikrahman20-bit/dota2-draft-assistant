@@ -67,22 +67,18 @@ def _validate_env():
     if not stratz_key:
         errors.append("STRATZ_API_KEY not set in .env")
 
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    if not anthropic_key:
-        errors.append("ANTHROPIC_API_KEY not set in .env")
-
-    jwt_secret = os.environ.get("JWT_SECRET", "").strip()
-    if not jwt_secret:
-        errors.append("JWT_SECRET not set in .env (should auto-generate on first run)")
+    if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
+        logger.warning("ANTHROPIC_API_KEY not set — AI chat will be disabled. Drafting still works.")
 
     if errors:
         msg = "Startup configuration errors:\n  • " + "\n  • ".join(errors)
-        msg += "\n\nFix: Copy .env.example to .env and fill in your API keys from:"
+        msg += "\n\nFix: Copy .env.example to .env and fill in your API key from:"
         msg += "\n  • Stratz: https://stratz.com/api-token"
-        msg += "\n  • Anthropic: https://console.anthropic.com/"
         raise RuntimeError(msg)
 
 _validate_env()
+
+CHAT_ENABLED = bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
 
 # Ensure tools/ is importable
 sys.path.insert(0, str(Path(__file__).parent))
@@ -248,8 +244,13 @@ def compute_threats(
 # API routes
 # ---------------------------------------------------------------------------
 
+def _is_local(request: Request) -> bool:
+    host = request.client.host if request.client else ""
+    return host in ("127.0.0.1", "::1")
+
+
 @app.get("/api/status")
-def get_status():
+def get_status(request: Request):
     # Check for timeout: if load started but not finished after 5 min, mark error
     if (not _cache["ready"] and _cache["load_start_time"] > 0 and
         time.time() - _cache["load_start_time"] > _CACHE_LOAD_TIMEOUT_SECS):
@@ -264,6 +265,8 @@ def get_status():
         "progress": _cache["progress"],
         "total": _cache["total"],
         "error": _cache["error"],
+        "can_refresh": _is_local(request),
+        "chat_enabled": CHAT_ENABLED,
     }
 
 
@@ -609,11 +612,14 @@ class ChatRequest(BaseModel):
     my_team:     str                  = "radiant"
     mmr_bracket: str                  = "7"
     history:     list[dict[str, str]] = Field(default=[], max_length=20)
+    weights:     dict[str, float]     = Field(default={})
 
 
 @app.post("/api/chat")
 def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Header(None)):
     _check_rate_limit(request.client.host, "chat", max_per_minute=20)
+    if not CHAT_ENABLED:
+        raise HTTPException(503, "AI chat is not configured on this server (ANTHROPIC_API_KEY missing)")
     if not _cache.get("ready"):
         raise HTTPException(503, "Cache not ready yet")
     if not req.question.strip():
@@ -622,6 +628,8 @@ def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Head
     user = _get_current_user(authorization)
     if not user:
         raise HTTPException(401, "Login required to use AI chat")
+
+    chat_weights = {**DEFAULT_WEIGHTS, **req.weights} if req.weights else dict(DEFAULT_WEIGHTS)
 
     used = db.get_chat_count_today(user["id"])
     if used >= DAILY_CHAT_LIMIT:
@@ -674,7 +682,7 @@ def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Head
             hero_stats=_cache["hero_stats"],
             heroes=_cache["heroes"],
             mmr_bracket=req.mmr_bracket,
-            weights=None,
+            weights=chat_weights,
             top_n=10,
             hero_pool=hero_pool,
         )
@@ -694,6 +702,7 @@ def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Head
             user_profile=user_profile,
             recommendations=recommendations,
             my_team=req.my_team,
+            weights=chat_weights,
         )
         db.increment_chat_count(user["id"])
         remaining = DAILY_CHAT_LIMIT - used - 1
@@ -715,7 +724,7 @@ class RefreshRequest(BaseModel):
 
 @app.post("/api/refresh")
 def refresh(req: RefreshRequest, request: Request):
-    if request.client.host not in ("127.0.0.1", "::1"):
+    if not _is_local(request):
         raise HTTPException(403, "Refresh is only available from localhost")
     if not _cache["ready"]:
         raise HTTPException(503, "Still loading initial cache")

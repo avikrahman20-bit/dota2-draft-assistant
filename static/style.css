@@ -26,6 +26,14 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.hero-card:focus-visible,
+.rec-card:focus-visible,
+.enemy-pred-card:focus-visible { outline-offset: 0; }
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -193,19 +201,28 @@ button {
 .slot-remove {
   position: absolute;
   top: 2px; right: 2px;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.75);
   color: #fff;
+  border: none;
   border-radius: 50%;
-  width: 16px; height: 16px;
-  font-size: 10px;
-  display: none;
+  width: 18px; height: 18px;
+  padding: 0;
+  font-size: 12px;
+  display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   line-height: 1;
+  opacity: 0.55;
+  transition: opacity 0.15s, background 0.15s;
 }
 .pick-slot:hover .slot-remove,
-.ban-slot:hover .slot-remove { display: flex; }
+.ban-slot:hover .slot-remove,
+.slot-remove:hover,
+.slot-remove:focus-visible { opacity: 1; background: var(--score-low); }
+@media (hover: none) {
+  .slot-remove { opacity: 0.9; }
+}
 
 .slot-label {
   position: absolute;
@@ -871,6 +888,8 @@ input[type="range"] {
   font-size: 12px;
 }
 
+.wp-games { color: var(--text-muted); font-size: 10px; flex-shrink: 0; }
+
 .matchup-radiant .wp-pct { color: var(--radiant); }
 .matchup-dire    .wp-pct { color: var(--dire); }
 .syn-radiant     .wp-pct { color: var(--radiant); }
@@ -959,6 +978,7 @@ input[type="range"] {
 }
 .sev-critical { background: rgba(255,80,80,0.15); color: var(--score-low); border: 1px solid var(--score-low); }
 .sev-moderate { background: rgba(255,185,60,0.12); color: var(--score-mid); border: 1px solid var(--score-mid); }
+.sev-low      { background: rgba(125,133,144,0.12); color: var(--text-muted); border: 1px solid var(--border); }
 
 .threat-avg-pct {
   margin-left: auto;
@@ -1021,6 +1041,8 @@ input[type="range"] {
   user-select: none;
 }
 #chat-fab:hover { transform: scale(1.08); background: var(--accent-hover); }
+#chat-fab.chat-fab-disabled { background: var(--border); opacity: 0.6; }
+.chat-input-row input:disabled { opacity: 0.6; cursor: not-allowed; }
 .chat-fab-icon { font-size: 22px; line-height: 1; }
 
 #chat-panel {
@@ -1745,12 +1767,16 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 
-  /* Chat panel: full width */
-  .chat-panel {
-    width: 100vw !important;
-    right: 0 !important;
-    border-radius: 0 !important;
+  /* Chat panel: full width, above the FAB */
+  #chat-panel {
+    width: 100vw;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 75vh;
+    border-radius: 12px 12px 0 0;
   }
+  #chat-fab { bottom: 16px; right: 16px; }
 
   /* Hero slot size adjustments */
   :root {
@@ -1758,9 +1784,18 @@ input[type="range"] {
     --slot-size-sm: 40px;
   }
 
-  /* Toolbar wraps on small screens */
-  .toolbar {
+  /* Header wraps on small screens */
+  header {
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
+    padding: 10px 12px;
   }
+  .header-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .draft-board, .hero-picker, .recommendations, .hero-lookup-section,
+  .enemy-predictions, .winprob-panel, .threat-panel { padding-left: 12px; padding-right: 12px; }
+  #hero-search { width: 100%; }
+  .modal-box, .modal-profile { width: calc(100vw - 24px); max-height: 90vh; }
 }

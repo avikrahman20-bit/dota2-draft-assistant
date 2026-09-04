@@ -82,9 +82,9 @@
   </section>
 
   <!-- Hero search + controls -->
-  <section class="hero-picker">
+  <section class="hero-picker" aria-label="Hero picker">
     <div class="picker-controls">
-      <input type="text" id="hero-search" placeholder="Search heroes..." autocomplete="off" />
+      <input type="text" id="hero-search" placeholder="Search heroes..." autocomplete="off" aria-label="Search heroes" />
       <div class="add-target-controls">
         <span>Add as:</span>
         <button class="add-target-btn active" data-target="my-pick" id="btn-my-pick">My Pick</button>
@@ -123,8 +123,8 @@
       <div class="weight-row">
         <label>
           Win Rate Weight
-          <input type="range" id="w-winrate" min="0" max="1" step="0.05" value="0.25" />
-          <span id="w-winrate-val">0.25</span>
+          <input type="range" id="w-winrate" min="0" max="1" step="0.05" value="0.15" />
+          <span id="w-winrate-val">0.15</span>
         </label>
         <div class="weight-hint">Overall strength of the hero at your selected bracket. Raise this early in the draft or when certain heroes are clearly dominant in the meta.</div>
       </div>
@@ -226,10 +226,10 @@
 
 <!-- Auth modal -->
 <div id="auth-modal" class="modal-overlay hidden">
-  <div class="modal-box">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
     <div class="modal-header">
       <span class="modal-title" id="auth-modal-title">Log In</span>
-      <button class="chat-close" id="auth-modal-close">✕</button>
+      <button type="button" class="chat-close" id="auth-modal-close" aria-label="Close">✕</button>
     </div>
     <form id="auth-form" autocomplete="off">
       <div class="form-group">
@@ -252,13 +252,13 @@
 
 <!-- Profile panel -->
 <div id="profile-panel" class="modal-overlay hidden">
-  <div class="modal-box modal-profile">
+  <div class="modal-box modal-profile" role="dialog" aria-modal="true" aria-label="Player Profile">
     <div class="modal-header">
       <div>
         <span class="modal-title">Player Profile</span>
         <span class="profile-subtitle">Your AI assistant reads this to personalize advice</span>
       </div>
-      <button class="chat-close" id="profile-close">✕</button>
+      <button type="button" class="chat-close" id="profile-close" aria-label="Close">✕</button>
     </div>
     <form id="profile-form">
 
@@ -341,12 +341,12 @@
   <span class="chat-fab-icon">💬</span>
 </div>
 
-<div id="chat-panel" class="hidden">
+<div id="chat-panel" class="hidden" role="region" aria-label="Draft assistant chat">
   <div class="chat-header">
     <span class="chat-title">DRAFT ASSISTANT</span>
-    <button id="chat-close-btn" class="chat-close">✕</button>
+    <button type="button" id="chat-close-btn" class="chat-close" aria-label="Close chat">✕</button>
   </div>
-  <div class="chat-messages" id="chat-messages">
+  <div class="chat-messages" id="chat-messages" aria-live="polite">
     <div class="chat-msg assistant">
       <span>Ask me anything — best heroes for a role, who counters who, patch changes, draft advice. I use your live Stratz data and the latest patch notes.</span>
     </div>
