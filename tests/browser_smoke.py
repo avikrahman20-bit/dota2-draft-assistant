@@ -26,6 +26,11 @@ def get_ws():
         time.sleep(0.2)
     raise RuntimeError("no CDP target")
 
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 results = []
 def check(name, ok, detail=""):
     results.append((name, bool(ok), detail))
