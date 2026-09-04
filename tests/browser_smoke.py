@@ -74,7 +74,7 @@ async def main():
         await js("setAddTarget('enemy-pick'); document.querySelector('#rec-list .rec-card').click();")
         await js(sleep % 300)
         r, d = await js("[state.radiant_picks, state.dire_picks]")
-        check("rec card added to MY team while in enemy mode", first_rec in r and first_rec not in d, f"radiant={r} dire={d}")
+        check("rec card follows toggle (enemy mode -> dire)", first_rec in d and first_rec not in r, f"radiant={r} dire={d}")
 
         # ── enemy prediction card still adds to ENEMY ────────────────
         await js(sleep % 900)
@@ -82,7 +82,7 @@ async def main():
         await js("setAddTarget('my-pick'); document.querySelector('#enemy-predictions-list .enemy-pred-card')?.click();")
         await js(sleep % 300)
         r, d = await js("[state.radiant_picks, state.dire_picks]")
-        check("enemy prediction card added to ENEMY team while in my-pick mode", pred_id in d and pred_id not in r, f"radiant={r} dire={d}")
+        check("prediction card follows toggle (my-pick mode -> radiant)", pred_id in r and pred_id not in d, f"radiant={r} dire={d}")
 
         # ── 1.13: threat tiers by threshold ──────────────────────────
         await js(sleep % 900)

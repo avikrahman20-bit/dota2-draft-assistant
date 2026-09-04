@@ -1642,7 +1642,7 @@ function renderRecommendations() {
 
     card.setAttribute('role', 'button');
     card.tabIndex = 0;
-    card.setAttribute('aria-label', `Add ${rec.localized_name} to your team`);
+    card.setAttribute('aria-label', `Add ${rec.localized_name}`);
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
     });
@@ -1660,18 +1660,8 @@ function renderRecommendations() {
       <div class="rec-score-num ${scoreClass}">${rec.total_score > 0 ? '+' : ''}${rec.total_score.toFixed(3)}</div>
     `;
 
-    // Recommendations are scored FOR your team — clicking always adds to your side.
-    // (add_target only governs the hero grid / search box.)
-    card.addEventListener('click', () => {
-      const allyArr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
-      if (allyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
-        pushUndo();
-        allyArr.push(rec.hero_id);
-        onStateChange();
-        flipTargetIfFull();
-        document.getElementById('hero-search').focus();
-      }
-    });
+    // Every add path follows the Add-as toggle — one rule, no surprises.
+    card.addEventListener('click', () => handleHeroCardClick(rec.hero_id));
 
     list.appendChild(card);
   });
@@ -1731,7 +1721,7 @@ function renderEnemyPredictions() {
 
     card.setAttribute('role', 'button');
     card.tabIndex = 0;
-    card.setAttribute('aria-label', `Add ${pred.localized_name} to enemy team`);
+    card.setAttribute('aria-label', `Add ${pred.localized_name}`);
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
     });
@@ -1749,17 +1739,8 @@ function renderEnemyPredictions() {
       <div class="rec-score-num">${pred.total_score > 0 ? '+' : ''}${pred.total_score.toFixed(3)}</div>
     `;
 
-    // Click always adds to enemy team (these are enemy picks)
-    card.addEventListener('click', () => {
-      const enemyArr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
-      if (enemyArr.length < 5 && !getUsedSet().has(pred.hero_id)) {
-        pushUndo();
-        enemyArr.push(pred.hero_id);
-        onStateChange();
-        flipTargetIfFull();
-        document.getElementById('hero-search').focus();
-      }
-    });
+    // Every add path follows the Add-as toggle — one rule, no surprises.
+    card.addEventListener('click', () => handleHeroCardClick(pred.hero_id));
 
     list.appendChild(card);
   });
