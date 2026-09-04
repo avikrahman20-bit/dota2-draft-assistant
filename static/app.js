@@ -21,15 +21,11 @@ const state = {
   role_filter: loadRoleFilter(),
   can_refresh: false,   // /api/refresh only works from localhost
   chat_enabled: true,   // false when server has no ANTHROPIC_API_KEY
-  first_pick_team: null, // 'radiant' | 'dire' — set when the first pick is entered; drives next-pick guidance
   data_updated_at: 0,    // unix seconds of the last real Stratz fetch (from /api/status)
   patch_name: '',
 };
 
 const MAX_BANS = 14;
-
-// Ranked All Pick order relative to the first-pick team (F) and second (S): 1-2-2-2-2-1
-const AP_ORDER = ['F', 'S', 'S', 'F', 'F', 'S', 'S', 'F', 'F', 'S'];
 
 // Stratz matchup data is aggregated into 4 cohorts; win rates are per exact bracket.
 const MATCHUP_COHORT = {
@@ -107,7 +103,7 @@ const undoStack = [];
 function _draftSnapshot() {
   return {
     radiant: [...state.radiant_picks], dire: [...state.dire_picks], bans: [...state.bans],
-    first_pick_team: state.first_pick_team, add_target: state.add_target,
+    add_target: state.add_target,
   };
 }
 function pushUndo() {
@@ -121,7 +117,6 @@ function undo() {
   state.radiant_picks = s.radiant;
   state.dire_picks    = s.dire;
   state.bans          = s.bans;
-  state.first_pick_team = s.first_pick_team;
   setAddTarget(s.add_target);
   onStateChange();
   updateUndoBtn();
@@ -156,7 +151,6 @@ function offerSavedDraft() {
   document.getElementById('resume-yes').onclick = () => {
     pushUndo();
     state.radiant_picks = s.radiant; state.dire_picks = s.dire; state.bans = s.bans;
-    state.first_pick_team = s.first_pick_team || null;
     setAddTarget(s.add_target || 'my-pick');
     onStateChange();
     bar.classList.add('hidden');
@@ -175,53 +169,6 @@ function relativeTime(unixSecs) {
   const m = s / 60;   if (m < 90) return `${Math.round(m)} min ago`;
   const h = m / 60;   if (h < 36) return `${Math.round(h)} hour${Math.round(h) === 1 ? '' : 's'} ago`;
   const d = h / 24;   return `${Math.round(d)} day${Math.round(d) === 1 ? '' : 's'} ago`;
-}
-
-// ── Draft-order guidance (ranked All Pick) ────────────────────
-function nextPickTeam() {
-  const r = state.radiant_picks.length, d = state.dire_picks.length, total = r + d;
-  if (total >= 10) return null;
-  const F = state.first_pick_team;
-  if (!F) return null;
-  const S = F === 'radiant' ? 'dire' : 'radiant';
-  const full = t => (t === 'radiant' ? r : d) >= 5;
-  let next = AP_ORDER[total] === 'F' ? F : S;
-  if (full(next)) { const other = next === F ? S : F; next = full(other) ? null : other; }
-  return next;
-}
-
-function advanceTarget() {
-  if (state.add_target === 'ban') {
-    if (state.bans.length >= MAX_BANS) setAddTarget('my-pick');
-    return;
-  }
-  const next = nextPickTeam();
-  if (!next) return;
-  setAddTarget(next === state.my_team ? 'my-pick' : 'enemy-pick');
-}
-
-function renderDraftStatus() {
-  const el = document.getElementById('draft-status');
-  if (!el) return;
-  const r = state.radiant_picks.length, d = state.dire_picks.length, total = r + d;
-  let next = '';
-  if (total === 0 && state.bans.length === 0) {
-    next = `<span class="draft-next">Empty draft.</span> Enter bans first, then picks in the order they lock — the next team is tracked for you (ranked All Pick order).`;
-  } else if (total >= 10) {
-    next = `<span class="draft-next">Draft complete.</span> Win probability is below.`;
-  } else if (state.add_target === 'ban') {
-    next = `<span class="draft-next next-ban">Banning</span> — ${state.bans.length}/${MAX_BANS} bans. Switch to picks when the ban phase ends.`;
-  } else {
-    const team = nextPickTeam();
-    if (team) {
-      const you = team === state.my_team;
-      next = `<span class="draft-next next-${team}">Next: ${team === 'radiant' ? 'Radiant' : 'Dire'} pick ${you ? '(you)' : '(enemy)'}</span> — ${total}/10 picked`;
-    } else {
-      next = `<span class="draft-next">${total}/10 picked</span>`;
-    }
-  }
-  el.innerHTML = `<span>${next}</span>
-    <span class="draft-keys"><kbd>Space</kbd> switch target · <kbd>1</kbd>–<kbd>5</kbd> take a recommendation · <kbd>Backspace</kbd>/<kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>Enter</kbd> pick first match</span>`;
 }
 
 function updateYouBadge() {
@@ -1104,7 +1051,6 @@ function setAddTarget(target) {
   });
   updateSearchModeStyle();
   markTargetSlot();
-  renderDraftStatus();
 }
 
 // Highlight the slot that will receive the next hero
@@ -1167,7 +1113,7 @@ function updateSearchModeStyle() {
     'enemy-pick': myTeam === 'radiant' ? 'Dire (Enemy)' : 'Radiant (Enemy)',
     'ban':        'Ban',
   };
-  el.placeholder = `Search — adding as ${labels[state.add_target] || ''} — Space to switch`;
+  el.placeholder = `Search — ${labels[state.add_target] || ''} — Tab to switch`;
 }
 
 // ── Hero selection logic ──────────────────────────────────────
@@ -1186,9 +1132,18 @@ function handleHeroCardClick(heroId) {
   arr.push(heroId);
   const searchEl = document.getElementById('hero-search');
   searchEl.value = '';
-  onStateChange();   // sets first_pick_team when this is the first pick
-  advanceTarget();
+  onStateChange();
+  flipTargetIfFull();
   searchEl.focus();
+}
+
+// When the current target side is full, move to the other side (no draft-order guessing)
+function flipTargetIfFull() {
+  const myArr    = state.my_team === 'radiant' ? state.radiant_picks : state.dire_picks;
+  const enemyArr = state.my_team === 'radiant' ? state.dire_picks : state.radiant_picks;
+  if (state.add_target === 'my-pick'    && myArr.length >= 5 && enemyArr.length < 5) setAddTarget('enemy-pick');
+  else if (state.add_target === 'enemy-pick' && enemyArr.length >= 5 && myArr.length < 5) setAddTarget('my-pick');
+  else if (state.add_target === 'ban' && state.bans.length >= MAX_BANS) setAddTarget('my-pick');
 }
 
 function handleSlotClick(type, index) {
@@ -1207,11 +1162,6 @@ function handleSlotClick(type, index) {
 }
 
 function onStateChange() {
-  // Track which team picked first (drives ranked All Pick order guidance)
-  const total = state.radiant_picks.length + state.dire_picks.length;
-  if (total === 0) state.first_pick_team = null;
-  else if (!state.first_pick_team) state.first_pick_team = state.radiant_picks.length ? 'radiant' : 'dire';
-
   renderDraftBoard();
   updateHeroGridUsed();
   applyGridScoreOverlays();
@@ -1230,7 +1180,6 @@ function renderDraftBoard() {
   renderPickSlots('dire', state.dire_picks);
   renderBanSlots();
   markTargetSlot();
-  renderDraftStatus();
 }
 
 function renderBanSlots() {
@@ -1719,7 +1668,7 @@ function renderRecommendations() {
         pushUndo();
         allyArr.push(rec.hero_id);
         onStateChange();
-        advanceTarget();
+        flipTargetIfFull();
         document.getElementById('hero-search').focus();
       }
     });
@@ -1807,7 +1756,7 @@ function renderEnemyPredictions() {
         pushUndo();
         enemyArr.push(pred.hero_id);
         onStateChange();
-        advanceTarget();
+        flipTargetIfFull();
         document.getElementById('hero-search').focus();
       }
     });
@@ -1852,6 +1801,7 @@ function applyWeightsToUI() {
 // ── Event listeners ───────────────────────────────────────────
 document.getElementById('hero-search').addEventListener('input', (e) => {
   renderHeroGrid(e.target.value);
+  if (e.target.value.trim()) document.getElementById('hero-grid-toggle').open = true;
 });
 
 document.getElementById('hero-search').addEventListener('keydown', (e) => {
@@ -1859,12 +1809,11 @@ document.getElementById('hero-search').addEventListener('keydown', (e) => {
     e.preventDefault();
     const firstCard = document.querySelector('#hero-grid .hero-card:not(.used)');
     if (firstCard) handleHeroCardClick(parseInt(firstCard.dataset.heroId));
-  } else if (e.key === ' ' && e.target.value === '') {
-    // Space on an empty search box cycles the target: mine → enemy → ban. Tab stays native.
+  } else if (e.key === 'Tab' || (e.key === ' ' && e.target.value === '')) {
+    // Tab flips my pick ↔ enemy pick (Ban is the button or a ban slot). Shift+Tab leaves the field.
+    if (e.key === 'Tab' && e.shiftKey) return;
     e.preventDefault();
-    const modes = ['my-pick', 'enemy-pick', 'ban'];
-    const idx = modes.indexOf(state.add_target);
-    setAddTarget(modes[(idx + 1) % modes.length]);
+    setAddTarget(state.add_target === 'my-pick' ? 'enemy-pick' : 'my-pick');
   } else if (/^[1-5]$/.test(e.key) && e.target.value === '') {
     // 1–5 takes the Nth recommendation
     e.preventDefault();
@@ -1907,7 +1856,6 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   state.radiant_picks = [];
   state.dire_picks = [];
   state.bans = [];
-  state.first_pick_team = null;
   state.recommendations = [];
   state.allScores = {};
   state.threats = [];

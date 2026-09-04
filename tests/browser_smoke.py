@@ -102,7 +102,8 @@ async def main():
         t1 = await js("state.add_target")
         tab_prevented = await js("const e=new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}); document.getElementById('hero-search').dispatchEvent(e); e.defaultPrevented")
         check("Space on empty search flips target", t1 == "enemy-pick", t1)
-        check("Tab is NOT intercepted in search", tab_prevented is False, f"defaultPrevented={tab_prevented}")
+        t2 = await js("state.add_target")
+        check("Tab flips target back (user preference)", tab_prevented is True and t2 == "my-pick", f"prevented={tab_prevented} target={t2}")
 
         # ── 1.1: XSS — Steam name escaped ────────────────────────────
         await js("""showAccountStatus({name: '<img src=x onerror="window.__xss=1">', rank: '<b>Divine</b>', overall_wr: 55, total_matches: 100})""")
@@ -170,17 +171,12 @@ async def main():
         marked = await js("document.querySelector('#dire-picks .pick-slot.target-next') !== null")
         check("clicking empty Dire slot sets enemy-pick target and marks it", t == 'enemy-pick' and marked, f"target={t} marked={marked}")
 
-        # 2.5 ranked AP order: first pick by Dire -> next Radiant, Radiant, then Dire...
-        await js("handleHeroCardClick(8)")   # dire picks first
-        seq = [await js("state.first_pick_team"), await js("state.add_target")]
-        await js("handleHeroCardClick(9)")   # radiant 1
-        seq.append(await js("state.add_target"))
-        await js("handleHeroCardClick(10)")  # radiant 2
-        seq.append(await js("state.add_target"))
+        # No draft-order guessing: target stays put until the side is full
+        await js("handleHeroCardClick(8)")   # dire
+        t_after = await js("state.add_target")
+        await js("setAddTarget('my-pick'); handleHeroCardClick(9); handleHeroCardClick(10);")
         r, d = await js("[state.radiant_picks, state.dire_picks]")
-        check("AP order 1-2-2: Dire first -> Radiant, Radiant -> Dire", seq == ['dire', 'my-pick', 'my-pick', 'enemy-pick'] and r == [9, 10] and d == [8], f"seq={seq} r={r} d={d}")
-        status = await js("document.getElementById('draft-status').textContent")
-        check("draft status names next team", "Next: Dire pick (enemy)" in status, status[:80])
+        check("target does not auto-switch after a pick", t_after == 'enemy-pick' and r == [9, 10] and d == [8], f"after={t_after} r={r} d={d}")
 
         # 2.3 undo via Ctrl+Z, via Backspace on empty search, and the header button
         before = await js("[state.radiant_picks.length, state.dire_picks.length, state.bans.length]")
@@ -200,8 +196,8 @@ async def main():
         bar_shown = await js("!document.getElementById('resume-bar').classList.contains('hidden')")
         await js("document.getElementById('resume-yes').click()")
         await js(sleep % 300)
-        restored = await js("[state.radiant_picks, state.dire_picks, state.bans, state.first_pick_team]")
-        check("resume bar offered after reload and restores picks/bans/first-pick", bar_shown and restored == [[], [8], [1, 2], 'dire'], f"shown={bar_shown} restored={restored}")
+        restored = await js("[state.radiant_picks, state.dire_picks, state.bans]")
+        check("resume bar offered after reload and restores picks/bans", bar_shown and restored == [[], [8], [1, 2]], f"shown={bar_shown} restored={restored}")
 
         # 2.8 search: alias, word-prefix, ranking
         await js("state.radiant_picks=[]; state.dire_picks=[]; state.bans=[]; onStateChange();")
@@ -214,7 +210,7 @@ async def main():
         # 2.9 grid grouped by attribute when not searching
         groups = await js("[...document.querySelectorAll('#hero-grid .hero-grid-group')].map(e=>e.textContent)")
         is_open = await js("document.getElementById('hero-grid-toggle').open")
-        check("hero grid open and grouped by attribute", is_open and groups == ['STRENGTH', 'AGILITY', 'INTELLIGENCE', 'UNIVERSAL'], str(groups))
+        check("hero grid collapsed by default, grouped by attribute", (not is_open) and groups == ['STRENGTH', 'AGILITY', 'INTELLIGENCE', 'UNIVERSAL'], f"open={is_open} {groups}")
 
         # 2.10 digit key takes Nth recommendation
         await js("setAddTarget('enemy-pick'); handleHeroCardClick(11); setAddTarget('my-pick');")
