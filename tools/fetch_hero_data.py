@@ -82,11 +82,14 @@ def fetch_heroes(session) -> dict:
             if r.get("roleId") is not None and r["roleId"] < len(ROLE_NAMES)
         ]
 
+        primary_attr = (entry.get("stat") or {}).get("primaryAttribute") or "all"  # str | agi | int | all
+
         heroes[str(hero_id)] = {
             "id": hero_id,
             "name": short_name,
             "localized_name": display_name,
             "attack_type": attack_type,
+            "primary_attr": primary_attr,
             "roles": roles,
             "img_url": f"{IMG_BASE}/{short_name}.png",
         }
@@ -235,6 +238,11 @@ def run(force: bool = False) -> tuple[dict, dict, dict]:
         else:
             print(f"Using cached heroes ({heroes_path})", flush=True)
             heroes = json.loads(heroes_path.read_text())
+            if any("primary_attr" not in h for h in heroes.values()):
+                # Cache predates the primary_attr field — one cheap refetch upgrades it.
+                print("Cached hero list lacks primary_attr — refetching hero list...", flush=True)
+                heroes = fetch_heroes(session)
+                heroes_path.write_text(json.dumps(heroes, indent=2))
 
         if force or not is_cache_valid(stats_path):
             print("Fetching hero win rates from Stratz...", flush=True)

@@ -101,6 +101,7 @@ db.init_db()
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     threading.Thread(target=_load_cache, daemon=True).start()
+    threading.Thread(target=_auto_refresh_loop, daemon=True).start()
     yield
 
 
@@ -131,7 +132,12 @@ _cache: dict = {
     "total": 0,
     "error": None,
     "load_start_time": 0,  # unix timestamp when cache load began
+    "data_updated_at": 0,  # unix timestamp of the last real Stratz fetch
 }
+
+_AUTO_REFRESH_AGE_SECS = 24 * 3600   # refetch Stratz data in the background once it's a day old
+_AUTO_REFRESH_POLL_SECS = 30 * 60
+_refresh_lock = threading.Lock()
 
 TMP_DIR = Path(__file__).parent / ".tmp"
 _cache_lock = threading.Lock()
@@ -158,7 +164,9 @@ def _load_cache(force: bool = False) -> None:
         heroes, stats, role_map = fetch_hero_data.run(force=force)
         _cache["total"] = len(heroes)
         _cache["progress"] = 0
-        fetch_matchups.run(force=force, progress_callback=_progress_callback)
+        fetched = fetch_matchups.run(force=force, progress_callback=_progress_callback)
+        if force and fetched == 0:
+            fetch_matchups.write_fetch_stamp()  # hero list/stats were refetched even if matchups all errored
         matchups = fetch_matchups.load_all_matchups()
         with _cache_lock:
             global _role_map
@@ -168,6 +176,7 @@ def _load_cache(force: bool = False) -> None:
             _cache["matchups"]   = matchups
             _cache["ready"]      = True
             _cache["error"]      = None
+            _cache["data_updated_at"] = fetch_matchups.read_fetch_stamp()
         vs_count = sum(len(v) for v in matchups["vs"].values())
         logger.info(
             "%s ready. %d heroes, %d vs matchup entries loaded.",
@@ -176,6 +185,54 @@ def _load_cache(force: bool = False) -> None:
     except Exception as e:
         _cache["error"] = str(e)
         logger.error("%s error: %s", "Force refresh" if force else "Startup", e)
+
+
+def _background_refresh() -> None:
+    """Refetch Stratz data without taking the app offline: users keep the old data until the swap."""
+    if not _refresh_lock.acquire(blocking=False):
+        return
+    try:
+        logger.info("Auto-refresh: Stratz data is older than %dh, refetching in background", _AUTO_REFRESH_AGE_SECS // 3600)
+        heroes, stats, role_map = fetch_hero_data.run(force=True)
+        fetch_matchups.run(force=True)
+        fetch_matchups.write_fetch_stamp()
+        matchups = fetch_matchups.load_all_matchups()
+        with _cache_lock:
+            global _role_map
+            _cache["heroes"]     = heroes
+            _cache["hero_stats"] = stats
+            _role_map            = role_map
+            _cache["matchups"]   = matchups
+            _cache["data_updated_at"] = fetch_matchups.read_fetch_stamp()
+        logger.info("Auto-refresh complete")
+    except Exception as e:
+        logger.warning("Auto-refresh failed, keeping existing data: %s", e)
+    finally:
+        _refresh_lock.release()
+
+
+def _auto_refresh_loop() -> None:
+    # First check shortly after boot so stale committed data gets refreshed without waiting 30 min
+    delay = 90
+    while True:
+        time.sleep(delay)
+        delay = _AUTO_REFRESH_POLL_SECS
+        if _cache["ready"] and time.time() - _cache.get("data_updated_at", 0) > _AUTO_REFRESH_AGE_SECS:
+            _background_refresh()
+
+
+def _current_patch_name() -> str:
+    """Patch label from the cached patch-notes file, if any (no network)."""
+    try:
+        p = TMP_DIR / "patch_notes_cache.json"
+        if p.exists():
+            content = json.loads(p.read_text(encoding="utf-8")).get("content", "")
+            first = content.split("\n", 1)[0]
+            if "Patch" in first:
+                return first.replace("=", "").replace("Dota 2 Patch", "").strip()
+    except Exception:
+        pass
+    return ""
 
 
 
@@ -267,6 +324,8 @@ def get_status(request: Request):
         "error": _cache["error"],
         "can_refresh": _is_local(request),
         "chat_enabled": CHAT_ENABLED,
+        "data_updated_at": _cache.get("data_updated_at", 0),
+        "patch_name": _current_patch_name(),
     }
 
 

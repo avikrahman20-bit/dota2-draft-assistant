@@ -145,6 +145,93 @@ async def main():
         link = await js("!!document.getElementById('chat-login-link')")
         check("chat gated for guests with login link", disabled and link)
 
+        # ═══ Phase 2 ═══════════════════════════════════════════════
+        await js("localStorage.removeItem('draft_state_v1'); state.radiant_picks=[]; state.dire_picks=[]; state.bans=[]; state.first_pick_team=null; state.my_team='radiant'; document.getElementById('my-team-select').value='radiant'; updateYouBadge(); setAddTarget('my-pick'); onStateChange();")
+
+        # 2.11 YOU badge follows my_team
+        mine = await js("[document.getElementById('team-radiant').classList.contains('mine'), document.getElementById('team-dire').classList.contains('mine')]")
+        check("YOU badge on Radiant when my_team=radiant", mine == [True, False], str(mine))
+
+        # 2.2 bans: 14 slots, ban mode, backend excludes banned hero from recs
+        nban = await js("document.querySelectorAll('#ban-slots .ban-slot').length")
+        await js("setAddTarget('ban'); handleHeroCardClick(1); handleHeroCardClick(2);")
+        await js(sleep % 900)
+        bans = await js("state.bans")
+        target_after_ban = await js("state.add_target")
+        rec_ids = await js("state.recommendations.map(r=>r.hero_id)")
+        filled = await js("document.querySelectorAll('#ban-slots .ban-slot.filled').length")
+        check("14 ban slots, bans recorded, stay in ban mode, banned heroes absent from recs",
+              nban == 14 and bans == [1, 2] and target_after_ban == 'ban' and filled == 2 and 1 not in rec_ids and 2 not in rec_ids,
+              f"slots={nban} bans={bans} target={target_after_ban} filled={filled}")
+
+        # 2.1 click empty enemy (dire) slot -> enemy-pick target + marker on that slot
+        await js("document.querySelector('#dire-picks .pick-slot.empty').click()")
+        t = await js("state.add_target")
+        marked = await js("document.querySelector('#dire-picks .pick-slot.target-next') !== null")
+        check("clicking empty Dire slot sets enemy-pick target and marks it", t == 'enemy-pick' and marked, f"target={t} marked={marked}")
+
+        # 2.5 ranked AP order: first pick by Dire -> next Radiant, Radiant, then Dire...
+        await js("handleHeroCardClick(8)")   # dire picks first
+        seq = [await js("state.first_pick_team"), await js("state.add_target")]
+        await js("handleHeroCardClick(9)")   # radiant 1
+        seq.append(await js("state.add_target"))
+        await js("handleHeroCardClick(10)")  # radiant 2
+        seq.append(await js("state.add_target"))
+        r, d = await js("[state.radiant_picks, state.dire_picks]")
+        check("AP order 1-2-2: Dire first -> Radiant, Radiant -> Dire", seq == ['dire', 'my-pick', 'my-pick', 'enemy-pick'] and r == [9, 10] and d == [8], f"seq={seq} r={r} d={d}")
+        status = await js("document.getElementById('draft-status').textContent")
+        check("draft status names next team", "Next: Dire pick (enemy)" in status, status[:80])
+
+        # 2.3 undo via Ctrl+Z, via Backspace on empty search, and the header button
+        before = await js("[state.radiant_picks.length, state.dire_picks.length, state.bans.length]")
+        await js("document.body.focus(); document.dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true}))")
+        after_ctrl = await js("[state.radiant_picks.length, state.dire_picks.length, state.bans.length]")
+        await js("{ const s=document.getElementById('hero-search'); s.value=''; s.focus(); s.dispatchEvent(new KeyboardEvent('keydown',{key:'Backspace',bubbles:true,cancelable:true})); }")
+        after_bs = await js("[state.radiant_picks.length, state.dire_picks.length, state.bans.length]")
+        btn_enabled = await js("!document.getElementById('undo-btn').disabled")
+        check("Ctrl+Z and Backspace each undo one step; Undo button enabled", before == [2,1,2] and after_ctrl == [1,1,2] and after_bs == [0,1,2] and btn_enabled, f"{before}->{after_ctrl}->{after_bs}")
+
+        # 2.4 persistence: saved to localStorage; resume offer after reload
+        saved = await js("JSON.parse(localStorage.getItem('draft_state_v1'))")
+        check("draft persisted to localStorage", bool(saved) and saved.get('dire') == [8] and saved.get('bans') == [1, 2], str({k: saved.get(k) for k in ('radiant','dire','bans')}) if saved else "none")
+        await send("Page.reload")
+        await js("new Promise(res => { const t = setInterval(() => { const a = document.getElementById('app'); if (a && !a.classList.contains('hidden')) { clearInterval(t); res(true); } }, 100); })")
+        await js(sleep % 300)
+        bar_shown = await js("!document.getElementById('resume-bar').classList.contains('hidden')")
+        await js("document.getElementById('resume-yes').click()")
+        await js(sleep % 300)
+        restored = await js("[state.radiant_picks, state.dire_picks, state.bans, state.first_pick_team]")
+        check("resume bar offered after reload and restores picks/bans/first-pick", bar_shown and restored == [[], [8], [1, 2], 'dire'], f"shown={bar_shown} restored={restored}")
+
+        # 2.8 search: alias, word-prefix, ranking
+        await js("state.radiant_picks=[]; state.dire_picks=[]; state.bans=[]; onStateChange();")
+        am = await js("searchHeroes('am')[0]?.localized_name")
+        sky = await js("searchHeroes('sky m')[0]?.localized_name")
+        qop = await js("searchHeroes('qop')[0]?.localized_name")
+        sk  = await js("searchHeroes('sk')[0]?.localized_name")
+        check("alias + word-prefix search", am == 'Anti-Mage' and sky == 'Skywrath Mage' and qop == 'Queen of Pain' and sk == 'Sand King', f"{am} / {sky} / {qop} / {sk}")
+
+        # 2.9 grid grouped by attribute when not searching
+        groups = await js("[...document.querySelectorAll('#hero-grid .hero-grid-group')].map(e=>e.textContent)")
+        is_open = await js("document.getElementById('hero-grid-toggle').open")
+        check("hero grid open and grouped by attribute", is_open and groups == ['STRENGTH', 'AGILITY', 'INTELLIGENCE', 'UNIVERSAL'], str(groups))
+
+        # 2.10 digit key takes Nth recommendation
+        await js("setAddTarget('enemy-pick'); handleHeroCardClick(11); setAddTarget('my-pick');")
+        await js(sleep % 900)
+        third = await js("state.recommendations[2]?.hero_id")
+        await js("{ const s=document.getElementById('hero-search'); s.value=''; s.focus(); s.dispatchEvent(new KeyboardEvent('keydown',{key:'3',bubbles:true,cancelable:true})); }")
+        await js(sleep % 200)
+        r = await js("state.radiant_picks")
+        check("pressing 3 takes the 3rd recommendation onto my team", third in r, f"third={third} radiant={r}")
+
+        # 2.6 / 2.7 disclosure
+        note = await js("document.getElementById('bracket-note').textContent")
+        foot = await js("document.getElementById('app-footer').textContent")
+        check("bracket cohort note + freshness footer rendered", "matchup data" in note and "Stratz data updated" in foot, f"{note} | {foot[:60]}")
+
+        await js("localStorage.removeItem('draft_state_v1')")
+
         # ── console errors ───────────────────────────────────────────
         await js(sleep % 300)
         check("no uncaught JS errors / console.error", len(errors) == 0, "; ".join(errors)[:300])

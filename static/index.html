@@ -33,7 +33,7 @@
         <option value="dire">Dire</option>
       </select>
       <label for="mmr-bracket-select">Bracket:</label>
-      <select id="mmr-bracket-select">
+      <select id="mmr-bracket-select" title="Win rates use this exact bracket; counters and synergy use Stratz's combined matchup cohort (shown under Top Recommendations)">
         <option value="7" selected>Immortal</option>
         <option value="6">Divine</option>
         <option value="5">Ancient</option>
@@ -42,6 +42,7 @@
         <option value="2">Crusader / Guardian</option>
         <option value="1">Herald</option>
       </select>
+      <button id="undo-btn" class="btn-secondary" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button>
       <button id="reset-btn" class="btn-secondary">Reset Draft</button>
       <button id="refresh-btn" class="btn-ghost">↻ Refresh Data</button>
       <div class="auth-controls" id="auth-controls">
@@ -57,8 +58,8 @@
   <!-- Draft board -->
   <section class="draft-board">
     <!-- Radiant picks -->
-    <div class="team-section radiant">
-      <div class="team-label radiant-label">RADIANT PICKS</div>
+    <div class="team-section radiant" id="team-radiant">
+      <div class="team-label radiant-label">RADIANT PICKS <span class="you-badge">YOU</span></div>
       <div class="pick-slots" id="radiant-picks">
         <div class="pick-slot empty" data-team="radiant" data-index="0"></div>
         <div class="pick-slot empty" data-team="radiant" data-index="1"></div>
@@ -69,8 +70,8 @@
     </div>
 
     <!-- Dire picks -->
-    <div class="team-section dire">
-      <div class="team-label dire-label">DIRE PICKS</div>
+    <div class="team-section dire" id="team-dire">
+      <div class="team-label dire-label"><span class="you-badge">YOU</span> DIRE PICKS</div>
       <div class="pick-slots" id="dire-picks">
         <div class="pick-slot empty" data-team="dire" data-index="0"></div>
         <div class="pick-slot empty" data-team="dire" data-index="1"></div>
@@ -79,7 +80,25 @@
         <div class="pick-slot empty" data-team="dire" data-index="4"></div>
       </div>
     </div>
+
+    <!-- Bans (both teams) -->
+    <div class="bans-section" id="bans-section">
+      <div class="team-label ban-label">BANS <span class="ban-count" id="ban-count"></span></div>
+      <div class="ban-slots" id="ban-slots">
+        <!-- Populated by JS -->
+      </div>
+    </div>
   </section>
+
+  <!-- Draft status: next action + key hints -->
+  <div class="draft-status" id="draft-status" aria-live="polite"></div>
+
+  <!-- Resume last draft -->
+  <div class="resume-bar hidden" id="resume-bar">
+    <span id="resume-text">You have an unfinished draft.</span>
+    <button type="button" class="btn-accent btn-sm" id="resume-yes">Resume</button>
+    <button type="button" class="btn-ghost btn-sm" id="resume-no">Discard</button>
+  </div>
 
   <!-- Hero search + controls -->
   <section class="hero-picker" aria-label="Hero picker">
@@ -89,6 +108,7 @@
         <span>Add as:</span>
         <button class="add-target-btn active" data-target="my-pick" id="btn-my-pick">My Pick</button>
         <button class="add-target-btn" data-target="enemy-pick" id="btn-enemy-pick">Enemy Pick</button>
+        <button class="add-target-btn add-target-ban" data-target="ban" id="btn-ban">Ban</button>
       </div>
       <div class="role-filter-controls">
         <span>My Role:</span>
@@ -100,7 +120,7 @@
         <button class="role-filter-btn" data-role="hard_support">Hard Support</button>
       </div>
     </div>
-    <details class="hero-grid-toggle" id="hero-grid-toggle">
+    <details class="hero-grid-toggle" id="hero-grid-toggle" open>
       <summary>Hero Grid</summary>
       <div class="hero-grid" id="hero-grid">
         <!-- Populated by JS -->
@@ -160,6 +180,7 @@
     <div class="rec-header">
       <span class="rec-title">TOP RECOMMENDATIONS</span>
       <span class="rec-hint" id="rec-hint">Select heroes to see suggestions</span>
+      <span class="data-note" id="bracket-note"></span>
     </div>
     <div class="rec-list" id="rec-list">
       <!-- Populated by JS -->
@@ -221,6 +242,8 @@
       <!-- Populated by JS -->
     </div>
   </section>
+
+  <footer class="app-footer" id="app-footer"></footer>
 
 </div>
 

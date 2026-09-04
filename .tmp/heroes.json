@@ -4,6 +4,7 @@
     "name": "antimage",
     "localized_name": "Anti-Mage",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -16,6 +17,7 @@
     "name": "axe",
     "localized_name": "Axe",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Initiator",
@@ -29,6 +31,7 @@
     "name": "bane",
     "localized_name": "Bane",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Nuker",
       "Durable",
@@ -42,6 +45,7 @@
     "name": "bloodseeker",
     "localized_name": "Bloodseeker",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Nuker",
@@ -55,6 +59,7 @@
     "name": "crystal_maiden",
     "localized_name": "Crystal Maiden",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -67,6 +72,7 @@
     "name": "drow_ranger",
     "localized_name": "Drow Ranger",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Disabler",
@@ -79,6 +85,7 @@
     "name": "earthshaker",
     "localized_name": "Earthshaker",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Initiator",
@@ -92,6 +99,7 @@
     "name": "juggernaut",
     "localized_name": "Juggernaut",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -104,6 +112,7 @@
     "name": "mirana",
     "localized_name": "Mirana",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -118,6 +127,7 @@
     "name": "morphling",
     "localized_name": "Morphling",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -132,6 +142,7 @@
     "name": "nevermore",
     "localized_name": "Shadow Fiend",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Nuker"
@@ -143,6 +154,7 @@
     "name": "phantom_lancer",
     "localized_name": "Phantom Lancer",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -156,6 +168,7 @@
     "name": "puck",
     "localized_name": "Puck",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Escape",
       "Nuker",
@@ -169,6 +182,7 @@
     "name": "pudge",
     "localized_name": "Pudge",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Initiator",
@@ -182,6 +196,7 @@
     "name": "razor",
     "localized_name": "Razor",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Nuker",
@@ -195,6 +210,7 @@
     "name": "sand_king",
     "localized_name": "Sand King",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Escape",
       "Nuker",
@@ -209,6 +225,7 @@
     "name": "storm_spirit",
     "localized_name": "Storm Spirit",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Escape",
@@ -223,6 +240,7 @@
     "name": "sven",
     "localized_name": "Sven",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -237,6 +255,7 @@
     "name": "tiny",
     "localized_name": "Tiny",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -252,6 +271,7 @@
     "name": "vengefulspirit",
     "localized_name": "Vengeful Spirit",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Escape",
       "Nuker",
@@ -266,6 +286,7 @@
     "name": "windrunner",
     "localized_name": "Windranger",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Escape",
@@ -280,6 +301,7 @@
     "name": "zuus",
     "localized_name": "Zeus",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker"
@@ -291,6 +313,7 @@
     "name": "kunkka",
     "localized_name": "Kunkka",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -306,6 +329,7 @@
     "name": "lina",
     "localized_name": "Lina",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker",
@@ -319,6 +343,7 @@
     "name": "lion",
     "localized_name": "Lion",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Initiator",
@@ -332,6 +357,7 @@
     "name": "shadow_shaman",
     "localized_name": "Shadow Shaman",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Initiator",
@@ -346,6 +372,7 @@
     "name": "slardar",
     "localized_name": "Slardar",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Escape",
@@ -360,6 +387,7 @@
     "name": "tidehunter",
     "localized_name": "Tidehunter",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -374,6 +402,7 @@
     "name": "witch_doctor",
     "localized_name": "Witch Doctor",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -386,6 +415,7 @@
     "name": "lich",
     "localized_name": "Lich",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Support"
@@ -397,6 +427,7 @@
     "name": "riki",
     "localized_name": "Riki",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -409,6 +440,7 @@
     "name": "enigma",
     "localized_name": "Enigma",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Initiator",
       "Disabler",
@@ -421,6 +453,7 @@
     "name": "tinker",
     "localized_name": "Tinker",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker",
@@ -433,6 +466,7 @@
     "name": "sniper",
     "localized_name": "Sniper",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Nuker"
@@ -444,6 +478,7 @@
     "name": "necrolyte",
     "localized_name": "Necrophos",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker",
@@ -457,6 +492,7 @@
     "name": "warlock",
     "localized_name": "Warlock",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Initiator",
       "Disabler",
@@ -469,6 +505,7 @@
     "name": "beastmaster",
     "localized_name": "Beastmaster",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Nuker",
       "Initiator",
@@ -482,6 +519,7 @@
     "name": "queenofpain",
     "localized_name": "Queen of Pain",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Escape",
@@ -494,6 +532,7 @@
     "name": "venomancer",
     "localized_name": "Venomancer",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Nuker",
       "Initiator",
@@ -508,6 +547,7 @@
     "name": "faceless_void",
     "localized_name": "Faceless Void",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -522,6 +562,7 @@
     "name": "skeleton_king",
     "localized_name": "Wraith King",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Initiator",
@@ -536,6 +577,7 @@
     "name": "death_prophet",
     "localized_name": "Death Prophet",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Nuker",
@@ -549,6 +591,7 @@
     "name": "phantom_assassin",
     "localized_name": "Phantom Assassin",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape"
@@ -560,6 +603,7 @@
     "name": "pugna",
     "localized_name": "Pugna",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Pusher"
@@ -571,6 +615,7 @@
     "name": "templar_assassin",
     "localized_name": "Templar Assassin",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape"
@@ -582,6 +627,7 @@
     "name": "viper",
     "localized_name": "Viper",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Initiator",
@@ -595,6 +641,7 @@
     "name": "luna",
     "localized_name": "Luna",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Nuker",
@@ -607,6 +654,7 @@
     "name": "dragon_knight",
     "localized_name": "Dragon Knight",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -622,6 +670,7 @@
     "name": "dazzle",
     "localized_name": "Dazzle",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Nuker",
       "Disabler",
@@ -634,6 +683,7 @@
     "name": "rattletrap",
     "localized_name": "Clockwerk",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Initiator",
@@ -647,6 +697,7 @@
     "name": "leshrac",
     "localized_name": "Leshrac",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker",
@@ -661,6 +712,7 @@
     "name": "furion",
     "localized_name": "Nature's Prophet",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Escape",
@@ -674,6 +726,7 @@
     "name": "life_stealer",
     "localized_name": "Lifestealer",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Escape",
@@ -687,6 +740,7 @@
     "name": "dark_seer",
     "localized_name": "Dark Seer",
     "attack_type": "Melee",
+    "primary_attr": "int",
     "roles": [
       "Escape",
       "Initiator",
@@ -699,6 +753,7 @@
     "name": "clinkz",
     "localized_name": "Clinkz",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -711,6 +766,7 @@
     "name": "omniknight",
     "localized_name": "Omniknight",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Durable",
@@ -723,6 +779,7 @@
     "name": "enchantress",
     "localized_name": "Enchantress",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Durable",
       "Disabler",
@@ -736,6 +793,7 @@
     "name": "huskar",
     "localized_name": "Huskar",
     "attack_type": "Ranged",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Initiator",
@@ -748,6 +806,7 @@
     "name": "night_stalker",
     "localized_name": "Night Stalker",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -762,6 +821,7 @@
     "name": "broodmother",
     "localized_name": "Broodmother",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -775,6 +835,7 @@
     "name": "bounty_hunter",
     "localized_name": "Bounty Hunter",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Escape",
       "Nuker"
@@ -786,6 +847,7 @@
     "name": "weaver",
     "localized_name": "Weaver",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape"
@@ -797,6 +859,7 @@
     "name": "jakiro",
     "localized_name": "Jakiro",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -810,6 +873,7 @@
     "name": "batrider",
     "localized_name": "Batrider",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Escape",
       "Initiator",
@@ -822,6 +886,7 @@
     "name": "chen",
     "localized_name": "Chen",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Support",
       "Pusher"
@@ -833,6 +898,7 @@
     "name": "spectre",
     "localized_name": "Spectre",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -845,6 +911,7 @@
     "name": "ancient_apparition",
     "localized_name": "Ancient Apparition",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -857,6 +924,7 @@
     "name": "doom_bringer",
     "localized_name": "Doom",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -871,6 +939,7 @@
     "name": "ursa",
     "localized_name": "Ursa",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Durable",
@@ -883,6 +952,7 @@
     "name": "spirit_breaker",
     "localized_name": "Spirit Breaker",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Escape",
@@ -897,6 +967,7 @@
     "name": "gyrocopter",
     "localized_name": "Gyrocopter",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Nuker",
@@ -909,6 +980,7 @@
     "name": "alchemist",
     "localized_name": "Alchemist",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -924,6 +996,7 @@
     "name": "invoker",
     "localized_name": "Invoker",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Escape",
@@ -938,6 +1011,7 @@
     "name": "silencer",
     "localized_name": "Silencer",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker",
@@ -952,6 +1026,7 @@
     "name": "obsidian_destroyer",
     "localized_name": "Outworld Destroyer",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker",
@@ -964,6 +1039,7 @@
     "name": "lycan",
     "localized_name": "Lycan",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Escape",
@@ -977,6 +1053,7 @@
     "name": "brewmaster",
     "localized_name": "Brewmaster",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Nuker",
@@ -991,6 +1068,7 @@
     "name": "shadow_demon",
     "localized_name": "Shadow Demon",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Initiator",
@@ -1004,6 +1082,7 @@
     "name": "lone_druid",
     "localized_name": "Lone Druid",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Durable",
@@ -1016,6 +1095,7 @@
     "name": "chaos_knight",
     "localized_name": "Chaos Knight",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Initiator",
@@ -1030,6 +1110,7 @@
     "name": "meepo",
     "localized_name": "Meepo",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -1045,6 +1126,7 @@
     "name": "treant",
     "localized_name": "Treant Protector",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Escape",
       "Initiator",
@@ -1059,6 +1141,7 @@
     "name": "ogre_magi",
     "localized_name": "Ogre Magi",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Initiator",
@@ -1073,6 +1156,7 @@
     "name": "undying",
     "localized_name": "Undying",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Durable",
@@ -1086,6 +1170,7 @@
     "name": "rubick",
     "localized_name": "Rubick",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -1098,6 +1183,7 @@
     "name": "disruptor",
     "localized_name": "Disruptor",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Initiator",
@@ -1111,6 +1197,7 @@
     "name": "nyx_assassin",
     "localized_name": "Nyx Assassin",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Escape",
       "Nuker",
@@ -1124,6 +1211,7 @@
     "name": "naga_siren",
     "localized_name": "Naga Siren",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -1139,6 +1227,7 @@
     "name": "keeper_of_the_light",
     "localized_name": "Keeper of the Light",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -1151,6 +1240,7 @@
     "name": "wisp",
     "localized_name": "Io",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Escape",
       "Nuker",
@@ -1163,6 +1253,7 @@
     "name": "visage",
     "localized_name": "Visage",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Nuker",
       "Durable",
@@ -1177,6 +1268,7 @@
     "name": "slark",
     "localized_name": "Slark",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -1190,6 +1282,7 @@
     "name": "medusa",
     "localized_name": "Medusa",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Durable",
@@ -1202,6 +1295,7 @@
     "name": "troll_warlord",
     "localized_name": "Troll Warlord",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Durable",
@@ -1215,6 +1309,7 @@
     "name": "centaur",
     "localized_name": "Centaur Warrunner",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Escape",
       "Nuker",
@@ -1229,6 +1324,7 @@
     "name": "magnataur",
     "localized_name": "Magnus",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Escape",
       "Nuker",
@@ -1242,6 +1338,7 @@
     "name": "shredder",
     "localized_name": "Timbersaw",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Escape",
       "Nuker",
@@ -1254,6 +1351,7 @@
     "name": "bristleback",
     "localized_name": "Bristleback",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -1267,6 +1365,7 @@
     "name": "tusk",
     "localized_name": "Tusk",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Initiator",
@@ -1279,6 +1378,7 @@
     "name": "skywrath_mage",
     "localized_name": "Skywrath Mage",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -1291,6 +1391,7 @@
     "name": "abaddon",
     "localized_name": "Abaddon",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Durable",
@@ -1303,6 +1404,7 @@
     "name": "elder_titan",
     "localized_name": "Elder Titan",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Nuker",
       "Initiator",
@@ -1316,6 +1418,7 @@
     "name": "legion_commander",
     "localized_name": "Legion Commander",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Nuker",
@@ -1330,6 +1433,7 @@
     "name": "techies",
     "localized_name": "Techies",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Nuker",
       "Disabler"
@@ -1341,6 +1445,7 @@
     "name": "ember_spirit",
     "localized_name": "Ember Spirit",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -1355,6 +1460,7 @@
     "name": "earth_spirit",
     "localized_name": "Earth Spirit",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Escape",
       "Nuker",
@@ -1369,6 +1475,7 @@
     "name": "abyssal_underlord",
     "localized_name": "Underlord",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Escape",
       "Nuker",
@@ -1383,6 +1490,7 @@
     "name": "terrorblade",
     "localized_name": "Terrorblade",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Nuker",
@@ -1395,6 +1503,7 @@
     "name": "phoenix",
     "localized_name": "Phoenix",
     "attack_type": "Ranged",
+    "primary_attr": "str",
     "roles": [
       "Escape",
       "Nuker",
@@ -1409,6 +1518,7 @@
     "name": "oracle",
     "localized_name": "Oracle",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Escape",
       "Nuker",
@@ -1422,6 +1532,7 @@
     "name": "winter_wyvern",
     "localized_name": "Winter Wyvern",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Nuker",
       "Disabler",
@@ -1434,6 +1545,7 @@
     "name": "arc_warden",
     "localized_name": "Arc Warden",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Escape",
@@ -1446,6 +1558,7 @@
     "name": "monkey_king",
     "localized_name": "Monkey King",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -1459,6 +1572,7 @@
     "name": "dark_willow",
     "localized_name": "Dark Willow",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Escape",
       "Nuker",
@@ -1472,6 +1586,7 @@
     "name": "pangolier",
     "localized_name": "Pangolier",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Escape",
@@ -1487,6 +1602,7 @@
     "name": "grimstroke",
     "localized_name": "Grimstroke",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Escape",
       "Nuker",
@@ -1500,6 +1616,7 @@
     "name": "hoodwink",
     "localized_name": "Hoodwink",
     "attack_type": "Ranged",
+    "primary_attr": "agi",
     "roles": [
       "Escape",
       "Nuker",
@@ -1513,6 +1630,7 @@
     "name": "void_spirit",
     "localized_name": "Void Spirit",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Escape",
@@ -1526,6 +1644,7 @@
     "name": "target_dummy",
     "localized_name": "target_dummy",
     "attack_type": null,
+    "primary_attr": "all",
     "roles": [],
     "img_url": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/target_dummy.png"
   },
@@ -1534,6 +1653,7 @@
     "name": "snapfire",
     "localized_name": "Snapfire",
     "attack_type": "Ranged",
+    "primary_attr": "all",
     "roles": [
       "Escape",
       "Nuker",
@@ -1547,6 +1667,7 @@
     "name": "mars",
     "localized_name": "Mars",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Initiator",
@@ -1560,6 +1681,7 @@
     "name": "ringmaster",
     "localized_name": "Ringmaster",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Escape",
       "Nuker",
@@ -1573,6 +1695,7 @@
     "name": "dawnbreaker",
     "localized_name": "Dawnbreaker",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Carry",
       "Durable"
@@ -1584,6 +1707,7 @@
     "name": "marci",
     "localized_name": "Marci",
     "attack_type": "Melee",
+    "primary_attr": "all",
     "roles": [
       "Carry",
       "Escape",
@@ -1598,6 +1722,7 @@
     "name": "primal_beast",
     "localized_name": "Primal Beast",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Initiator",
       "Durable",
@@ -1610,6 +1735,7 @@
     "name": "muerta",
     "localized_name": "Muerta",
     "attack_type": "Ranged",
+    "primary_attr": "int",
     "roles": [
       "Carry",
       "Nuker",
@@ -1622,6 +1748,7 @@
     "name": "kez",
     "localized_name": "Kez",
     "attack_type": "Melee",
+    "primary_attr": "agi",
     "roles": [
       "Carry",
       "Escape",
@@ -1634,6 +1761,7 @@
     "name": "largo",
     "localized_name": "Largo",
     "attack_type": "Melee",
+    "primary_attr": "str",
     "roles": [
       "Durable",
       "Disabler",

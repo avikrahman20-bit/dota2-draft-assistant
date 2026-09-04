@@ -158,6 +158,44 @@ button {
   margin-bottom: 8px;
   text-transform: uppercase;
 }
+
+/* "YOU" badge on the user's side */
+.you-badge {
+  display: none;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--accent);
+  color: #000;
+  vertical-align: middle;
+}
+.team-section.mine .you-badge { display: inline-block; }
+.team-section.mine .pick-slot.empty { border-color: rgba(88,166,255,0.35); }
+
+/* Slot that will receive the next hero */
+.pick-slot.empty.target-next,
+.ban-slot.empty.target-next {
+  border-style: solid;
+  animation: slot-pulse 1.4s ease-in-out infinite;
+}
+.radiant .pick-slot.empty.target-next { border-color: var(--radiant); }
+.dire    .pick-slot.empty.target-next { border-color: var(--dire); }
+.ban-slot.empty.target-next           { border-color: var(--ban); }
+@keyframes slot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(88,166,255,0.0); }
+  50%      { box-shadow: 0 0 0 4px rgba(88,166,255,0.25); }
+}
+.pick-slot.empty::after {
+  content: '+';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--border);
+  font-size: 22px;
+  font-weight: 300;
+  pointer-events: none;
+}
+.pick-slot.empty.target-next::after { color: var(--text-muted); }
 .radiant-label { color: var(--radiant); }
 .dire-label { color: var(--dire); text-align: right; }
 .ban-label { color: var(--ban); text-align: center; }
@@ -236,19 +274,96 @@ button {
   text-overflow: ellipsis;
 }
 
-/* Bans section */
-.bans-section { text-align: center; }
+/* Bans section: spans both team columns */
+.bans-section {
+  grid-column: 1 / -1;
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+}
+.ban-label { text-align: left; }
+.ban-count { font-weight: 400; letter-spacing: 0; color: var(--text-muted); }
 
 .ban-slots {
-  display: grid;
-  grid-template-columns: repeat(3, var(--slot-size-sm));
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
-  justify-content: center;
 }
 
 .ban-slot {
   width: var(--slot-size-sm);
   height: var(--slot-size-sm);
+  border-width: 1px;
+}
+.ban-slot.filled img { filter: grayscale(0.6) brightness(0.8); }
+.ban-slot.filled::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 46%, rgba(220,60,60,0.85) 47%, rgba(220,60,60,0.85) 53%, transparent 54%);
+  pointer-events: none;
+}
+.ban-slot .slot-label { font-size: 8px; }
+.ban-slot .slot-remove { width: 14px; height: 14px; font-size: 10px; }
+.ban-slot.empty::after {
+  content: '';
+}
+
+/* Draft status bar */
+.draft-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 20px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.draft-status .draft-next { font-weight: 600; }
+.draft-status .draft-next.next-radiant { color: var(--radiant); }
+.draft-status .draft-next.next-dire    { color: var(--dire); }
+.draft-status .draft-next.next-ban     { color: var(--ban); }
+.draft-status .draft-keys { color: var(--text-muted); font-size: 11px; }
+.draft-status kbd {
+  font-family: inherit;
+  font-size: 10px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Resume bar */
+.resume-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  font-size: 13px;
+  background: rgba(88,166,255,0.10);
+  border-bottom: 1px solid var(--accent);
+}
+
+/* Footer: data freshness */
+.app-footer {
+  margin-top: auto;
+  padding: 10px 20px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.app-footer .stale { color: var(--score-mid); }
+
+.data-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
 }
 
 /* ── Hero Picker ─────────────────────────────────────────── */
@@ -272,7 +387,8 @@ button {
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 14px;
-  width: 220px;
+  width: 340px;
+  max-width: 100%;
   outline: none;
 }
 #hero-search:focus                     { border-color: var(--accent); }
@@ -300,6 +416,8 @@ button {
   border-color: var(--accent);
 }
 .add-target-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+.add-target-btn.add-target-ban.active { background: var(--ban); color: #fff; border-color: var(--ban); }
+.add-target-btn.add-target-ban:hover:not(.active) { border-color: var(--ban); color: #d9a441; }
 
 /* Hero Grid (collapsible) */
 .hero-grid-toggle {
@@ -320,9 +438,40 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  max-height: 180px;
+  max-height: 340px;
   overflow-y: auto;
   margin-top: 6px;
+  padding-right: 4px;
+}
+
+.hero-grid-group {
+  flex-basis: 100%;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  padding: 8px 0 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hero-grid-group:first-child { padding-top: 2px; }
+.hero-grid-group::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.hero-grid-group.attr-str::before { background: #e05a4e; }
+.hero-grid-group.attr-agi::before { background: #4fc26a; }
+.hero-grid-group.attr-int::before { background: #4ea3e0; }
+.hero-grid-group.attr-all::before { background: #b58cf0; }
+.hero-grid-empty {
+  flex-basis: 100%;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+  padding: 8px 2px;
 }
 
 .hero-card {
@@ -1783,6 +1932,10 @@ input[type="range"] {
     --slot-size: 56px;
     --slot-size-sm: 40px;
   }
+
+  .draft-status { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .draft-status .draft-keys { display: none; }
+  .bans-section { grid-column: auto; }
 
   /* Header wraps on small screens */
   header {

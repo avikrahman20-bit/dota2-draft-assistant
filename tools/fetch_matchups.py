@@ -216,7 +216,32 @@ def run(force: bool = False, progress_callback=None) -> int:
             if fetched > 0:
                 time.sleep(DELAY)
 
+    if fetched > 0:
+        write_fetch_stamp()
     return fetched
+
+
+FETCH_STAMP = TMP_DIR / "last_fetch.json"
+
+
+def write_fetch_stamp() -> None:
+    """Record when Stratz data was last actually fetched (survives git checkout, unlike mtimes)."""
+    try:
+        FETCH_STAMP.write_text(json.dumps({"ts": time.time()}))
+    except Exception as e:
+        print(f"[warn] Could not write fetch stamp: {e}", flush=True)
+
+
+def read_fetch_stamp() -> float:
+    """Return the last real fetch time, falling back to the oldest cache file mtime."""
+    try:
+        if FETCH_STAMP.exists():
+            return float(json.loads(FETCH_STAMP.read_text()).get("ts", 0))
+    except Exception:
+        pass
+    paths = [TMP_DIR / "hero_stats.json", *MATCHUPS_DIR.glob("*.json")]
+    times = [p.stat().st_mtime for p in paths if p.exists()]
+    return min(times) if times else 0.0
 
 
 def load_all_matchups() -> dict:

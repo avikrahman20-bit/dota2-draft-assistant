@@ -21,7 +21,236 @@ const state = {
   role_filter: loadRoleFilter(),
   can_refresh: false,   // /api/refresh only works from localhost
   chat_enabled: true,   // false when server has no ANTHROPIC_API_KEY
+  first_pick_team: null, // 'radiant' | 'dire' — set when the first pick is entered; drives next-pick guidance
+  data_updated_at: 0,    // unix seconds of the last real Stratz fetch (from /api/status)
+  patch_name: '',
 };
+
+const MAX_BANS = 14;
+
+// Ranked All Pick order relative to the first-pick team (F) and second (S): 1-2-2-2-2-1
+const AP_ORDER = ['F', 'S', 'S', 'F', 'F', 'S', 'S', 'F', 'F', 'S'];
+
+// Stratz matchup data is aggregated into 4 cohorts; win rates are per exact bracket.
+const MATCHUP_COHORT = {
+  '7': 'Divine + Immortal', '6': 'Divine + Immortal',
+  '5': 'Legend + Ancient',  '4': 'Legend + Ancient',
+  '3': 'Crusader + Archon', '2': 'Crusader + Archon',
+  '1': 'Herald + Guardian',
+};
+
+// Community shorthand → hero name. Keys are matched exactly against the search box.
+const HERO_ALIASES = {
+  aa: 'Ancient Apparition', abba: 'Abaddon', alch: 'Alchemist', am: 'Anti-Mage', bat: 'Batrider',
+  bara: 'Spirit Breaker', bb: 'Bristleback', bh: 'Bounty Hunter', bm: 'Beastmaster', brew: 'Brewmaster',
+  bs: 'Bloodseeker', cent: 'Centaur Warrunner', centaur: 'Centaur Warrunner', ck: 'Chaos Knight',
+  clock: 'Clockwerk', cm: 'Crystal Maiden', dawn: 'Dawnbreaker', dk: 'Dragon Knight', dp: 'Death Prophet',
+  drow: 'Drow Ranger', ds: 'Dark Seer', dusa: 'Medusa', ember: 'Ember Spirit', ench: 'Enchantress',
+  es: 'Earthshaker', et: 'Elder Titan', furion: "Nature's Prophet", grim: 'Grimstroke', gyro: 'Gyrocopter',
+  hood: 'Hoodwink', invo: 'Invoker', io: 'Io', jugg: 'Juggernaut', kotl: 'Keeper of the Light',
+  lc: 'Legion Commander', ld: 'Lone Druid', lesh: 'Leshrac', ls: 'Lifestealer', mag: 'Magnus',
+  mk: 'Monkey King', morph: 'Morphling', naga: 'Naga Siren', necro: 'Necrophos', np: "Nature's Prophet",
+  ns: 'Night Stalker', od: 'Outworld Destroyer', ogre: 'Ogre Magi', omni: 'Omniknight', pa: 'Phantom Assassin',
+  pango: 'Pangolier', pb: 'Primal Beast', pit: 'Underlord', pl: 'Phantom Lancer', potm: 'Mirana',
+  primal: 'Primal Beast', qop: 'Queen of Pain', sand: 'Sand King', sb: 'Spirit Breaker', sd: 'Shadow Demon',
+  sf: 'Shadow Fiend', sk: 'Sand King', sky: 'Skywrath Mage', snap: 'Snapfire', spec: 'Spectre',
+  ss: 'Shadow Shaman', storm: 'Storm Spirit', ta: 'Templar Assassin', tb: 'Terrorblade', terror: 'Terrorblade',
+  tide: 'Tidehunter', timber: 'Timbersaw', treant: 'Treant Protector', troll: 'Troll Warlord',
+  venge: 'Vengeful Spirit', veno: 'Venomancer', void: 'Faceless Void', vs: 'Vengeful Spirit',
+  wd: 'Witch Doctor', wisp: 'Io', wk: 'Wraith King', wl: 'Warlock', wr: 'Windranger', ww: 'Winter Wyvern',
+  wyvern: 'Winter Wyvern',
+};
+
+const ATTR_GROUPS = [
+  ['str', 'Strength'], ['agi', 'Agility'], ['int', 'Intelligence'], ['all', 'Universal'],
+];
+
+/**
+ * Rank a hero against a search query. Lower is better; null = no match.
+ * 0 exact name/alias, 1 name starts with, 2 a word starts with, 3 initials, 4 substring.
+ */
+function heroMatchRank(hero, q) {
+  const name = hero.localized_name.toLowerCase();
+  if (!q) return 4;
+  if (name === q) return 0;
+  const alias = HERO_ALIASES[q];
+  if (alias && alias.toLowerCase() === name) return 0;
+  if (name.startsWith(q)) return 1;
+  const words = name.split(/[\s'-]+/);
+  const qWords = q.split(/\s+/).filter(Boolean);
+  // every query token must prefix some name word, in order ("sky m" → Skywrath Mage)
+  let wi = 0, ok = true;
+  for (const qw of qWords) {
+    while (wi < words.length && !words[wi].startsWith(qw)) wi++;
+    if (wi >= words.length) { ok = false; break; }
+    wi++;
+  }
+  if (ok) return 2;
+  const initials = words.map(w => w[0]).join('');
+  if (initials === q.replace(/\s+/g, '')) return 3;
+  if (name.includes(q)) return 4;
+  return null;
+}
+
+function searchHeroes(q) {
+  q = (q || '').trim().toLowerCase();
+  if (!q) return state.heroList.slice();
+  return state.heroList
+    .map(h => ({ h, r: heroMatchRank(h, q) }))
+    .filter(x => x.r !== null)
+    .sort((a, b) => a.r - b.r || a.h.localized_name.localeCompare(b.h.localized_name))
+    .map(x => x.h);
+}
+
+// ── Undo stack ───────────────────────────────────────────────
+const undoStack = [];
+function _draftSnapshot() {
+  return {
+    radiant: [...state.radiant_picks], dire: [...state.dire_picks], bans: [...state.bans],
+    first_pick_team: state.first_pick_team, add_target: state.add_target,
+  };
+}
+function pushUndo() {
+  undoStack.push(_draftSnapshot());
+  if (undoStack.length > 60) undoStack.shift();
+  updateUndoBtn();
+}
+function undo() {
+  const s = undoStack.pop();
+  if (!s) return false;
+  state.radiant_picks = s.radiant;
+  state.dire_picks    = s.dire;
+  state.bans          = s.bans;
+  state.first_pick_team = s.first_pick_team;
+  setAddTarget(s.add_target);
+  onStateChange();
+  updateUndoBtn();
+  return true;
+}
+function updateUndoBtn() {
+  const b = document.getElementById('undo-btn');
+  if (b) b.disabled = undoStack.length === 0;
+}
+
+// ── Draft persistence ────────────────────────────────────────
+const DRAFT_KEY = 'draft_state_v1';
+const DRAFT_RESUME_MAX_AGE_MS = 6 * 3600 * 1000;
+function saveDraft() {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ..._draftSnapshot(), ts: Date.now() }));
+  } catch (_) {}
+}
+function offerSavedDraft() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (_) {}
+  if (!s) return;
+  const valid = id => state.heroes[id] != null;
+  s.radiant = (s.radiant || []).filter(valid); s.dire = (s.dire || []).filter(valid); s.bans = (s.bans || []).filter(valid);
+  const n = s.radiant.length + s.dire.length + s.bans.length;
+  if (!n || Date.now() - (s.ts || 0) > DRAFT_RESUME_MAX_AGE_MS) { localStorage.removeItem(DRAFT_KEY); return; }
+  const bar = document.getElementById('resume-bar');
+  const picks = s.radiant.length + s.dire.length;
+  document.getElementById('resume-text').textContent =
+    `Unfinished draft from ${relativeTime(s.ts / 1000)}: ${picks} pick${picks === 1 ? '' : 's'}, ${s.bans.length} ban${s.bans.length === 1 ? '' : 's'}.`;
+  bar.classList.remove('hidden');
+  document.getElementById('resume-yes').onclick = () => {
+    pushUndo();
+    state.radiant_picks = s.radiant; state.dire_picks = s.dire; state.bans = s.bans;
+    state.first_pick_team = s.first_pick_team || null;
+    setAddTarget(s.add_target || 'my-pick');
+    onStateChange();
+    bar.classList.add('hidden');
+    document.getElementById('hero-search').focus();
+  };
+  document.getElementById('resume-no').onclick = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    bar.classList.add('hidden');
+  };
+}
+
+function relativeTime(unixSecs) {
+  if (!unixSecs) return 'unknown';
+  const s = Math.max(0, Date.now() / 1000 - unixSecs);
+  if (s < 90) return 'just now';
+  const m = s / 60;   if (m < 90) return `${Math.round(m)} min ago`;
+  const h = m / 60;   if (h < 36) return `${Math.round(h)} hour${Math.round(h) === 1 ? '' : 's'} ago`;
+  const d = h / 24;   return `${Math.round(d)} day${Math.round(d) === 1 ? '' : 's'} ago`;
+}
+
+// ── Draft-order guidance (ranked All Pick) ────────────────────
+function nextPickTeam() {
+  const r = state.radiant_picks.length, d = state.dire_picks.length, total = r + d;
+  if (total >= 10) return null;
+  const F = state.first_pick_team;
+  if (!F) return null;
+  const S = F === 'radiant' ? 'dire' : 'radiant';
+  const full = t => (t === 'radiant' ? r : d) >= 5;
+  let next = AP_ORDER[total] === 'F' ? F : S;
+  if (full(next)) { const other = next === F ? S : F; next = full(other) ? null : other; }
+  return next;
+}
+
+function advanceTarget() {
+  if (state.add_target === 'ban') {
+    if (state.bans.length >= MAX_BANS) setAddTarget('my-pick');
+    return;
+  }
+  const next = nextPickTeam();
+  if (!next) return;
+  setAddTarget(next === state.my_team ? 'my-pick' : 'enemy-pick');
+}
+
+function renderDraftStatus() {
+  const el = document.getElementById('draft-status');
+  if (!el) return;
+  const r = state.radiant_picks.length, d = state.dire_picks.length, total = r + d;
+  let next = '';
+  if (total === 0 && state.bans.length === 0) {
+    next = `<span class="draft-next">Empty draft.</span> Enter bans first, then picks in the order they lock — the next team is tracked for you (ranked All Pick order).`;
+  } else if (total >= 10) {
+    next = `<span class="draft-next">Draft complete.</span> Win probability is below.`;
+  } else if (state.add_target === 'ban') {
+    next = `<span class="draft-next next-ban">Banning</span> — ${state.bans.length}/${MAX_BANS} bans. Switch to picks when the ban phase ends.`;
+  } else {
+    const team = nextPickTeam();
+    if (team) {
+      const you = team === state.my_team;
+      next = `<span class="draft-next next-${team}">Next: ${team === 'radiant' ? 'Radiant' : 'Dire'} pick ${you ? '(you)' : '(enemy)'}</span> — ${total}/10 picked`;
+    } else {
+      next = `<span class="draft-next">${total}/10 picked</span>`;
+    }
+  }
+  el.innerHTML = `<span>${next}</span>
+    <span class="draft-keys"><kbd>Space</kbd> switch target · <kbd>1</kbd>–<kbd>5</kbd> take a recommendation · <kbd>Backspace</kbd>/<kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>Enter</kbd> pick first match</span>`;
+}
+
+function updateYouBadge() {
+  document.getElementById('team-radiant')?.classList.toggle('mine', state.my_team === 'radiant');
+  document.getElementById('team-dire')?.classList.toggle('mine', state.my_team === 'dire');
+}
+
+function updateBracketNote() {
+  const note = document.getElementById('bracket-note');
+  if (!note) return;
+  const sel = document.getElementById('mmr-bracket-select');
+  const label = sel?.options[sel.selectedIndex]?.textContent || '';
+  const cohort = MATCHUP_COHORT[state.mmr_bracket] || '';
+  note.textContent = `Win rates: ${label} · Counters & synergy: ${cohort} matchup data`;
+  note.title = 'Stratz aggregates matchup data into four cohorts, so neighbouring brackets share counter data.';
+}
+
+function renderFooter() {
+  const el = document.getElementById('app-footer');
+  if (!el) return;
+  const ts = state.data_updated_at;
+  const ageH = ts ? (Date.now() / 1000 - ts) / 3600 : Infinity;
+  const stale = ageH > 48;
+  const parts = [];
+  parts.push(`<span class="${stale ? 'stale' : ''}">Stratz data updated ${ts ? relativeTime(ts) : 'unknown'}${stale ? ' — refresh pending' : ''}</span>`);
+  if (state.patch_name) parts.push(`<span>Patch ${_esc(state.patch_name)}</span>`);
+  parts.push(`<span>Refreshes automatically after 24h</span>`);
+  el.innerHTML = parts.join('<span aria-hidden="true">·</span>');
+}
 
 function loadWeights() {
   try {
@@ -707,6 +936,8 @@ async function pollStatus() {
       clearInterval(pollInterval);
       state.can_refresh  = !!data.can_refresh;
       state.chat_enabled = data.chat_enabled !== false;
+      state.data_updated_at = data.data_updated_at || 0;
+      state.patch_name = data.patch_name || '';
       await initApp();
     }
   } catch (_) {
@@ -743,11 +974,17 @@ async function initApp() {
     btn.classList.toggle('active', btn.dataset.role === state.role_filter);
   });
 
+  buildBanSlots();
+  setupSlotTargeting();
   renderHeroGrid();
   updateAddTargetLabels();
+  updateYouBadge();
+  updateBracketNote();
+  renderFooter();
   applyWeightsToUI();
   renderDraftBoard();
   fetchRecommendations();
+  offerSavedDraft();
 
   // Server capability gating
   if (!state.can_refresh) document.getElementById('refresh-btn').classList.add('hidden');
@@ -784,18 +1021,38 @@ async function initApp() {
 function renderHeroGrid(filter = '') {
   const grid = document.getElementById('hero-grid');
   const used = getUsedSet();
-  const query = filter.toLowerCase();
-
-  const filtered = query
-    ? state.heroList.filter(h => {
-        const name = h.localized_name.toLowerCase();
-        const initials = h.localized_name.split(' ').map(w => w[0]).join('').toLowerCase();
-        return name.includes(query) || initials === query;
-      })
-    : state.heroList;
+  const query = (filter || '').trim().toLowerCase();
+  const filtered = searchHeroes(query);
 
   grid.innerHTML = '';
-  for (const hero of filtered) {
+  if (!filtered.length) {
+    const empty = document.createElement('div');
+    empty.className = 'hero-grid-empty';
+    empty.textContent = `No hero matches "${filter.trim()}"`;
+    grid.appendChild(empty);
+    return;
+  }
+
+  // Grouped by primary attribute when browsing; flat ranked list when searching
+  const sections = query
+    ? [[null, filtered]]
+    : ATTR_GROUPS.map(([key, label]) => [[key, label], filtered.filter(h => (h.primary_attr || 'all') === key)])
+                 .filter(([, list]) => list.length);
+
+  for (const [group, heroes] of sections) {
+    if (group) {
+      const hdr = document.createElement('div');
+      hdr.className = `hero-grid-group attr-${group[0]}`;
+      hdr.textContent = group[1].toUpperCase();
+      grid.appendChild(hdr);
+    }
+    for (const hero of heroes) appendHeroCard(grid, hero, used);
+  }
+  applyGridScoreOverlays();
+}
+
+function appendHeroCard(grid, hero, used) {
+  {
     const card = document.createElement('div');
     const isUsed = used.has(hero.id);
     card.className = 'hero-card' + (isUsed ? ' used' : '');
@@ -822,7 +1079,6 @@ function renderHeroGrid(filter = '') {
     card.addEventListener('click', () => handleHeroCardClick(hero.id));
     grid.appendChild(card);
   }
-  applyGridScoreOverlays();
 }
 
 // Update only used/unused state on existing grid cards (no DOM rebuild)
@@ -847,6 +1103,57 @@ function setAddTarget(target) {
     b.classList.toggle('active', b.dataset.target === target);
   });
   updateSearchModeStyle();
+  markTargetSlot();
+  renderDraftStatus();
+}
+
+// Highlight the slot that will receive the next hero
+function markTargetSlot() {
+  document.querySelectorAll('.target-next').forEach(el => el.classList.remove('target-next'));
+  let container;
+  if (state.add_target === 'ban') {
+    container = document.getElementById('ban-slots');
+  } else {
+    const team = state.add_target === 'my-pick'
+      ? state.my_team
+      : (state.my_team === 'radiant' ? 'dire' : 'radiant');
+    container = document.getElementById(team + '-picks');
+  }
+  container?.querySelector('.empty')?.classList.add('target-next');
+}
+
+// Clicking an empty slot makes it the target (delegated: slots are re-rendered often)
+function setupSlotTargeting() {
+  const onSlot = (e) => {
+    const slot = e.target.closest('.pick-slot.empty, .ban-slot.empty');
+    if (!slot) return;
+    if (slot.classList.contains('ban-slot')) {
+      setAddTarget('ban');
+    } else {
+      setAddTarget(slot.dataset.team === state.my_team ? 'my-pick' : 'enemy-pick');
+    }
+    document.getElementById('hero-search').focus();
+  };
+  for (const id of ['radiant-picks', 'dire-picks', 'ban-slots']) {
+    const el = document.getElementById(id);
+    el.addEventListener('click', onSlot);
+    el.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.pick-slot.empty, .ban-slot.empty')) {
+        e.preventDefault(); onSlot(e);
+      }
+    });
+  }
+}
+
+function buildBanSlots() {
+  const c = document.getElementById('ban-slots');
+  if (!c || c.children.length) return;
+  for (let i = 0; i < MAX_BANS; i++) {
+    const s = document.createElement('div');
+    s.className = 'ban-slot empty';
+    s.dataset.index = i;
+    c.appendChild(s);
+  }
 }
 
 function updateSearchModeStyle() {
@@ -858,35 +1165,30 @@ function updateSearchModeStyle() {
   const labels = {
     'my-pick':    myTeam === 'radiant' ? 'Radiant (Me)' : 'Dire (Me)',
     'enemy-pick': myTeam === 'radiant' ? 'Dire (Enemy)' : 'Radiant (Enemy)',
+    'ban':        'Ban',
   };
-  el.placeholder = `Search — ${labels[state.add_target] || ''} — Space to switch team`;
+  el.placeholder = `Search — adding as ${labels[state.add_target] || ''} — Space to switch`;
 }
 
 // ── Hero selection logic ──────────────────────────────────────
 function handleHeroCardClick(heroId) {
+  if (getUsedSet().has(heroId)) return;
   const myTeam = state.my_team;
-  let added = false;
+  let arr;
+  if (state.add_target === 'my-pick')         arr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
+  else if (state.add_target === 'enemy-pick') arr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
+  else if (state.add_target === 'ban')        arr = state.bans;
+  else return;
+  const max = state.add_target === 'ban' ? MAX_BANS : 5;
+  if (arr.length >= max) return;
 
-  if (state.add_target === 'my-pick') {
-    const arr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
-    if (arr.length >= 5) return;
-    arr.push(heroId);
-    added = true;
-    if (arr.length >= 5) setAddTarget('enemy-pick');
-  } else if (state.add_target === 'enemy-pick') {
-    const arr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
-    if (arr.length >= 5) return;
-    arr.push(heroId);
-    added = true;
-    if (arr.length >= 5) setAddTarget('my-pick');
-  }
-
-  if (added) {
-    const searchEl = document.getElementById('hero-search');
-    searchEl.value = '';
-    onStateChange();
-    searchEl.focus();
-  }
+  pushUndo();
+  arr.push(heroId);
+  const searchEl = document.getElementById('hero-search');
+  searchEl.value = '';
+  onStateChange();   // sets first_pick_team when this is the first pick
+  advanceTarget();
+  searchEl.focus();
 }
 
 function handleSlotClick(type, index) {
@@ -905,9 +1207,15 @@ function handleSlotClick(type, index) {
 }
 
 function onStateChange() {
+  // Track which team picked first (drives ranked All Pick order guidance)
+  const total = state.radiant_picks.length + state.dire_picks.length;
+  if (total === 0) state.first_pick_team = null;
+  else if (!state.first_pick_team) state.first_pick_team = state.radiant_picks.length ? 'radiant' : 'dire';
+
   renderDraftBoard();
   updateHeroGridUsed();
   applyGridScoreOverlays();
+  saveDraft();
   fetchRecommendations();
   if (state.radiant_picks.length === 5 && state.dire_picks.length === 5) {
     fetchDraftAnalysis();
@@ -920,6 +1228,43 @@ function onStateChange() {
 function renderDraftBoard() {
   renderPickSlots('radiant', state.radiant_picks);
   renderPickSlots('dire', state.dire_picks);
+  renderBanSlots();
+  markTargetSlot();
+  renderDraftStatus();
+}
+
+function renderBanSlots() {
+  const slots = document.querySelectorAll('#ban-slots .ban-slot');
+  const count = document.getElementById('ban-count');
+  if (count) count.textContent = state.bans.length ? `${state.bans.length}/${MAX_BANS}` : '';
+  slots.forEach((slot, i) => {
+    const heroId = state.bans[i];
+    slot.innerHTML = '';
+    if (heroId != null && state.heroes[heroId]) {
+      const hero = state.heroes[heroId];
+      slot.className = 'ban-slot filled';
+      slot.removeAttribute('role'); slot.removeAttribute('tabindex'); slot.removeAttribute('aria-label');
+      const img = document.createElement('img');
+      img.src = hero.img_url; img.alt = hero.localized_name;
+      img.onerror = () => { img.style.display = 'none'; };
+      const label = document.createElement('div');
+      label.className = 'slot-label'; label.textContent = hero.localized_name;
+      const rm = document.createElement('button');
+      rm.type = 'button'; rm.className = 'slot-remove'; rm.textContent = '×';
+      rm.setAttribute('aria-label', `Unban ${hero.localized_name}`); rm.title = `Unban ${hero.localized_name}`;
+      rm.addEventListener('click', (e) => {
+        e.stopPropagation();
+        pushUndo();
+        state.bans.splice(i, 1);
+        onStateChange();
+      });
+      slot.append(img, label, rm);
+    } else {
+      slot.className = 'ban-slot empty';
+      slot.setAttribute('role', 'button'); slot.tabIndex = 0;
+      slot.setAttribute('aria-label', 'Empty ban slot — select to ban the next hero here');
+    }
+  });
 }
 
 function renderPickSlots(team, picks) {
@@ -949,16 +1294,20 @@ function renderPickSlots(team, picks) {
       rmBtn.title = `Remove ${hero.localized_name}`;
       rmBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        pushUndo();
         picks.splice(i, 1);
         onStateChange();
       });
 
+      slot.removeAttribute('role'); slot.removeAttribute('tabindex'); slot.removeAttribute('aria-label');
       slot.appendChild(img);
       slot.appendChild(label);
       slot.appendChild(rmBtn);
     } else {
       slot.className = 'pick-slot empty';
       slot.innerHTML = '';
+      slot.setAttribute('role', 'button'); slot.tabIndex = 0;
+      slot.setAttribute('aria-label', `Empty ${team} slot — select to add the next hero here`);
     }
   });
 }
@@ -1367,9 +1716,10 @@ function renderRecommendations() {
     card.addEventListener('click', () => {
       const allyArr = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
       if (allyArr.length < 5 && !getUsedSet().has(rec.hero_id)) {
+        pushUndo();
         allyArr.push(rec.hero_id);
-        if (allyArr.length >= 5 && state.add_target === 'my-pick') setAddTarget('enemy-pick');
         onStateChange();
+        advanceTarget();
         document.getElementById('hero-search').focus();
       }
     });
@@ -1454,9 +1804,10 @@ function renderEnemyPredictions() {
     card.addEventListener('click', () => {
       const enemyArr = myTeam === 'radiant' ? state.dire_picks : state.radiant_picks;
       if (enemyArr.length < 5 && !getUsedSet().has(pred.hero_id)) {
+        pushUndo();
         enemyArr.push(pred.hero_id);
-        if (enemyArr.length >= 5 && state.add_target === 'enemy-pick') setAddTarget('my-pick');
         onStateChange();
+        advanceTarget();
         document.getElementById('hero-search').focus();
       }
     });
@@ -1509,11 +1860,18 @@ document.getElementById('hero-search').addEventListener('keydown', (e) => {
     const firstCard = document.querySelector('#hero-grid .hero-card:not(.used)');
     if (firstCard) handleHeroCardClick(parseInt(firstCard.dataset.heroId));
   } else if (e.key === ' ' && e.target.value === '') {
-    // Space on an empty search box flips the target team. Tab stays native.
+    // Space on an empty search box cycles the target: mine → enemy → ban. Tab stays native.
     e.preventDefault();
-    const modes = ['my-pick', 'enemy-pick'];
+    const modes = ['my-pick', 'enemy-pick', 'ban'];
     const idx = modes.indexOf(state.add_target);
     setAddTarget(modes[(idx + 1) % modes.length]);
+  } else if (/^[1-5]$/.test(e.key) && e.target.value === '') {
+    // 1–5 takes the Nth recommendation
+    e.preventDefault();
+    document.querySelectorAll('#rec-list .rec-card')[parseInt(e.key) - 1]?.click();
+  } else if (e.key === 'Backspace' && e.target.value === '') {
+    e.preventDefault();
+    undo();
   } else if (e.key === 'Escape') {
     e.target.value = '';
     renderHeroGrid('');
@@ -1524,6 +1882,8 @@ document.getElementById('my-team-select').addEventListener('change', (e) => {
   state.my_team = e.target.value;
   localStorage.setItem('my_team', state.my_team);
   updateAddTargetLabels();
+  updateYouBadge();
+  renderDraftBoard();
   fetchRecommendations();
   renderRecommendations();
   renderThreatPanel();
@@ -1537,10 +1897,17 @@ document.querySelectorAll('.add-target-btn').forEach(btn => {
   });
 });
 
+document.getElementById('undo-btn').addEventListener('click', () => {
+  undo();
+  document.getElementById('hero-search').focus();
+});
+
 document.getElementById('reset-btn').addEventListener('click', () => {
+  if (state.radiant_picks.length + state.dire_picks.length + state.bans.length) pushUndo();
   state.radiant_picks = [];
   state.dire_picks = [];
   state.bans = [];
+  state.first_pick_team = null;
   state.recommendations = [];
   state.allScores = {};
   state.threats = [];
@@ -1600,6 +1967,7 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
 document.getElementById('mmr-bracket-select').addEventListener('change', (e) => {
   state.mmr_bracket = e.target.value;
   saveMmrBracket();
+  updateBracketNote();
   fetchRecommendations();
 });
 
@@ -1761,6 +2129,12 @@ function _openModal() {
 }
 document.addEventListener('keydown', (e) => {
   const modal = _openModal();
+  // Ctrl+Z / Cmd+Z undoes the last draft change unless the user is editing text
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !modal) {
+    const t = e.target;
+    const editingText = t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.id !== 'hero-search' && t.value !== ''));
+    if (!editingText) { e.preventDefault(); undo(); return; }
+  }
   if (e.key === 'Escape') {
     if (modal) {
       e.preventDefault();
