@@ -3,6 +3,9 @@
    ============================================================= */
 
 // ── State ────────────────────────────────────────────────────
+const DEFAULT_WEIGHTS = { counter: 0.55, win_rate: 0.15, synergy: 0.20, hero_pool: 0.05, meta: 0.05 };
+const WEIGHTS_KEY = 'draft_weights_v2';
+
 const state = {
   radiant_picks: [],   // [hero_id, ...]  max 5
   dire_picks: [],      // [hero_id, ...]  max 5
@@ -23,7 +26,136 @@ const state = {
   chat_enabled: true,   // false when server has no ANTHROPIC_API_KEY
   data_updated_at: 0,    // unix seconds of the last real Stratz fetch (from /api/status)
   patch_name: '',
+  show_all_recs: false,
+  active_tab: localStorage.getItem('insight_tab') || 'recs',
+  draft_analysis: null,
 };
+
+const ROLE_LABEL = { carry: 'Carry', mid: 'Mid', offlane: 'Offlane', support: 'Support', hard_support: 'Hard Support' };
+const ROLE_SHORT = { carry: '1', mid: '2', offlane: '3', support: '4', hard_support: '5' };
+const LOW_DATA_GAMES = 200;
+
+function scoreTier(total) { return total >= 0.7 ? 'score-high' : total >= 0.5 ? 'score-mid' : 'score-low'; }
+function tierColor(total) { return total >= 0.7 ? 'var(--tier-a)' : total >= 0.5 ? 'var(--tier-b)' : 'var(--tier-c)'; }
+function pct1(v) { return v != null ? (v * 100).toFixed(1) : '?'; }
+
+function rolePills(heroId) {
+  const pos = state.heroes[heroId]?.positions || [];
+  return pos.map(r => `<span class="role-pill" title="${ROLE_LABEL[r]}">${ROLE_SHORT[r]}</span>`).join('');
+}
+
+/** Human-readable reasons for a scored hero. counters_detail is sorted best-first. */
+function buildReasons(rec, opts = {}) {
+  const bd = rec.breakdown || {};
+  const detail = bd.counters_detail || [];
+  const good = detail.filter(c => c.advantage > 0.005).slice(0, 2);
+  const bad  = detail.filter(c => c.advantage < -0.005).slice(0, 2);
+  const parts = [];
+  for (const c of good) parts.push(`<span class="good">Counters <b>${_esc(c.vs_hero)}</b> ${pct1(c.win_rate)}%</span>`);
+  for (const c of bad)  parts.push(`<span class="bad">Weak vs <b>${_esc(c.vs_hero)}</b> ${pct1(c.win_rate)}%</span>`);
+  if (bd.win_rate_pct != null) parts.push(`${bd.win_rate_pct}% win rate`);
+  if (opts.allies && bd.synergy_score > 0.6) parts.push(`<span class="good">Synergy with ${opts.enemyPerspective ? 'their' : 'your'} picks</span>`);
+  if (opts.allies && bd.synergy_score < 0.4) parts.push(`<span class="bad">Poor synergy with ${opts.enemyPerspective ? 'their' : 'your'} picks</span>`);
+  return parts.join(' · ');
+}
+
+function lowDataPill(rec) {
+  const detail = (rec.breakdown || {}).counters_detail || [];
+  const thin = detail.filter(c => (c.games || 0) < LOW_DATA_GAMES);
+  if (!detail.length || !thin.length) return '';
+  const names = thin.map(c => `${c.vs_hero}: ${c.games || 0} games`).join(', ');
+  return `<span class="role-pill pill-lowdata" title="Small sample vs ${_esc(names)}. Scores are shrunk toward 50% when data is thin.">low data</span>`;
+}
+
+function breakdownHtml(rec, opts = {}) {
+  const bd = rec.breakdown || {};
+  const w = state.weights;
+  const rows = [
+    ['Counter',  Math.max(0, Math.min(1, 0.5 + (bd.counter_score || 0) * 10)), w.counter,   opts.enemies],
+    ['Synergy',  bd.synergy_score ?? 0.5,   w.synergy,   opts.allies],
+    ['Win rate', bd.win_rate_score ?? 0.5,  w.win_rate,  true],
+    ['Meta',     bd.meta_score ?? 0.5,      w.meta,      true],
+    ['Pool',     bd.hero_pool_score ?? 0,   w.hero_pool, opts.pool],
+  ];
+  return `<div class="rec-breakdown">` + rows.map(([label, v, weight, active]) => `
+    <span class="${active ? '' : 'bd-off'}">${label} <span style="opacity:.6">×${weight.toFixed(2)}</span></span>
+    <div class="bd-bar ${active ? '' : 'bd-off'}"><div style="width:${Math.round(v * 100)}%"></div></div>
+    <span class="bd-val ${active ? '' : 'bd-off'}">${active ? Math.round(v * 100) : '—'}</span>`).join('') + `</div>`;
+}
+
+function attachInfoToggle(card) {
+  const btn = card.querySelector('.rec-info-btn');
+  const bd  = card.querySelector('.rec-breakdown');
+  if (!btn || !bd) return;
+  bd.hidden = true;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    bd.hidden = !bd.hidden;
+    btn.setAttribute('aria-expanded', String(!bd.hidden));
+  });
+  btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); });
+}
+
+// ── Insight tabs ─────────────────────────────────────────────
+function switchTab(name) {
+  state.active_tab = name;
+  localStorage.setItem('insight_tab', name);
+  document.querySelectorAll('#insight-tabs .tab').forEach(t => {
+    const on = t.dataset.tab === name;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', String(on));
+  });
+  document.querySelectorAll('.col-right .tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  if (name === 'lookup') document.getElementById('hero-lookup-input')?.focus();
+}
+function setupTabs() {
+  document.querySelectorAll('#insight-tabs .tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  document.getElementById('insight-tabs').addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const tabs = [...document.querySelectorAll('#insight-tabs .tab')];
+    const i = tabs.findIndex(t => t.classList.contains('active'));
+    const n = (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    switchTab(tabs[n].dataset.tab); tabs[n].focus();
+  });
+  switchTab(state.active_tab);
+}
+// Show/hide empty-state text + badges after each render
+function updateTabState() {
+  const hidden = id => document.getElementById(id)?.classList.contains('hidden');
+  document.getElementById('threats-empty')?.classList.toggle('hidden', !hidden('threat-panel'));
+  document.getElementById('enemy-empty')?.classList.toggle('hidden', !hidden('enemy-predictions-panel'));
+  document.getElementById('winprob-empty')?.classList.toggle('hidden', !hidden('winprob-panel'));
+  const badge = document.getElementById('badge-threats');
+  const crit = (state.threats || []).filter(t => t.avg_win_rate >= 0.53).length;
+  if (badge) { badge.textContent = crit; badge.classList.toggle('hidden', crit === 0 || hidden('threat-panel')); }
+}
+
+// ── Team needs (roles no ally covers) ────────────────────────
+function renderTeamNeeds() {
+  const el = document.getElementById('team-needs');
+  if (!el) return;
+  const allies = state.my_team === 'radiant' ? state.radiant_picks : state.dire_picks;
+  if (!allies.length || allies.length >= 5) { el.classList.add('hidden'); return; }
+  const covered = new Set();
+  for (const id of allies) for (const r of (state.heroes[id]?.positions || [])) covered.add(r);
+  const needs = Object.keys(ROLE_LABEL).filter(r => !covered.has(r));
+  el.classList.remove('hidden');
+  if (!needs.length) { el.innerHTML = `<span class="need-ok">Every position is covered by your picks.</span>`; return; }
+  el.innerHTML = `<span>Team still needs:</span>` + needs.map(r =>
+    `<button type="button" class="need-pill ${state.role_filter === r ? 'active' : ''}" data-role="${r}" title="Filter recommendations to ${ROLE_LABEL[r]}">${ROLE_LABEL[r]}</button>`).join('');
+  el.querySelectorAll('.need-pill').forEach(b => b.addEventListener('click', () => {
+    const r = state.role_filter === b.dataset.role ? '' : b.dataset.role;
+    document.querySelectorAll('.role-filter-btn').forEach(x => x.classList.toggle('active', x.dataset.role === r));
+    state.role_filter = r; saveRoleFilter(); fetchRecommendations();
+  }));
+}
+
+// ── Settings modal (weights) ─────────────────────────────────
+function openSettings() {
+  document.getElementById('settings-modal').classList.remove('hidden');
+  document.getElementById('w-counter').focus();
+}
+function closeSettings() { document.getElementById('settings-modal').classList.add('hidden'); }
 
 const MAX_BANS = 14;
 
@@ -201,36 +333,13 @@ function renderFooter() {
 
 function loadWeights() {
   try {
-    const stored = localStorage.getItem('draft_weights');
-    if (stored) {
-      const w = JSON.parse(stored);
-      // Discard known old defaults so users get the new defaults
-      const isOldDefault =
-        (w.counter === 0.55 && w.win_rate === 0.25 && w.role_synergy === 0.20) ||
-        (w.counter === 0.75 && w.win_rate === 0.20 && w.role_synergy === 0.05) ||
-        (w.counter === 0.65 && w.win_rate === 0.15 && w.role_synergy === 0.20) ||
-        (w.counter === 0.65 && w.win_rate === 0.15 && w.synergy === 0.20 && !w.hero_pool) ||
-        (w.counter === 0.55 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.10 && !w.meta) ||
-        (w.counter === 0.55 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.05 && w.meta === 0.05) ||
-        (w.counter === 0.50 && w.win_rate === 0.15 && w.synergy === 0.20 && w.hero_pool === 0.05 && w.meta === 0.05);
-      if (isOldDefault) {
-        localStorage.removeItem('draft_weights');
-      } else if (w.meta != null && w.hero_pool != null && w.synergy != null) {
-        const { contest, ...rest } = w;
-        return rest;
-      } else if (w.synergy != null && w.hero_pool != null) {
-        return { counter: w.counter, win_rate: w.win_rate, synergy: w.synergy, hero_pool: w.hero_pool, meta: 0.05 };
-      } else if (w.synergy != null) {
-        return { counter: w.counter, win_rate: w.win_rate, synergy: w.synergy, hero_pool: 0.05, meta: 0.05 };
-      } else if (w.role_synergy != null) {
-        return { counter: w.counter, win_rate: w.win_rate, synergy: w.role_synergy, hero_pool: 0.05, meta: 0.05 };
-      }
-    }
+    const w = JSON.parse(localStorage.getItem(WEIGHTS_KEY) || 'null');
+    if (w && ['counter', 'win_rate', 'synergy', 'hero_pool', 'meta'].every(k => typeof w[k] === 'number')) return w;
   } catch (_) {}
-  return { counter: 0.55, win_rate: 0.15, synergy: 0.20, hero_pool: 0.05, meta: 0.05 };
+  return { ...DEFAULT_WEIGHTS };
 }
 function saveWeights() {
-  localStorage.setItem('draft_weights', JSON.stringify(state.weights));
+  localStorage.setItem(WEIGHTS_KEY, JSON.stringify(state.weights));
 }
 
 function loadMmrBracket() { return localStorage.getItem('draft_mmr_bracket') || '7'; }
@@ -599,45 +708,35 @@ async function lookupHeroScore(heroId) {
 }
 
 function renderLookupResult(rec, enemyPicks, container) {
-  const scoreClass = rec.total_score > 0.05 ? 'score-high' : rec.total_score > 0 ? 'score-mid' : 'score-low';
-  const barColor   = rec.total_score > 0.05 ? 'var(--score-high)' : rec.total_score > 0 ? 'var(--score-mid)' : 'var(--score-low)';
-
-  const counterDetail = rec.breakdown?.counters_detail || [];
-  const goodCounters  = counterDetail.filter(c => c.advantage > 0.005);
-  const badCounters   = counterDetail.filter(c => c.advantage < -0.005);
-
-  const tags = [];
-  if (enemyPicks.length === 0) {
-    tags.push(`<span class="tag tag-role lookup-no-enemy">No enemy picks — showing base win rate only</span>`);
-  } else if (goodCounters.length > 0) {
-    const labels = goodCounters.map(c => {
-      const pct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
-      const g   = c.games ? ` (${c.games}g)` : '';
-      return `${_esc(shortName(c.vs_hero))} ${pct}%${g}`;
-    });
-    tags.push(`<span class="tag tag-counter">vs ${labels.join(' · ')}</span>`);
-  }
-  for (const c of badCounters) {
-    const pct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
-    const g   = c.games ? ` (${c.games}g)` : '';
-    tags.push(`<span class="tag tag-weak">weak vs ${_esc(shortName(c.vs_hero))} ${pct}%${g}</span>`);
-  }
-  tags.push(`<span class="tag tag-wr">WR ${rec.breakdown?.win_rate_pct ?? '?'}%</span>`);
-  if (rec.breakdown?.synergy_score > 0.6) tags.push(`<span class="tag tag-role">Synergy</span>`);
-
+  const score = Math.round(rec.total_score * 100);
+  const allyPicks = lookupPerspective === 'enemy-team'
+    ? (state.my_team === 'radiant' ? state.dire_picks : state.radiant_picks)
+    : (state.my_team === 'radiant' ? state.radiant_picks : state.dire_picks);
+  const opts = { allies: allyPicks.length > 0, enemies: enemyPicks.length > 0, pool: !!(authState.profile?.hero_pool?.length), enemyPerspective: lookupPerspective === 'enemy-team' };
+  const reasons = enemyPicks.length === 0 && allyPicks.length === 0
+    ? 'No picks yet — showing overall win rate only'
+    : (buildReasons(rec, opts) || 'Ranked by overall win rate');
   container.innerHTML = `
-    <div class="rec-card" style="cursor:default">
-      <img class="rec-img" src="${_esc(rec.img_url)}" alt="${_esc(rec.localized_name)}" onerror="this.style.display='none'" />
+    <div class="rec-card top" style="cursor:default">
+      <img class="rec-img" src="${_esc(rec.img_url)}" alt="" onerror="this.style.display='none'" />
       <div class="rec-info">
-        <div class="rec-name">${_esc(rec.localized_name)}</div>
-        <div class="rec-score-bar-wrap">
-          <div class="rec-score-bar" style="width:${Math.max(5, Math.min(100, (rec.total_score + 0.1) * 400))}%;background:${barColor}"></div>
+        <div class="rec-name-row">
+          <span class="rec-name">${_esc(rec.localized_name)}</span>
+          ${rolePills(rec.hero_id)}
+          ${rec.in_hero_pool ? '<span class="role-pill pill-pool" title="In your hero pool">pool</span>' : ''}
+          ${lowDataPill(rec)}
         </div>
-        <div class="rec-tags">${tags.join('')}</div>
+        <div class="rec-score-bar-wrap">
+          <div class="rec-score-bar" style="width:${score}%;background:${tierColor(rec.total_score)}"></div>
+        </div>
+        <div class="rec-reasons">${reasons}</div>
       </div>
-      <div class="rec-score-num ${scoreClass}">${rec.total_score > 0 ? '+' : ''}${rec.total_score.toFixed(3)}</div>
+      <div class="rec-score-num ${scoreTier(rec.total_score)}" title="Pick score out of 100">${score}<small>SCORE</small></div>
+      <button type="button" class="rec-info-btn" aria-label="Show score breakdown" aria-expanded="false" title="Why this score?">i</button>
+      ${breakdownHtml(rec, opts)}
     </div>
   `;
+  attachInfoToggle(container.querySelector('.rec-card'));
 }
 
 function renderHeroPoolDisplay(heroIds) {
@@ -923,6 +1022,7 @@ async function initApp() {
 
   buildBanSlots();
   setupSlotTargeting();
+  setupTabs();
   renderHeroGrid();
   updateAddTargetLabels();
   updateYouBadge();
@@ -1167,10 +1267,12 @@ function onStateChange() {
   applyGridScoreOverlays();
   saveDraft();
   fetchRecommendations();
-  if (state.radiant_picks.length === 5 && state.dire_picks.length === 5) {
+  renderTeamNeeds();
+  if (state.radiant_picks.length && state.dire_picks.length) {
     fetchDraftAnalysis();
   } else {
     document.getElementById('winprob-panel').classList.add('hidden');
+    updateTabState();
   }
 }
 
@@ -1283,6 +1385,7 @@ function renderThreatPanel() {
 
   if (allyPicks.length === 0 || enemyPicks.length === 0 || !state.threats?.length) {
     panel.classList.add('hidden');
+    updateTabState();
     return;
   }
 
@@ -1347,6 +1450,7 @@ function renderThreatPanel() {
   }
 
   list.innerHTML = html;
+  updateTabState();
 }
 
 // ── Win Probability ───────────────────────────────────────
@@ -1366,8 +1470,11 @@ async function fetchDraftAnalysis() {
     if (!res.ok) return;
     const data = await res.json();
     if (seq !== analysisSeq) return;  // draft changed while this was in flight
-    if (state.radiant_picks.length !== 5 || state.dire_picks.length !== 5) return;
+    if (!state.radiant_picks.length || !state.dire_picks.length) return;
+    const wasComplete = state.draft_analysis?.complete;
+    state.draft_analysis = data;
     renderWinProb(data);
+    if (data.complete && !wasComplete) switchTab('winprob');
   } catch (_) {}
 }
 
@@ -1380,6 +1487,16 @@ function renderWinProb(data) {
   const rProb = data.radiant_win_prob;
   const dProb = data.dire_win_prob;
   const comp  = data.components || {};
+  const complete = data.complete !== false;
+  const title = document.getElementById('winprob-title');
+  if (title) title.textContent = complete ? 'DRAFT COMPLETE — WIN PROBABILITY' : `DRAFT EDGE SO FAR — ${data.picks ?? ''}/10 PICKED`;
+  const diff = rProb - 50;
+  const mag  = Math.abs(diff);
+  const who  = diff >= 0 ? 'Radiant' : 'Dire';
+  const edgeWord = mag < 2 ? 'Even draft' : mag < 5 ? `Slight ${who} edge` : mag < 10 ? `Clear ${who} edge` : `Strong ${who} edge`;
+  const edgeCls  = mag < 2 ? 'edge-even' : diff >= 0 ? 'edge-radiant' : 'edge-dire';
+  const conf = complete ? '' : `<span class="wp-conf">low confidence until 5v5 — lane matchups aren't known yet</span>`;
+  const edgeSection = `<div class="wp-edge ${edgeCls}">${edgeWord}${conf}</div>`;
 
   function fmtAdv(val) {
     return (val >= 0 ? '+' : '') + val.toFixed(1) + '%';
@@ -1488,13 +1605,14 @@ function renderWinProb(data) {
       </div>
       <div class="wp-bar-nums">
         <span class="wp-prob ${rProb > dProb ? 'wp-winner' : ''}" style="color:var(--radiant)">${rProb}%</span>
-        <span class="wp-prob ${dProb > rProb ? 'wp-winner' : ''}" style="color:var(--dire)">${dProb}%</span>
+        <span class="wp-prob dire-num ${dProb > rProb ? 'wp-winner' : ''}">${dProb}%</span>
       </div>
     </div>
     ${factorsSection}
-    ${matchupSection}
-    ${synSection}
+    ${complete ? matchupSection + synSection : ''}
   `;
+  content.insertAdjacentHTML('afterbegin', edgeSection);
+  updateTabState();
 }
 
 // ── Recommendations ───────────────────────────────────────────
@@ -1587,58 +1705,25 @@ function renderRecommendations() {
   }
 
   list.innerHTML = '';
+  const moreBtn = document.getElementById('rec-more-btn');
 
   if (!recs || recs.length === 0) {
     list.innerHTML = '<div style="color:var(--text-muted);font-style:italic;padding:8px">No recommendations yet.</div>';
+    moreBtn?.classList.add('hidden');
     return;
   }
 
-  // Find score range for color coding
-  const maxScore = recs[0]?.total_score ?? 0.1;
-  const minScore = recs[recs.length - 1]?.total_score ?? -0.1;
-  const range = Math.max(maxScore - minScore, 0.01);
+  const TOP_N = 5;
+  const opts = { allies: allyPicks.length > 0, enemies: enemyPicks.length > 0, pool: !!(authState.profile?.hero_pool?.length) };
 
   recs.forEach((rec, i) => {
     const card = document.createElement('div');
-    card.className = 'rec-card';
+    const isTop = i < TOP_N;
+    card.className = 'rec-card' + (isTop ? ' top' : '') + (!isTop && !state.show_all_recs ? ' rec-more-hidden' : '');
 
-    // Bar width: relative to score range, clamped 5%-100%
-    const barPct = Math.max(5, Math.min(100, ((rec.total_score - minScore) / range) * 100));
-    const barColor = rec.total_score > 0.05
-      ? 'var(--score-high)' : rec.total_score > 0
-      ? 'var(--score-mid)' : 'var(--score-low)';
-    const scoreClass = rec.total_score > 0.05
-      ? 'score-high' : rec.total_score > 0
-      ? 'score-mid' : 'score-low';
-
-    // Build counter tags — show both good and bad matchups
-    // Display raw win rate + game count from Stratz (consistent with chat assistant)
-    // Threshold lowered to 0.005 so even small-sample matchups show (with game count for context)
-    const counterDetail = rec.breakdown.counters_detail || [];
-    const goodCounters = counterDetail.filter(c => c.advantage > 0.005);
-    const badCounters = counterDetail.filter(c => c.advantage < -0.005);
-
-    const tags = [];
-    if (goodCounters.length > 0) {
-      const counterLabels = goodCounters.map(c => {
-        const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
-        const games = c.games ? ` (${c.games}g)` : '';
-        return `${_esc(shortName(c.vs_hero))} ${winPct}%${games}`;
-      });
-      tags.push(`<span class="tag tag-counter">vs ${counterLabels.join(' · ')}</span>`);
-    }
-    for (const c of badCounters) {
-      const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
-      const games = c.games ? ` (${c.games}g)` : '';
-      tags.push(`<span class="tag tag-weak">weak vs ${_esc(shortName(c.vs_hero))} ${winPct}%${games}</span>`);
-    }
-    tags.push(`<span class="tag tag-wr">WR ${rec.breakdown.win_rate_pct}%</span>`);
-    if (rec.breakdown.synergy_score > 0.6) {
-      tags.push(`<span class="tag tag-role">Synergy</span>`);
-    }
-    if (rec.in_hero_pool) {
-      tags.push(`<span class="tag tag-pool">Pool</span>`);
-    }
+    const score = Math.round(rec.total_score * 100);            // absolute 0-100
+    const scoreClass = scoreTier(rec.total_score);
+    const barColor = tierColor(rec.total_score);
 
     card.setAttribute('role', 'button');
     card.tabIndex = 0;
@@ -1648,23 +1733,36 @@ function renderRecommendations() {
     });
     card.innerHTML = `
       <div class="rec-rank">${i + 1}</div>
-      <img class="rec-img" src="${_esc(rec.img_url)}" alt=""
-           onerror="this.style.display='none'" />
+      <img class="rec-img" src="${_esc(rec.img_url)}" alt="" onerror="this.style.display='none'" />
       <div class="rec-info">
-        <div class="rec-name">${_esc(rec.localized_name)}</div>
-        <div class="rec-score-bar-wrap">
-          <div class="rec-score-bar" style="width:${barPct}%;background:${barColor}"></div>
+        <div class="rec-name-row">
+          <span class="rec-name">${_esc(rec.localized_name)}</span>
+          ${rolePills(rec.hero_id)}
+          ${rec.in_hero_pool ? '<span class="role-pill pill-pool" title="In your hero pool">pool</span>' : ''}
+          ${lowDataPill(rec)}
         </div>
-        <div class="rec-tags">${tags.join('')}</div>
+        <div class="rec-score-bar-wrap">
+          <div class="rec-score-bar" style="width:${score}%;background:${barColor}"></div>
+        </div>
+        <div class="rec-reasons">${buildReasons(rec, opts) || 'Ranked by overall win rate'}</div>
       </div>
-      <div class="rec-score-num ${scoreClass}">${rec.total_score > 0 ? '+' : ''}${rec.total_score.toFixed(3)}</div>
+      <div class="rec-score-num ${scoreClass}" title="Pick score out of 100">${score}<small>SCORE</small></div>
+      <button type="button" class="rec-info-btn" aria-label="Show score breakdown" aria-expanded="false" title="Why this score?">i</button>
+      ${breakdownHtml(rec, opts)}
     `;
+    attachInfoToggle(card);
 
     // Every add path follows the Add-as toggle — one rule, no surprises.
     card.addEventListener('click', () => handleHeroCardClick(rec.hero_id));
 
     list.appendChild(card);
   });
+
+  if (moreBtn) {
+    const extra = recs.length - TOP_N;
+    moreBtn.classList.toggle('hidden', extra <= 0);
+    moreBtn.textContent = state.show_all_recs ? 'Show top 5 only' : `Show ${extra} more`;
+  }
 }
 
 function renderEnemyPredictions() {
@@ -1680,44 +1778,19 @@ function renderEnemyPredictions() {
   // Hide when no picks exist or no predictions
   if ((allyPicks.length === 0 && enemyPicks.length === 0) || !preds || preds.length === 0) {
     panel.classList.add('hidden');
+    updateTabState();
     return;
   }
 
   panel.classList.remove('hidden');
+  updateTabState();
   list.innerHTML = '';
 
+  const opts = { allies: enemyPicks.length > 0, enemies: allyPicks.length > 0, pool: false, enemyPerspective: true };
   preds.forEach((pred, i) => {
     const card = document.createElement('div');
-    card.className = 'enemy-pred-card';
-
-    const barPct = Math.max(10, Math.min(100, pred.total_score * 100 / 0.15));
-
-    // Build tags — from enemy's perspective, counters_detail shows how they counter YOUR heroes
-    const counterDetail = pred.breakdown.counters_detail || [];
-    const goodCounters = counterDetail.filter(c => c.advantage > 0.005);
-    const badCounters = counterDetail.filter(c => c.advantage < -0.005);
-    const tags = [];
-
-    if (goodCounters.length > 0) {
-      const counterLabels = goodCounters.map(c => {
-        const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
-        const games = c.games ? ` (${c.games}g)` : '';
-        return `${_esc(shortName(c.vs_hero))} ${winPct}%${games}`;
-      });
-      tags.push(`<span class="tag tag-enemy-counter">vs ${counterLabels.join(' · ')}</span>`);
-    }
-    for (const c of badCounters) {
-      const winPct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
-      const games = c.games ? ` (${c.games}g)` : '';
-      tags.push(`<span class="tag tag-weak">weak vs ${_esc(shortName(c.vs_hero))} ${winPct}%${games}</span>`);
-    }
-
-    // Only show synergy tag when enemy actually has picks
-    if (enemyPicks.length > 0 && pred.breakdown.synergy_score > 0.6) {
-      tags.push(`<span class="tag tag-enemy-synergy">Synergy with enemy team</span>`);
-    }
-
-    tags.push(`<span class="tag tag-wr">WR ${pred.breakdown.win_rate_pct}%</span>`);
+    card.className = 'enemy-pred-card' + (i < 5 ? ' top' : '');
+    const score = Math.round(pred.total_score * 100);
 
     card.setAttribute('role', 'button');
     card.tabIndex = 0;
@@ -1727,17 +1800,23 @@ function renderEnemyPredictions() {
     });
     card.innerHTML = `
       <div class="rec-rank">${i + 1}</div>
-      <img class="rec-img" src="${_esc(pred.img_url)}" alt=""
-           onerror="this.style.display='none'" />
+      <img class="rec-img" src="${_esc(pred.img_url)}" alt="" onerror="this.style.display='none'" />
       <div class="rec-info">
-        <div class="rec-name">${_esc(pred.localized_name)}</div>
-        <div class="rec-score-bar-wrap">
-          <div class="rec-score-bar" style="width:${barPct}%;background:var(--dire)"></div>
+        <div class="rec-name-row">
+          <span class="rec-name">${_esc(pred.localized_name)}</span>
+          ${rolePills(pred.hero_id)}
+          ${lowDataPill(pred)}
         </div>
-        <div class="rec-tags">${tags.join('')}</div>
+        <div class="rec-score-bar-wrap">
+          <div class="rec-score-bar" style="width:${score}%;background:var(--dire)"></div>
+        </div>
+        <div class="rec-reasons">${buildReasons(pred, opts) || 'Ranked by overall win rate'}</div>
       </div>
-      <div class="rec-score-num">${pred.total_score > 0 ? '+' : ''}${pred.total_score.toFixed(3)}</div>
+      <div class="rec-score-num" title="How much the enemy wants this hero, out of 100">${score}<small>SCORE</small></div>
+      <button type="button" class="rec-info-btn" aria-label="Show score breakdown" aria-expanded="false" title="Why this score?">i</button>
+      ${breakdownHtml(pred, opts)}
     `;
+    attachInfoToggle(card);
 
     // Every add path follows the Add-as toggle — one rule, no surprises.
     card.addEventListener('click', () => handleHeroCardClick(pred.hero_id));
@@ -1814,6 +1893,7 @@ document.getElementById('my-team-select').addEventListener('change', (e) => {
   updateAddTargetLabels();
   updateYouBadge();
   renderDraftBoard();
+  renderTeamNeeds();
   fetchRecommendations();
   renderRecommendations();
   renderThreatPanel();
@@ -1841,6 +1921,8 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   state.allScores = {};
   state.threats = [];
   state.enemy_predictions = [];
+  state.show_all_recs = false;
+  state.draft_analysis = null;
   const searchEl = document.getElementById('hero-search');
   searchEl.value = '';
   setAddTarget('my-pick');
@@ -1907,8 +1989,29 @@ document.querySelectorAll('.role-filter-btn').forEach(btn => {
     btn.classList.add('active');
     state.role_filter = btn.dataset.role;
     saveRoleFilter();
+    renderTeamNeeds();
     fetchRecommendations();
   });
+});
+
+// Show more / fewer recommendations
+document.getElementById('rec-more-btn').addEventListener('click', () => {
+  state.show_all_recs = !state.show_all_recs;
+  renderRecommendations();
+});
+
+// Settings modal
+document.getElementById('settings-btn').addEventListener('click', openSettings);
+document.getElementById('settings-close').addEventListener('click', closeSettings);
+document.getElementById('settings-modal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSettings(); });
+document.getElementById('weights-reset-btn').addEventListener('click', () => {
+  state.weights = { ...DEFAULT_WEIGHTS };
+  saveWeights();
+  applyWeightsToUI();
+  fetchRecommendations();
+  const st = document.getElementById('weights-status');
+  st.classList.remove('hidden');
+  setTimeout(() => st.classList.add('hidden'), 1500);
 });
 
 // Enemy role filter buttons
@@ -2052,7 +2155,7 @@ document.getElementById('profile-panel').addEventListener('click', (e) => {
 
 // ── Global keyboard: Escape closes modals, Tab is trapped inside them ──
 function _openModal() {
-  return ['auth-modal', 'profile-panel']
+  return ['auth-modal', 'profile-panel', 'settings-modal']
     .map(id => document.getElementById(id))
     .find(el => el && !el.classList.contains('hidden')) || null;
 }
@@ -2067,7 +2170,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (modal) {
       e.preventDefault();
-      if (modal.id === 'auth-modal') closeAuthModal(); else closeProfilePanel();
+      if (modal.id === 'auth-modal') closeAuthModal();
+      else if (modal.id === 'settings-modal') closeSettings();
+      else closeProfilePanel();
       return;
     }
     const chat = document.getElementById('chat-panel');

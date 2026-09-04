@@ -33,7 +33,7 @@
         <option value="dire">Dire</option>
       </select>
       <label for="mmr-bracket-select">Bracket:</label>
-      <select id="mmr-bracket-select" title="Win rates use this exact bracket; counters and synergy use Stratz's combined matchup cohort (shown under Top Recommendations)">
+      <select id="mmr-bracket-select" title="Win rates use this exact bracket; counters and synergy use Stratz's combined matchup cohort (see the note under Recommend)">
         <option value="7" selected>Immortal</option>
         <option value="6">Divine</option>
         <option value="5">Ancient</option>
@@ -44,6 +44,7 @@
       </select>
       <button id="undo-btn" class="btn-secondary" title="Undo last change (Ctrl+Z)" disabled>↶ Undo</button>
       <button id="reset-btn" class="btn-secondary">Reset Draft</button>
+      <button id="settings-btn" class="btn-ghost" title="Scoring weights">⚙ Settings</button>
       <button id="refresh-btn" class="btn-ghost">↻ Refresh Data</button>
       <div class="auth-controls" id="auth-controls">
         <button id="login-btn" class="btn-ghost">Log In</button>
@@ -55,41 +56,6 @@
     </div>
   </header>
 
-  <!-- Draft board -->
-  <section class="draft-board">
-    <!-- Radiant picks -->
-    <div class="team-section radiant" id="team-radiant">
-      <div class="team-label radiant-label">RADIANT PICKS <span class="you-badge">YOU</span></div>
-      <div class="pick-slots" id="radiant-picks">
-        <div class="pick-slot empty" data-team="radiant" data-index="0"></div>
-        <div class="pick-slot empty" data-team="radiant" data-index="1"></div>
-        <div class="pick-slot empty" data-team="radiant" data-index="2"></div>
-        <div class="pick-slot empty" data-team="radiant" data-index="3"></div>
-        <div class="pick-slot empty" data-team="radiant" data-index="4"></div>
-      </div>
-    </div>
-
-    <!-- Dire picks -->
-    <div class="team-section dire" id="team-dire">
-      <div class="team-label dire-label"><span class="you-badge">YOU</span> DIRE PICKS</div>
-      <div class="pick-slots" id="dire-picks">
-        <div class="pick-slot empty" data-team="dire" data-index="0"></div>
-        <div class="pick-slot empty" data-team="dire" data-index="1"></div>
-        <div class="pick-slot empty" data-team="dire" data-index="2"></div>
-        <div class="pick-slot empty" data-team="dire" data-index="3"></div>
-        <div class="pick-slot empty" data-team="dire" data-index="4"></div>
-      </div>
-    </div>
-
-    <!-- Bans (both teams) -->
-    <div class="bans-section" id="bans-section">
-      <div class="team-label ban-label">BANS <span class="ban-count" id="ban-count"></span></div>
-      <div class="ban-slots" id="ban-slots">
-        <!-- Populated by JS -->
-      </div>
-    </div>
-  </section>
-
   <!-- Resume last draft -->
   <div class="resume-bar hidden" id="resume-bar">
     <span id="resume-text">You have an unfinished draft.</span>
@@ -97,41 +63,171 @@
     <button type="button" class="btn-ghost btn-sm" id="resume-no">Discard</button>
   </div>
 
-  <!-- Hero search + controls -->
-  <section class="hero-picker" aria-label="Hero picker">
-    <div class="picker-controls">
-      <input type="text" id="hero-search" placeholder="Search heroes..." autocomplete="off" aria-label="Search heroes" />
-      <div class="add-target-controls">
-        <span>Add as:</span>
-        <button class="add-target-btn active" data-target="my-pick" id="btn-my-pick">My Pick</button>
-        <button class="add-target-btn" data-target="enemy-pick" id="btn-enemy-pick">Enemy Pick</button>
-        <button class="add-target-btn add-target-ban" data-target="ban" id="btn-ban">Ban</button>
-      </div>
-      <div class="role-filter-controls">
-        <span>My Role:</span>
-        <button class="role-filter-btn active" data-role="">All</button>
-        <button class="role-filter-btn" data-role="carry">Carry</button>
-        <button class="role-filter-btn" data-role="mid">Mid</button>
-        <button class="role-filter-btn" data-role="offlane">Offlane</button>
-        <button class="role-filter-btn" data-role="support">Support</button>
-        <button class="role-filter-btn" data-role="hard_support">Hard Support</button>
-      </div>
-    </div>
-    <details class="hero-grid-toggle" id="hero-grid-toggle">
-      <summary>Hero Grid</summary>
-      <div class="hero-grid" id="hero-grid">
-        <!-- Populated by JS -->
-      </div>
-    </details>
-  </section>
+  <div class="main-layout">
 
-  <!-- Advanced weights panel -->
-  <details class="weights-panel">
-    <summary>⚙ Adjust Scoring Weights</summary>
+    <!-- ── Left column: board + picker ─────────────────────── -->
+    <div class="col-left">
+
+      <section class="draft-board">
+        <div class="team-section radiant" id="team-radiant">
+          <div class="team-label radiant-label">RADIANT PICKS <span class="you-badge">YOU</span></div>
+          <div class="pick-slots" id="radiant-picks">
+            <div class="pick-slot empty" data-team="radiant" data-index="0"></div>
+            <div class="pick-slot empty" data-team="radiant" data-index="1"></div>
+            <div class="pick-slot empty" data-team="radiant" data-index="2"></div>
+            <div class="pick-slot empty" data-team="radiant" data-index="3"></div>
+            <div class="pick-slot empty" data-team="radiant" data-index="4"></div>
+          </div>
+        </div>
+
+        <div class="team-section dire" id="team-dire">
+          <div class="team-label dire-label"><span class="you-badge">YOU</span> DIRE PICKS</div>
+          <div class="pick-slots" id="dire-picks">
+            <div class="pick-slot empty" data-team="dire" data-index="0"></div>
+            <div class="pick-slot empty" data-team="dire" data-index="1"></div>
+            <div class="pick-slot empty" data-team="dire" data-index="2"></div>
+            <div class="pick-slot empty" data-team="dire" data-index="3"></div>
+            <div class="pick-slot empty" data-team="dire" data-index="4"></div>
+          </div>
+        </div>
+
+        <div class="bans-section" id="bans-section">
+          <div class="team-label ban-label">BANS <span class="ban-count" id="ban-count"></span></div>
+          <div class="ban-slots" id="ban-slots"></div>
+        </div>
+      </section>
+
+      <section class="hero-picker" aria-label="Hero picker">
+        <div class="picker-controls">
+          <input type="text" id="hero-search" placeholder="Search heroes..." autocomplete="off" aria-label="Search heroes" />
+          <div class="add-target-controls">
+            <span>Add as:</span>
+            <button class="add-target-btn active" data-target="my-pick" id="btn-my-pick">My Pick</button>
+            <button class="add-target-btn" data-target="enemy-pick" id="btn-enemy-pick">Enemy Pick</button>
+            <button class="add-target-btn add-target-ban" data-target="ban" id="btn-ban">Ban</button>
+          </div>
+          <div class="role-filter-controls">
+            <span>My Role:</span>
+            <button class="role-filter-btn active" data-role="">All</button>
+            <button class="role-filter-btn" data-role="carry">Carry</button>
+            <button class="role-filter-btn" data-role="mid">Mid</button>
+            <button class="role-filter-btn" data-role="offlane">Offlane</button>
+            <button class="role-filter-btn" data-role="support">Support</button>
+            <button class="role-filter-btn" data-role="hard_support">Hard Support</button>
+          </div>
+        </div>
+        <details class="hero-grid-toggle" id="hero-grid-toggle">
+          <summary>Hero Grid</summary>
+          <div class="hero-grid" id="hero-grid"></div>
+        </details>
+      </section>
+
+    </div>
+
+    <!-- ── Right column: insights tabs ─────────────────────── -->
+    <div class="col-right">
+      <div class="tabs" role="tablist" id="insight-tabs">
+        <button type="button" class="tab active" role="tab" data-tab="recs" aria-selected="true">Recommend</button>
+        <button type="button" class="tab" role="tab" data-tab="threats" aria-selected="false">Threats <span class="tab-badge hidden" id="badge-threats"></span></button>
+        <button type="button" class="tab" role="tab" data-tab="enemy" aria-selected="false">Enemy Picks</button>
+        <button type="button" class="tab" role="tab" data-tab="winprob" aria-selected="false">Win%</button>
+        <button type="button" class="tab" role="tab" data-tab="lookup" aria-selected="false">Lookup</button>
+      </div>
+
+      <!-- Recommend -->
+      <section class="tab-panel active" id="tab-recs" role="tabpanel">
+        <div class="rec-header">
+          <span class="rec-title">TOP RECOMMENDATIONS</span>
+          <span class="rec-hint" id="rec-hint">Select heroes to see suggestions</span>
+        </div>
+        <div class="team-needs hidden" id="team-needs"></div>
+        <div class="rec-list" id="rec-list"></div>
+        <button type="button" class="btn-ghost btn-sm rec-more hidden" id="rec-more-btn">Show 15 more</button>
+        <div class="data-note" id="bracket-note"></div>
+      </section>
+
+      <!-- Threats -->
+      <section class="tab-panel" id="tab-threats" role="tabpanel">
+        <div class="tab-empty" id="threats-empty">Add at least one pick on each side to see which enemy heroes hurt your lineup most.</div>
+        <section class="threat-panel hidden" id="threat-panel">
+          <div class="threat-header">
+            <span class="threat-title">ENEMY THREATS TO YOUR PICKS</span>
+          </div>
+          <div class="threat-list" id="threat-list"></div>
+        </section>
+      </section>
+
+      <!-- Enemy picks -->
+      <section class="tab-panel" id="tab-enemy" role="tabpanel">
+        <div class="tab-empty" id="enemy-empty">Add picks to see what the enemy most wants to draft next.</div>
+        <section class="enemy-predictions hidden" id="enemy-predictions-panel">
+          <div class="rec-header enemy-header">
+            <span class="rec-title enemy-title">ENEMY'S BEST PICKS</span>
+            <span class="rec-hint enemy-hint">What the enemy most wants to pick</span>
+          </div>
+          <div class="enemy-role-filter-controls" id="enemy-role-filters">
+            <span class="enemy-role-label">Role:</span>
+            <button class="enemy-role-btn active" data-erole="">All</button>
+            <button class="enemy-role-btn" data-erole="carry">Carry</button>
+            <button class="enemy-role-btn" data-erole="mid">Mid</button>
+            <button class="enemy-role-btn" data-erole="offlane">Off</button>
+            <button class="enemy-role-btn" data-erole="support">Sup</button>
+            <button class="enemy-role-btn" data-erole="hard_support">Hard Sup</button>
+          </div>
+          <div class="enemy-predictions-list" id="enemy-predictions-list"></div>
+        </section>
+      </section>
+
+      <!-- Win probability -->
+      <section class="tab-panel" id="tab-winprob" role="tabpanel">
+        <div class="tab-empty" id="winprob-empty">Add at least one pick on each side to see the draft edge. The full win probability appears at 5v5.</div>
+        <section class="winprob-panel hidden" id="winprob-panel">
+          <div class="winprob-header">
+            <span class="winprob-title" id="winprob-title">WIN PROBABILITY</span>
+          </div>
+          <div id="winprob-content"></div>
+        </section>
+      </section>
+
+      <!-- Lookup -->
+      <section class="tab-panel" id="tab-lookup" role="tabpanel">
+        <section class="hero-lookup-section" id="hero-lookup-section">
+          <div class="rec-header">
+            <span class="rec-title">HERO LOOKUP</span>
+            <div class="lookup-perspective-toggle">
+              <button class="lookup-persp-btn active" data-persp="my-team">My Team</button>
+              <button class="lookup-persp-btn" data-persp="enemy-team">Enemy Team</button>
+            </div>
+          </div>
+          <div class="hero-lookup-wrap">
+            <input type="text" id="hero-lookup-input" class="hero-lookup-input" placeholder="How would any hero score in this draft?" autocomplete="off" />
+            <div class="hero-lookup-dropdown hidden" id="hero-lookup-dropdown"></div>
+          </div>
+          <div id="hero-lookup-result"></div>
+        </section>
+      </section>
+    </div>
+
+  </div>
+
+  <footer class="app-footer" id="app-footer"></footer>
+
+</div>
+
+<!-- Settings modal: scoring weights -->
+<div id="settings-modal" class="modal-overlay hidden">
+  <div class="modal-box modal-settings" role="dialog" aria-modal="true" aria-label="Scoring weights">
+    <div class="modal-header">
+      <div>
+        <span class="modal-title">Scoring Weights</span>
+        <span class="profile-subtitle">How much each factor counts. Changes apply instantly.</span>
+      </div>
+      <button type="button" class="chat-close" id="settings-close" aria-label="Close">✕</button>
+    </div>
     <div class="weights-grid">
       <div class="weight-row">
         <label>
-          Counter Weight
+          Counter
           <input type="range" id="w-counter" min="0" max="1" step="0.05" value="0.55" />
           <span id="w-counter-val">0.55</span>
         </label>
@@ -139,109 +235,42 @@
       </div>
       <div class="weight-row">
         <label>
-          Win Rate Weight
+          Win Rate
           <input type="range" id="w-winrate" min="0" max="1" step="0.05" value="0.15" />
           <span id="w-winrate-val">0.15</span>
         </label>
-        <div class="weight-hint">Overall strength of the hero at your selected bracket. Raise this early in the draft or when certain heroes are clearly dominant in the meta.</div>
+        <div class="weight-hint">Overall strength of the hero at your selected bracket. Raise this early in the draft or when certain heroes are clearly dominant.</div>
       </div>
       <div class="weight-row">
         <label>
-          Synergy Weight
+          Synergy
           <input type="range" id="w-role" min="0" max="1" step="0.05" value="0.20" />
           <span id="w-role-val">0.20</span>
         </label>
-        <div class="weight-hint">How well the hero performs when paired with your current allies, based on real Stratz co-pick win rate data. Raise this when your team comp is mostly decided and you want a synergistic final pick.</div>
+        <div class="weight-hint">How well the hero performs when paired with your current allies, from real Stratz co-pick win rates.</div>
       </div>
       <div class="weight-row">
         <label>
-          Hero Pool Weight
+          Hero Pool
           <input type="range" id="w-heropool" min="0" max="1" step="0.05" value="0.05" />
           <span id="w-heropool-val">0.05</span>
         </label>
-        <div class="weight-hint">Boost heroes in your saved hero pool. Set to 0 to ignore your pool, raise it to strongly prefer comfort picks. Requires login with a saved hero pool.</div>
+        <div class="weight-hint">Boost heroes in your saved hero pool. Requires login with a saved pool.</div>
       </div>
       <div class="weight-row">
         <label>
-          Meta Weight
+          Meta
           <input type="range" id="w-meta" min="0" max="1" step="0.05" value="0.05" />
           <span id="w-meta-val">0.05</span>
         </label>
-        <div class="weight-hint">Boost heroes with high pick rates in your bracket. Popular heroes are battle-tested in the current meta. Raise this to favor meta staples over niche picks.</div>
+        <div class="weight-hint">Boost heroes with high pick rates in your bracket.</div>
       </div>
     </div>
-  </details>
-
-  <!-- Recommendations -->
-  <section class="recommendations">
-    <div class="rec-header">
-      <span class="rec-title">TOP RECOMMENDATIONS</span>
-      <span class="rec-hint" id="rec-hint">Select heroes to see suggestions</span>
-      <span class="data-note" id="bracket-note"></span>
+    <div class="profile-actions">
+      <button type="button" class="btn-secondary" id="weights-reset-btn">Reset to defaults</button>
+      <span class="form-status hidden" id="weights-status">Reset</span>
     </div>
-    <div class="rec-list" id="rec-list">
-      <!-- Populated by JS -->
-    </div>
-  </section>
-
-  <!-- Hero Lookup -->
-  <section class="hero-lookup-section" id="hero-lookup-section">
-    <div class="rec-header">
-      <span class="rec-title">HERO LOOKUP</span>
-      <div class="lookup-perspective-toggle">
-        <button class="lookup-persp-btn active" data-persp="my-team">My Team</button>
-        <button class="lookup-persp-btn" data-persp="enemy-team">Enemy Team</button>
-      </div>
-    </div>
-    <div class="hero-lookup-wrap">
-      <input type="text" id="hero-lookup-input" class="hero-lookup-input" placeholder="Search any hero..." autocomplete="off" />
-      <div class="hero-lookup-dropdown hidden" id="hero-lookup-dropdown"></div>
-    </div>
-    <div id="hero-lookup-result"></div>
-  </section>
-
-  <!-- Enemy Predictions -->
-  <section class="enemy-predictions hidden" id="enemy-predictions-panel">
-    <div class="rec-header enemy-header">
-      <span class="rec-title enemy-title">ENEMY'S BEST PICKS</span>
-      <span class="rec-hint enemy-hint">What the enemy most wants to pick</span>
-    </div>
-    <div class="enemy-role-filter-controls" id="enemy-role-filters">
-      <span class="enemy-role-label">Filter by Role:</span>
-      <button class="enemy-role-btn active" data-erole="">All</button>
-      <button class="enemy-role-btn" data-erole="carry">Carry</button>
-      <button class="enemy-role-btn" data-erole="mid">Mid</button>
-      <button class="enemy-role-btn" data-erole="offlane">Off</button>
-      <button class="enemy-role-btn" data-erole="support">Sup</button>
-      <button class="enemy-role-btn" data-erole="hard_support">Hard Sup</button>
-    </div>
-    <div class="enemy-predictions-list" id="enemy-predictions-list">
-      <!-- Populated by JS -->
-    </div>
-  </section>
-
-  <!-- Win Probability Panel (shown when both teams have 5 picks) -->
-  <section class="winprob-panel hidden" id="winprob-panel">
-    <div class="winprob-header">
-      <span class="winprob-title">DRAFT COMPLETE — WIN PROBABILITY</span>
-    </div>
-    <div id="winprob-content">
-      <!-- Populated by JS -->
-    </div>
-  </section>
-
-  <!-- Enemy Threat Panel -->
-  <section class="threat-panel hidden" id="threat-panel">
-    <div class="threat-header">
-      <span class="threat-title">ENEMY THREATS TO YOUR PICKS</span>
-    </div>
-    <div class="threat-list" id="threat-list">
-      <!-- Populated by JS -->
-    </div>
-  </section>
-
-  <footer class="app-footer" id="app-footer"></footer>
-
+  </div>
 </div>
 
 <!-- Auth modal -->
@@ -282,7 +311,6 @@
     </div>
     <form id="profile-form">
 
-      <!-- Dota Account Link -->
       <div class="profile-section">
         <div class="section-label">DOTA 2 ACCOUNT</div>
         <div class="account-link-row">
@@ -297,7 +325,6 @@
         </div>
       </div>
 
-      <!-- Roles -->
       <div class="profile-section">
         <div class="section-label">MY ROLES</div>
         <div class="role-tags" id="profile-roles">
@@ -309,7 +336,6 @@
         </div>
       </div>
 
-      <!-- Hero Pool -->
       <div class="profile-section">
         <div class="section-label">HERO POOL</div>
         <div class="hero-pool-display" id="hero-pool-display"></div>
@@ -319,7 +345,6 @@
         </div>
       </div>
 
-      <!-- Playstyle -->
       <div class="profile-section">
         <div class="section-label">PLAYSTYLE <span class="section-hint">pick up to 3</span></div>
         <div class="playstyle-tags" id="playstyle-tags">
@@ -336,13 +361,11 @@
         </div>
       </div>
 
-      <!-- Extra notes -->
       <div class="profile-section">
         <div class="section-label">EXTRA NOTES <span class="section-hint">optional — anything else the AI should know</span></div>
         <textarea id="profile-notes" rows="2" placeholder="e.g. I can't play micro heroes, I like heroes with escape spells"></textarea>
       </div>
 
-      <!-- Player stats from Stratz (populated after account link) -->
       <div class="profile-section hidden" id="player-stats-section">
         <div class="section-label">YOUR RECENT PERFORMANCE <span class="section-hint">from Stratz</span></div>
         <div id="player-stats-content"></div>

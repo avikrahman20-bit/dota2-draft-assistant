@@ -20,6 +20,11 @@
   --score-high: #3fb950;
   --score-mid: #d29922;
   --score-low: #f85149;
+  /* Pick-score tiers: separate from team colours so Dire red never reads as "bad" */
+  --tier-a: #58a6ff;
+  --tier-b: #d29922;
+  --tier-c: #8b949e;
+  --dire-text: #e07070;   /* readable Dire red for text (the fill colour is too dark on the surface) */
   --slot-size: 72px;
   --slot-size-sm: 56px;
 }
@@ -38,7 +43,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   min-height: 100vh;
 }
 
@@ -197,7 +202,7 @@ button {
 }
 .pick-slot.empty.target-next::after { color: var(--text-muted); }
 .radiant-label { color: var(--radiant); }
-.dire-label { color: var(--dire); text-align: right; }
+.dire-label { color: var(--dire-text); text-align: right; }
 .ban-label { color: var(--ban); text-align: center; }
 
 .pick-slots {
@@ -266,7 +271,7 @@ button {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   background: rgba(0,0,0,0.65);
-  font-size: 9px;
+  font-size: 11px;
   text-align: center;
   padding: 1px 2px;
   white-space: nowrap;
@@ -301,7 +306,7 @@ button {
   background: linear-gradient(135deg, transparent 46%, rgba(220,60,60,0.85) 47%, rgba(220,60,60,0.85) 53%, transparent 54%);
   pointer-events: none;
 }
-.ban-slot .slot-label { font-size: 8px; }
+.ban-slot .slot-label { font-size: 9px; }
 .ban-slot .slot-remove { width: 14px; height: 14px; font-size: 10px; }
 .ban-slot.empty::after {
   content: '';
@@ -469,10 +474,10 @@ button {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   background: rgba(0,0,0,0.7);
-  font-size: 8px;
+  font-size: 10px;
   text-align: center;
   padding: 1px;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 /* ── Recommendations + Enemy Predictions ────────────────── */
@@ -568,8 +573,8 @@ button {
 .enemy-header {
   padding-bottom: 0;
 }
-.enemy-title { color: var(--dire) !important; }
-.enemy-hint { color: var(--dire) !important; opacity: 0.7; }
+.enemy-title { color: var(--dire-text) !important; }
+.enemy-hint { color: var(--dire-text) !important; opacity: 0.8; }
 
 .enemy-role-filter-controls {
   display: flex;
@@ -603,8 +608,8 @@ button {
 
 .enemy-predictions-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 6px;
 }
 
 .enemy-pred-card {
@@ -624,11 +629,11 @@ button {
   background: var(--dire-dim);
 }
 
-.tag-enemy-counter { background: rgba(192,64,64,0.15); color: var(--dire); }
+.tag-enemy-counter { background: rgba(192,64,64,0.15); color: var(--dire-text); }
 .tag-enemy-synergy { background: rgba(192,64,64,0.10); color: #e07050; }
 
 .enemy-pred-card .rec-score-bar { background: var(--dire); }
-.enemy-pred-card .rec-score-num { color: var(--dire); }
+.enemy-pred-card .rec-score-num { color: var(--dire-text); }
 
 .rec-header {
   display: flex; align-items: baseline; gap: 12px;
@@ -644,8 +649,8 @@ button {
 
 .rec-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 6px;
 }
 
 .rec-card {
@@ -666,7 +671,7 @@ button {
 }
 
 .rec-rank {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   width: 16px;
   text-align: right;
@@ -706,7 +711,7 @@ button {
 }
 
 .tag {
-  font-size: 10px;
+  font-size: 11px;
   padding: 1px 5px;
   border-radius: 3px;
   font-weight: 500;
@@ -726,9 +731,9 @@ button {
 }
 
 /* Score color coding */
-.score-high { color: var(--score-high); }
-.score-mid { color: var(--score-mid); }
-.score-low { color: var(--text-muted); }
+.score-high { color: var(--tier-a); }
+.score-mid { color: var(--tier-b); }
+.score-low { color: var(--tier-c); }
 
 /* ── Weights panel ───────────────────────────────────────── */
 .weights-panel {
@@ -1031,7 +1036,7 @@ input[type="range"] {
   color: var(--text-muted);
 }
 
-.threat-list { display: flex; flex-direction: column; gap: 0; padding-bottom: 80px; }
+.threat-list { display: flex; flex-direction: column; gap: 0; }
 
 /* Tier labels */
 .threat-tier-label {
@@ -1870,11 +1875,6 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 
-  /* Recommendations & enemy predictions: single column */
-  .rec-list,
-  .enemy-predictions-list {
-    grid-template-columns: 1fr;
-  }
 
   /* Weights panel: single column */
   .weights-grid {
@@ -1921,3 +1921,160 @@ input[type="range"] {
   #hero-search { width: 100%; }
   .modal-box, .modal-profile { width: calc(100vw - 24px); max-height: 90vh; }
 }
+
+
+/* ── Phase 3: two-column layout with insight tabs ─────────── */
+.main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 540px);
+  flex: 1;
+  align-items: start;
+}
+.col-left { min-width: 0; }
+.col-right {
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.tab {
+  flex: 1;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 10px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-badge {
+  font-size: 10px;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--score-low);
+  color: #fff;
+  line-height: 16px;
+}
+.tab-panel { display: none; padding: 12px 16px 90px; }
+.tab-panel.active { display: block; }
+.tab-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 18px 4px;
+  font-style: italic;
+}
+.recommendations, .enemy-predictions, .winprob-panel, .threat-panel, .hero-lookup-section { padding: 0; border: none; background: transparent; }
+.rec-header { flex-wrap: wrap; }
+.data-note { margin-left: 0; margin-top: 10px; display: block; }
+
+/* Team needs */
+.team-needs {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  font-size: 12px; color: var(--text-muted);
+  margin: -4px 0 10px;
+}
+.team-needs .need-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 9px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+}
+.team-needs .need-pill:hover, .team-needs .need-pill.active { border-color: var(--score-mid); color: var(--score-mid); }
+.team-needs .need-ok { color: var(--score-high); }
+
+/* Rec cards: score 0-100, reasons, role pills, breakdown */
+.rec-card { flex-wrap: wrap; }
+.rec-card.top .rec-img { width: 56px; height: 56px; }
+.rec-card.top .rec-name { font-size: 15px; }
+.rec-card.rec-more-hidden { display: none; }
+.rec-more { margin: 8px auto 0; display: block; }
+.rec-score-num { font-size: 18px; min-width: 40px; line-height: 1; }
+.rec-score-num small { display: block; font-size: 9px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.5px; margin-top: 2px; }
+.rec-reasons { font-size: 12px; color: var(--text-muted); line-height: 1.45; margin-top: 3px; }
+.rec-reasons b { color: var(--text); font-weight: 600; }
+.rec-reasons .good { color: var(--tier-a); }
+.rec-reasons .bad  { color: var(--score-low); }
+.rec-name-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.role-pill {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+  padding: 0 5px; border-radius: 3px; line-height: 15px;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+}
+.pill-lowdata { background: rgba(210,153,34,0.12); border-color: transparent; color: var(--score-mid); font-weight: 600; cursor: help; }
+.pill-pool    { background: rgba(188,143,243,0.18); border-color: transparent; color: #bc8ff3; }
+.rec-info-btn {
+  flex-shrink: 0;
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  width: 22px; height: 22px; padding: 0; border-radius: 50%; font-size: 12px; line-height: 1;
+}
+.rec-info-btn:hover, .rec-info-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.rec-breakdown {
+  flex-basis: 100%;
+  display: grid;
+  grid-template-columns: 72px 1fr 40px;
+  gap: 3px 8px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 8px 0 2px 26px;
+  border-top: 1px dashed var(--border);
+  margin-top: 6px;
+}
+.rec-breakdown .bd-bar { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.rec-breakdown .bd-bar > div { height: 100%; background: var(--tier-a); border-radius: 3px; }
+.rec-breakdown .bd-val { text-align: right; color: var(--text); font-weight: 600; }
+.rec-breakdown .bd-off { opacity: 0.45; }
+
+/* Win % edge label */
+.wp-edge {
+  font-size: 14px; font-weight: 700; margin-bottom: 8px;
+}
+.wp-edge .wp-conf { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+.wp-edge.edge-radiant { color: var(--radiant); }
+.wp-edge.edge-dire    { color: var(--dire-text); }
+.wp-edge.edge-even    { color: var(--text-muted); }
+.wp-prob.dire-num { color: var(--dire-text) !important; }
+
+/* Settings modal */
+.modal-settings { width: 560px; }
+.modal-settings .weights-grid { grid-template-columns: 1fr; gap: 10px; padding: 0 0 12px; border: none; }
+.modal-settings .weight-row:last-child { max-width: none; }
+.modal-settings .weight-hint { max-height: none; opacity: 1; }
+.modal-settings input[type="range"] { width: 180px; }
+.modal-settings .profile-actions .btn-secondary { padding: 8px 16px; }
+
+@media (max-width: 1000px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .col-right { position: static; max-height: none; border-left: none; border-top: 2px solid var(--border); }
+  .tabs { position: static; }
+}
+
+.rec-breakdown[hidden] { display: none; }

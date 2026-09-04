@@ -333,7 +333,14 @@ def get_status(request: Request):
 def get_heroes():
     if not _cache["heroes"]:
         raise HTTPException(503, "Hero data not loaded yet")
-    return _cache["heroes"]
+    # Attach played positions (from Stratz position data) so the UI can show role pills / team needs
+    role_sets = {role: set(ids) for role, ids in _role_map.items()}
+    out = {}
+    for hid, hero in _cache["heroes"].items():
+        h = dict(hero)
+        h["positions"] = [role for role, ids in role_sets.items() if int(hid) in ids]
+        out[hid] = h
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -648,11 +655,11 @@ def draft_analysis(req: DraftAnalysisRequest, request: Request):
     _check_rate_limit(request.client.host, "draft_analysis", max_per_minute=20)
     if not _cache.get("ready"):
         raise HTTPException(503, "Cache not ready yet")
-    if len(req.radiant) != 5 or len(req.dire) != 5:
-        raise HTTPException(400, "Need exactly 5 heroes per team")
+    if not (1 <= len(req.radiant) <= 5 and 1 <= len(req.dire) <= 5):
+        raise HTTPException(400, "Need 1-5 heroes per team")
 
     m = _matchups_for_bracket(req.mmr_bracket)
-    return analyze_draft(
+    result = analyze_draft(
         radiant_ids=req.radiant,
         dire_ids=req.dire,
         vs_matchups=m["vs"],
@@ -662,6 +669,9 @@ def draft_analysis(req: DraftAnalysisRequest, request: Request):
         bracket=req.mmr_bracket,
         role_map=_role_map,
     )
+    result["complete"] = len(req.radiant) == 5 and len(req.dire) == 5
+    result["picks"] = len(req.radiant) + len(req.dire)
+    return result
 
 
 class ChatRequest(BaseModel):
