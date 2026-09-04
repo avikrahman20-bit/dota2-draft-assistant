@@ -841,6 +841,7 @@ _gsi_lock = threading.Lock()
 _gsi_state: dict = {
     "updated_at": 0.0, "match_id": None, "game_state": "",
     "radiant": [], "dire": [], "bans": [], "my_team": None, "active_team": None, "picking": None,
+    "partial": True, "own_hero": None,   # partial: the game only told us our own hero + side
 }
 
 
@@ -977,7 +978,7 @@ def _gsi_record_raw(payload: dict) -> None:
              "game_state": ((p.get("map") or {}).get("game_state")), "payload": p}
     _gsi_raw.append(entry)
     # Persist draft-phase payloads only (they're the ones we need to study)
-    if entry["game_state"] == "DOTA_GAMERULES_STATE_HERO_SELECTION" or "draft" in p:
+    if p.get("draft"):   # Valve sends draft:{} to players; only keep the rare non-empty ones
         try:
             with _GSI_RAW_LOG.open("a", encoding="utf-8") as f:
                 f.write(json.dumps(entry) + "\n")
@@ -1011,7 +1012,10 @@ async def gsi_ingest(request: Request):
             # New match: forget the previous draft
             _gsi_state.update(radiant=[], dire=[], bans=[], active_team=None, picking=None)
         own = upd.pop("_own_hero", None)
+        full = "radiant" in upd   # a real draft/spectator block was present
         _gsi_state.update(upd)
+        _gsi_state["partial"] = not full
+        _gsi_state["own_hero"] = own[1] if own else (_gsi_state.get("own_hero") if not full else None)
         if own:
             team, hid = own
             if hid not in _gsi_state[team] and hid not in _gsi_state["radiant"] + _gsi_state["dire"]:

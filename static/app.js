@@ -186,7 +186,7 @@ function renderGsiStatus() {
   if (!el) return;
   if (!gsi.installed) el.innerHTML = `<span class="warn">Not installed.</span> Install the config, then restart Dota 2.`;
   else if (!gsi.enabled) el.innerHTML = `Installed. Auto-fill is <b>off</b>.`;
-  else if (gsi.connected) el.innerHTML = `<span class="ok">Connected</span> — the game is sending state. The board follows the in-game draft.`;
+  else if (gsi.connected) el.innerHTML = `<span class="ok">Connected</span> — your side and your locked hero come from the game. Enter the other picks and bans yourself: Dota doesn't share them with tools while you play.`;
   else el.innerHTML = `<span class="warn">Waiting for Dota 2…</span> Launch the game (after a restart) and the board will fill during hero selection.`;
 }
 
@@ -205,23 +205,36 @@ async function gsiPoll() {
 
     const valid = id => state.heroes[id] != null;
     const r_ = (s.radiant || []).filter(valid), d_ = (s.dire || []).filter(valid), b_ = (s.bans || []).filter(valid);
-    const sig = draftSig(r_, d_, b_, s.my_team);
+    const sig = draftSig(r_, d_, b_, s.my_team) + '|' + (s.own_hero || '') + '|' + (s.partial ? 'p' : 'f');
     if (sig === gsi.lastSig) return;          // nothing new from the game; keep any manual edits
     gsi.lastSig = sig;
-    if (!r_.length && !d_.length && !b_.length) return;
 
-    pushUndo();
-    state.radiant_picks = r_; state.dire_picks = d_; state.bans = b_.slice(0, MAX_BANS);
+    let changed = false;
     if (s.my_team && s.my_team !== state.my_team) {
       state.my_team = s.my_team;
       localStorage.setItem('my_team', s.my_team);
       document.getElementById('my-team-select').value = s.my_team;
       updateAddTargetLabels(); updateYouBadge();
+      changed = true;
     }
-    if (s.picking != null && s.active_team) {
-      setAddTarget(s.picking ? (s.active_team === state.my_team ? 'my-pick' : 'enemy-pick') : 'ban');
+
+    if (s.partial) {
+      // Valve only tells players their own hero + side. Merge: lock our hero, keep manual picks.
+      const own = s.own_hero;
+      if (own && valid(own) && !getUsedSet().has(own)) {
+        const mine = state.my_team === 'radiant' ? state.radiant_picks : state.dire_picks;
+        if (mine.length < 5) { pushUndo(); mine.push(own); changed = true; showToast(`Locked ${state.heroes[own].localized_name} from the game.`, 'success'); }
+      }
+    } else if (r_.length || d_.length || b_.length) {
+      // Full draft (spectating / Captains Mode feed): replace the board
+      pushUndo();
+      state.radiant_picks = r_; state.dire_picks = d_; state.bans = b_.slice(0, MAX_BANS);
+      if (s.picking != null && s.active_team) {
+        setAddTarget(s.picking ? (s.active_team === state.my_team ? 'my-pick' : 'enemy-pick') : 'ban');
+      }
+      changed = true;
     }
-    onStateChange();
+    if (changed) onStateChange();
   } catch (_) {
     if (gsi.connected) { gsi.connected = false; renderGsiStatus(); }
     setLivePill('off', '○ Live');

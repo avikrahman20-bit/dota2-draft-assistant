@@ -88,3 +88,9 @@ def test_parse_spectator_shape():
         "hero": {"team2": {"player0": {"id": 8}, "player1": {"id": 11}}, "team3": {"player0": {"id": 1}}},
     })
     assert u["radiant"] == [8, 11] and u["dire"] == [1] and "_own_hero" not in u
+
+
+def test_player_payload_is_partial_with_own_hero():
+    u = _parse_gsi_payload({"map": {"matchid": "1", "game_state": "DOTA_GAMERULES_STATE_STRATEGY_TIME"},
+                            "player": {"team_name": "dire"}, "hero": {"id": 108}, "draft": {}})
+    assert "radiant" not in u and u["_own_hero"] == ("dire", 108) and u["my_team"] == "dire"

@@ -250,6 +250,13 @@ async def main():
         await js(sleep % 1300)
         bans = await js("state.bans")
         check("manual edit kept until the game changes", bans == [2, 3, 5], str(bans))
+        # player-shaped payload (draft:{}): merge own hero, keep everything else
+        partial = json.dumps({"auth": {"token": token}, "map": {"matchid": "smoke-1", "game_state": "DOTA_GAMERULES_STATE_STRATEGY_TIME"},
+                              "player": {"team_name": "dire"}, "hero": {"id": 108}, "draft": {}}).encode()
+        _u.urlopen(_u.Request(URL + "api/gsi", data=partial, headers={"Content-Type": "application/json"}, method="POST")).read()
+        await js(sleep % 1600)
+        board = await js("[state.radiant_picks, state.dire_picks, state.bans]")
+        check("player payload locks own hero without wiping manual picks", board == [[8, 11], [1, 108], [2, 3, 5]], str(board))
         await js("setGsiEnabled(false); state.my_team='radiant'; document.getElementById('my-team-select').value='radiant'; updateYouBadge(); localStorage.removeItem('gsi_enabled');")
 
         # ── console errors ───────────────────────────────────────────

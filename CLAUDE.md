@@ -121,4 +121,5 @@ _cache["matchups"] = {
 - Rec/prediction cards MUST follow `state.add_target` via `handleHeroCardClick()`. Tried hard-wiring rec→your team / prediction→enemy; user reported "hero gets picked for the opposite team" and rejected it.
 - Every string interpolated into `innerHTML` must go through `_esc()`. Steam display names are attacker-controlled.
 - `/api/status` returns `can_refresh` (localhost only) and `chat_enabled` (ANTHROPIC_API_KEY present). Frontend hides/gates on these.
+- GSI (`/api/gsi`): Valve sends players `draft: {}` — verified over 128 hero-selection payloads. Only `player.team_name` and `hero.id` (own hero) are available. Live sync therefore sets the side and locks the user's own hero (`partial: true`, merge, never replace). Full `draft.team2/team3.pickN_id` blocks only arrive when spectating. Raw draft payloads → `/api/gsi/raw`, `.tmp/gsi_raw.jsonl`.
 - `ANTHROPIC_API_KEY` is optional: without it the server boots and `/api/chat` returns 503. `JWT_SECRET` is owned by `auth.py`, not validated in `app.py`.
