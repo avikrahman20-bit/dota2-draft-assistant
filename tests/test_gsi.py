@@ -79,3 +79,12 @@ def test_cfg_text_contains_token_and_port():
     assert "http://127.0.0.1:8123/api/gsi" in txt
     assert app_module._gsi_token() in txt
     assert '"draft"' in txt
+
+
+def test_parse_spectator_shape():
+    u = _parse_gsi_payload({
+        "map": {"matchid": "5", "game_state": "DOTA_GAMERULES_STATE_GAME_IN_PROGRESS"},
+        "player": {},
+        "hero": {"team2": {"player0": {"id": 8}, "player1": {"id": 11}}, "team3": {"player0": {"id": 1}}},
+    })
+    assert u["radiant"] == [8, 11] and u["dire"] == [1] and "_own_hero" not in u

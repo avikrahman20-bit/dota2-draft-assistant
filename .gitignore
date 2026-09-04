@@ -22,3 +22,4 @@ users.db
 Thumbs.db
 backups/
 .tmp/gsi_token.txt
+.tmp/gsi_raw.jsonl

@@ -946,12 +946,51 @@ def _parse_gsi_payload(p: dict) -> dict:
         upd["active_team"] = {2: "radiant", 3: "dire"}.get(at) if isinstance(at, int) else None
         upd["picking"] = draft.get("pick")
     else:
-        # In-game (no draft block): at least keep the local player's hero on their side
         hero = p.get("hero") or {}
-        hid = hero.get("id")
-        if isinstance(hid, int) and hid > 0 and team_name in ("radiant", "dire"):
-            upd.setdefault("_own_hero", (team_name, hid))
+        # Spectator / observer shape: hero.team2.player0.id … hero.team3.player4.id
+        spect = {"radiant": [], "dire": []}
+        for key, team in (("team2", "radiant"), ("team3", "dire")):
+            block = hero.get(key) or {}
+            for pk in sorted(k for k in block if k.startswith("player")):
+                hid = (block.get(pk) or {}).get("id")
+                if isinstance(hid, int) and hid > 0:
+                    spect[team].append(hid)
+        if spect["radiant"] or spect["dire"]:
+            upd["radiant"], upd["dire"] = spect["radiant"], spect["dire"]
+        else:
+            # Player shape in-game: only the local hero is known
+            hid = hero.get("id")
+            if isinstance(hid, int) and hid > 0 and team_name in ("radiant", "dire"):
+                upd.setdefault("_own_hero", (team_name, hid))
     return upd
+
+
+import collections as _collections
+_gsi_raw: _collections.deque = _collections.deque(maxlen=60)
+_GSI_RAW_LOG = TMP_DIR / "gsi_raw.jsonl"
+
+
+def _gsi_record_raw(payload: dict) -> None:
+    """Keep recent raw payloads (minus auth) so the draft block shape can be inspected."""
+    p = {k: v for k, v in payload.items() if k != "auth"}
+    entry = {"ts": time.time(), "keys": sorted(p.keys()),
+             "game_state": ((p.get("map") or {}).get("game_state")), "payload": p}
+    _gsi_raw.append(entry)
+    # Persist draft-phase payloads only (they're the ones we need to study)
+    if entry["game_state"] == "DOTA_GAMERULES_STATE_HERO_SELECTION" or "draft" in p:
+        try:
+            with _GSI_RAW_LOG.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(entry) + "\n")
+        except Exception:
+            pass
+
+
+@app.get("/api/gsi/raw")
+def gsi_raw(request: Request, n: int = 5):
+    if not _is_local(request):
+        raise HTTPException(403, "GSI is local only")
+    items = list(_gsi_raw)[-max(1, min(n, 60)):]
+    return {"count": len(_gsi_raw), "recent": items}
 
 
 @app.post("/api/gsi")
@@ -966,6 +1005,7 @@ async def gsi_ingest(request: Request):
     if token != _gsi_token():
         raise HTTPException(403, "Bad GSI token")
     upd = _parse_gsi_payload(payload)
+    _gsi_record_raw(payload)
     with _gsi_lock:
         if upd.get("match_id") and upd["match_id"] != _gsi_state.get("match_id"):
             # New match: forget the previous draft
