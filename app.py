@@ -434,6 +434,62 @@ class RecommendRequest(BaseModel):
     enemy_role_filter: str              = Field(default="", max_length=20)
 
 
+class HeroScoreRequest(BaseModel):
+    hero_id:     int
+    ally_picks:  list[int]        = Field(default=[], max_length=5)
+    enemy_picks: list[int]        = Field(default=[], max_length=5)
+    bans:        list[int]        = Field(default=[], max_length=14)
+    mmr_bracket: str              = "7"
+    weights:     dict[str, float] = Field(default={})
+    role_filter: str              = Field(default="", max_length=20)
+
+
+@app.post("/api/hero_score")
+def hero_score(req: HeroScoreRequest, request: Request, authorization: Optional[str] = Header(None)):
+    _check_rate_limit(request.client.host, "hero_score", max_per_minute=120)
+    if not _cache["ready"]:
+        raise HTTPException(503, "Cache not ready yet")
+    if str(req.hero_id) not in _cache["heroes"]:
+        raise HTTPException(400, f"Unknown hero ID: {req.hero_id}")
+
+    # Resolve hero pool same as /api/recommend
+    hero_pool = []
+    user = _get_current_user(authorization)
+    if user:
+        profile = db.get_profile(user["id"])
+        hero_pool = profile.get("hero_pool", []) if profile else []
+
+    weights = {**DEFAULT_WEIGHTS, **req.weights} if req.weights else None
+    matchups_for_bracket = _matchups_for_bracket(req.mmr_bracket)
+
+    # Build candidate pool identically to /api/recommend
+    all_hero_ids = [int(k) for k in _cache["heroes"].keys()]
+    excluded = set(req.ally_picks + req.enemy_picks + req.bans)
+    candidates = [h for h in all_hero_ids if h not in excluded]
+    if req.role_filter and req.role_filter in _role_map:
+        role_set = set(_role_map[req.role_filter])
+        candidates = [h for h in candidates if h in role_set]
+    if req.hero_id not in candidates:
+        candidates.append(req.hero_id)  # include target even if outside role filter
+
+    result = score_candidates(
+        candidate_ids=candidates,
+        enemy_pick_ids=req.enemy_picks,
+        ally_pick_ids=req.ally_picks,
+        all_matchups=matchups_for_bracket,
+        hero_stats=_cache["hero_stats"],
+        heroes=_cache["heroes"],
+        mmr_bracket=req.mmr_bracket,
+        weights=weights,
+        top_n=len(candidates),
+        hero_pool=hero_pool,
+    )
+    target = next((r for r in result["top"] if r["hero_id"] == req.hero_id), None)
+    if not target:
+        raise HTTPException(404, "No score data for this hero")
+    return target
+
+
 @app.post("/api/recommend")
 def recommend(req: RecommendRequest, request: Request, authorization: Optional[str] = Header(None)):
     _check_rate_limit(request.client.host, "recommend", max_per_minute=60)

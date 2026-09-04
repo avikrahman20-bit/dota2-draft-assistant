@@ -50,7 +50,7 @@ def get_api_key() -> str:
     return ""
 
 
-def is_cache_valid(path: Path, max_age_hours: int = 24) -> bool:
+def is_cache_valid(path: Path, max_age_hours: int = 168) -> bool:
     if not path.exists():
         return False
     return (time.time() - path.stat().st_mtime) < max_age_hours * 3600

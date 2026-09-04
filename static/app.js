@@ -297,6 +297,161 @@ function closeHeroDropdown() {
   heroDropdownOpen = false;
 }
 
+// ── Hero Lookup ───────────────────────────────────────────────
+let lookupDropdownOpen = false;
+let lookupPerspective = 'my-team'; // 'my-team' | 'enemy-team'
+
+function closeLookupDropdown() {
+  const d = document.getElementById('hero-lookup-dropdown');
+  if (d) { d.classList.add('hidden'); d.innerHTML = ''; }
+  lookupDropdownOpen = false;
+}
+
+function setupHeroLookup() {
+  const input    = document.getElementById('hero-lookup-input');
+  const dropdown = document.getElementById('hero-lookup-dropdown');
+  if (!input || !dropdown) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (q.length < 1) { closeLookupDropdown(); return; }
+
+    const matches = state.heroList.filter(h => {
+      const name = h.localized_name.toLowerCase();
+      const initials = h.localized_name.split(' ').map(w => w[0]).join('').toLowerCase();
+      return name.includes(q) || initials === q;
+    }).slice(0, 8);
+
+    if (matches.length === 0) { closeLookupDropdown(); return; }
+
+    dropdown.innerHTML = '';
+    matches.forEach(hero => {
+      const item = document.createElement('div');
+      item.className = 'hero-dropdown-item';
+      item.innerHTML = `<img src="${hero.img_url}" onerror="this.style.display='none'" /> <span>${hero.localized_name}</span>`;
+      item.addEventListener('click', () => {
+        input.value = hero.localized_name;
+        closeLookupDropdown();
+        lookupHeroScore(hero.id);
+      });
+      dropdown.appendChild(item);
+    });
+    dropdown.classList.remove('hidden');
+    lookupDropdownOpen = true;
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const first = dropdown.querySelector('.hero-dropdown-item');
+      if (first) first.click();
+    } else if (e.key === 'Escape') {
+      closeLookupDropdown();
+      input.value = '';
+      document.getElementById('hero-lookup-result').innerHTML = '';
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (lookupDropdownOpen && !e.target.closest('.hero-lookup-wrap')) {
+      closeLookupDropdown();
+    }
+  });
+
+  document.querySelectorAll('.lookup-persp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      lookupPerspective = btn.dataset.persp;
+      document.querySelectorAll('.lookup-persp-btn').forEach(b => b.classList.toggle('active', b === btn));
+      // Re-run lookup if a hero is already shown
+      const input = document.getElementById('hero-lookup-input');
+      const heroName = input?.value.trim();
+      if (heroName) {
+        const hero = state.heroList.find(h => h.localized_name.toLowerCase() === heroName.toLowerCase());
+        if (hero) lookupHeroScore(hero.id);
+      }
+    });
+  });
+}
+
+async function lookupHeroScore(heroId) {
+  const resultEl = document.getElementById('hero-lookup-result');
+  resultEl.innerHTML = '<div style="color:var(--text-muted);font-style:italic;padding:6px 0;font-size:12px">Loading…</div>';
+
+  const myTeam     = state.my_team;
+  const myPicks    = myTeam === 'radiant' ? state.radiant_picks : state.dire_picks;
+  const theirPicks = myTeam === 'radiant' ? state.dire_picks    : state.radiant_picks;
+
+  // For enemy-team perspective, swap: their picks are allies, my picks are enemies
+  const allyPicks  = lookupPerspective === 'enemy-team' ? theirPicks : myPicks;
+  const enemyPicks = lookupPerspective === 'enemy-team' ? myPicks    : theirPicks;
+
+  try {
+    const res = await fetch('/api/hero_score', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        hero_id:     heroId,
+        ally_picks:  allyPicks,
+        enemy_picks: enemyPicks,
+        bans:        state.bans,
+        mmr_bracket: state.mmr_bracket,
+        weights:     state.weights,
+        role_filter: state.role_filter,
+      }),
+    });
+    if (!res.ok) {
+      resultEl.innerHTML = `<div style="color:var(--score-low);font-size:12px">Error: ${(await res.json()).detail || res.status}</div>`;
+      return;
+    }
+    const rec = await res.json();
+    renderLookupResult(rec, enemyPicks, resultEl);
+  } catch (err) {
+    resultEl.innerHTML = `<div style="color:var(--score-low);font-size:12px">Request failed</div>`;
+  }
+}
+
+function renderLookupResult(rec, enemyPicks, container) {
+  const scoreClass = rec.total_score > 0.05 ? 'score-high' : rec.total_score > 0 ? 'score-mid' : 'score-low';
+  const barColor   = rec.total_score > 0.05 ? 'var(--score-high)' : rec.total_score > 0 ? 'var(--score-mid)' : 'var(--score-low)';
+
+  const counterDetail = rec.breakdown?.counters_detail || [];
+  const goodCounters  = counterDetail.filter(c => c.advantage > 0.005);
+  const badCounters   = counterDetail.filter(c => c.advantage < -0.005);
+
+  const tags = [];
+  if (enemyPicks.length === 0) {
+    tags.push(`<span class="tag tag-role lookup-no-enemy">No enemy picks — showing base win rate only</span>`);
+  } else if (goodCounters.length > 0) {
+    const labels = goodCounters.map(c => {
+      const pct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
+      const g   = c.games ? ` (${c.games}g)` : '';
+      return `${shortName(c.vs_hero)} ${pct}%${g}`;
+    });
+    tags.push(`<span class="tag tag-counter">vs ${labels.join(' · ')}</span>`);
+  }
+  for (const c of badCounters) {
+    const pct = c.win_rate != null ? (c.win_rate * 100).toFixed(1) : '?';
+    const g   = c.games ? ` (${c.games}g)` : '';
+    tags.push(`<span class="tag tag-weak">weak vs ${shortName(c.vs_hero)} ${pct}%${g}</span>`);
+  }
+  tags.push(`<span class="tag tag-wr">WR ${rec.breakdown?.win_rate_pct ?? '?'}%</span>`);
+  if (rec.breakdown?.synergy_score > 0.6) tags.push(`<span class="tag tag-role">Synergy</span>`);
+
+  container.innerHTML = `
+    <div class="rec-card" style="cursor:default">
+      <img class="rec-img" src="${_esc(rec.img_url)}" alt="${_esc(rec.localized_name)}" onerror="this.style.display='none'" />
+      <div class="rec-info">
+        <div class="rec-name">${_esc(rec.localized_name)}</div>
+        <div class="rec-score-bar-wrap">
+          <div class="rec-score-bar" style="width:${Math.max(5, Math.min(100, (rec.total_score + 0.1) * 400))}%;background:${barColor}"></div>
+        </div>
+        <div class="rec-tags">${tags.join('')}</div>
+      </div>
+      <div class="rec-score-num ${scoreClass}">${rec.total_score > 0 ? '+' : ''}${rec.total_score.toFixed(3)}</div>
+    </div>
+  `;
+}
+
 function renderHeroPoolDisplay(heroIds) {
   const container = document.getElementById('hero-pool-display');
   if (!container) return;
@@ -586,6 +741,7 @@ async function initApp() {
 
   // Wire up profile panel interactions
   setupHeroSearch();
+  setupHeroLookup();
   setupRoleTags();
   setupPlaystyleTags();
   setupAccountLink();
@@ -1318,6 +1474,10 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   document.getElementById('rec-list').innerHTML = '';
   document.getElementById('rec-hint').textContent = 'Select heroes to see suggestions';
   document.getElementById('winprob-panel').classList.add('hidden');
+  document.getElementById('hero-lookup-result').innerHTML = '';
+  document.getElementById('hero-lookup-input').value = '';
+  lookupPerspective = 'my-team';
+  document.querySelectorAll('.lookup-persp-btn').forEach(b => b.classList.toggle('active', b.dataset.persp === 'my-team'));
   renderThreatPanel();
   renderEnemyPredictions();
   applyGridScoreOverlays();

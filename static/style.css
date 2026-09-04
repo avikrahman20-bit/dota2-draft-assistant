@@ -343,6 +343,86 @@ button {
   padding: 12px 20px;
 }
 
+/* ── Hero Lookup ─────────────────────────────────────────── */
+.hero-lookup-section {
+  padding: 8px 20px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.hero-lookup-wrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.hero-lookup-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 7px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.hero-lookup-input:focus { border-color: var(--accent); }
+
+.hero-lookup-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  z-index: 200;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.lookup-perspective-toggle {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.lookup-persp-btn {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.lookup-persp-btn:hover { color: var(--text); border-color: var(--text-muted); }
+.lookup-persp-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+#hero-lookup-result .rec-card {
+  margin-top: 8px;
+  cursor: default;
+  border-left-color: var(--accent);
+}
+#hero-lookup-result .rec-card:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+.lookup-no-enemy {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 6px;
+}
+
 /* Enemy predictions panel — full-width, same grid as recommendations */
 .enemy-predictions {
   padding: 12px 20px;
