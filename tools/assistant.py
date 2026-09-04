@@ -123,11 +123,18 @@ def _build_draft_matchup_grid(
     enemy_set = set(enemy_ids)
     pool_set = set(hero_pool or [])
 
-    # Include every hero that has matchup data vs at least one enemy
-    lines = ["\n=== Matchup Grid (all heroes vs enemy picks) ==="]
-    for hid in sorted(vs_data.keys()):
-        if hid in enemy_set:
-            continue
+    # Cap the grid: pool heroes + top 30 by average advantage vs the enemy picks.
+    # Sending every hero cost ~8k tokens per message for little gain.
+    def _avg_adv(hid: int) -> float:
+        d = vs_data.get(hid, {})
+        advs = [d[e]["win_rate"] - 0.5 for e in enemy_ids if e in d and d[e].get("games", 0) > 0]
+        return sum(advs) / len(advs) if advs else -1.0
+    ranked = sorted((h for h in vs_data if h not in enemy_set), key=_avg_adv, reverse=True)
+    keep = [h for h in ranked[:30]] + [h for h in pool_set if h in vs_data and h not in enemy_set]
+    seen = set(); keep = [h for h in keep if not (h in seen or seen.add(h))]
+
+    lines = ["\n=== Matchup Grid (top 30 heroes + your pool, vs enemy picks) ==="]
+    for hid in keep:
         hid_data = vs_data.get(hid, {})
         matchup_strs = []
         has_data = False
@@ -434,9 +441,11 @@ def answer(
     recommendations: list[dict] | None = None,
     my_team: str = "radiant",
     weights: dict | None = None,
-) -> str:
+    stream: bool = False,
+):
     """
-    Main entry point. Returns Claude's answer as a string.
+    Main entry point. Returns Claude's answer as a string, or (when stream=True)
+    an iterator of text deltas.
     conversation_history: list of {"role": "user"|"assistant", "content": str}
     user_profile: optional dict with player's preferences, hero pool, feedback
     recommendations: top scored heroes from the scoring engine (same as on-screen panel)
@@ -517,11 +526,12 @@ WHAT YOU SHOULD DO:
     messages.append({"role": "user", "content": question})
 
     client = _get_client()
-    resp = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=600,
-        system=system_blocks,
-        messages=messages,
-    )
-
+    kwargs = dict(model="claude-haiku-4-5-20251001", max_tokens=600, system=system_blocks, messages=messages)
+    if stream:
+        def _gen():
+            with client.messages.stream(**kwargs) as s:
+                for text in s.text_stream:
+                    yield text
+        return _gen()
+    resp = client.messages.create(**kwargs)
     return resp.content[0].text

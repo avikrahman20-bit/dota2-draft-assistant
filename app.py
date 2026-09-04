@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()  # Load .env into os.environ before any tool modules are imported
 
 from fastapi import FastAPI, HTTPException, Header, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -685,7 +685,7 @@ class ChatRequest(BaseModel):
 
 
 @app.post("/api/chat")
-def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Header(None)):
+def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Header(None), _stream: bool = False):
     _check_rate_limit(request.client.host, "chat", max_per_minute=20)
     if not CHAT_ENABLED:
         raise HTTPException(503, "AI chat is not configured on this server (ANTHROPIC_API_KEY missing)")
@@ -757,6 +757,16 @@ def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Head
         )
         recommendations = result.get("top", [])
 
+    return _run_chat(req, user, used, user_profile, recommendations, chat_weights, stream=_stream)
+
+
+@app.post("/api/chat/stream")
+def chat_stream(req: ChatRequest, request: Request, authorization: Optional[str] = Header(None)):
+    """Same as /api/chat but streams SSE: data:{"delta":...} lines, then data:{"done":true,...}."""
+    return chat(req, request, authorization, _stream=True)
+
+
+def _run_chat(req, user, used, user_profile, recommendations, chat_weights, stream):
     try:
         reply = assistant_answer(
             question=req.question,
@@ -772,19 +782,49 @@ def chat(req: ChatRequest, request: Request, authorization: Optional[str] = Head
             recommendations=recommendations,
             my_team=req.my_team,
             weights=chat_weights,
+            stream=stream,
         )
-        db.increment_chat_count(user["id"])
         remaining = DAILY_CHAT_LIMIT - used - 1
-        return {"reply": reply, "chats_remaining": remaining}
+        if not stream:
+            db.increment_chat_count(user["id"])
+            return {"reply": reply, "chats_remaining": remaining}
+
+        def _sse():
+            try:
+                for delta in reply:
+                    yield "data: " + json.dumps({"delta": delta}) + "\n\n"
+                db.increment_chat_count(user["id"])
+                yield "data: " + json.dumps({"done": True, "chats_remaining": remaining}) + "\n\n"
+            except Exception as e:  # mid-stream failure: tell the client instead of dropping
+                logger.exception("Chat stream error")
+                yield "data: " + json.dumps({"error": _chat_error_message(e)}) + "\n\n"
+        return StreamingResponse(_sse(), media_type="text/event-stream",
+                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
     except Exception as e:
         logger.exception("Chat endpoint error")
-        if isinstance(e, _anthropic.AuthenticationError):
-            raise HTTPException(500, "Anthropic API key is invalid or missing")
-        if isinstance(e, _anthropic.RateLimitError):
-            raise HTTPException(429, "AI rate limit reached — try again in a moment")
-        if isinstance(e, _anthropic.APIConnectionError):
-            raise HTTPException(502, "Could not connect to Anthropic API")
-        raise HTTPException(500, "An error occurred processing your request")
+        raise HTTPException(_chat_error_status(e), _chat_error_message(e))
+
+
+def _chat_error_status(e: Exception) -> int:
+    if isinstance(e, _anthropic.RateLimitError): return 429
+    if isinstance(e, _anthropic.APIConnectionError): return 502
+    return 500
+
+
+def _chat_error_message(e: Exception) -> str:
+    if isinstance(e, _anthropic.AuthenticationError): return "Anthropic API key is invalid or missing"
+    if isinstance(e, _anthropic.RateLimitError): return "AI rate limit reached — try again in a moment"
+    if isinstance(e, _anthropic.APIConnectionError): return "Could not connect to Anthropic API"
+    return "An error occurred processing your request"
+
+
+@app.get("/api/chat/quota")
+def chat_quota(authorization: Optional[str] = Header(None)):
+    user = _get_current_user(authorization)
+    if not user:
+        raise HTTPException(401, "Not authenticated")
+    used = db.get_chat_count_today(user["id"])
+    return {"used": used, "limit": DAILY_CHAT_LIMIT, "remaining": max(0, DAILY_CHAT_LIMIT - used)}
 
 
 class RefreshRequest(BaseModel):

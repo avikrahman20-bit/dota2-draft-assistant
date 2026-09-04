@@ -2078,3 +2078,40 @@ input[type="range"] {
 }
 
 .rec-breakdown[hidden] { display: none; }
+
+
+/* ── Phase 4: onboarding, chat, toasts ────────────────────── */
+.login-hint { color: var(--text-muted); font-weight: 400; font-size: 11px; }
+.rec-onboard { color: var(--text-muted); font-size: 13px; line-height: 1.6; padding: 6px 4px 10px; }
+.rec-onboard ol { padding-left: 20px; margin: 6px 0; }
+.rec-onboard b { color: var(--text); }
+.rec-onboard kbd { font-family: inherit; font-size: 11px; padding: 0 5px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px; background: var(--surface2); }
+
+.chat-quota { margin-left: auto; margin-right: 8px; font-size: 11px; color: var(--text-muted); }
+.chat-quota.low { color: var(--score-mid); }
+.chat-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; background: var(--surface); }
+.chat-chip {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  border-radius: 14px; padding: 4px 10px; font-size: 12px;
+}
+.chat-chip:hover { border-color: var(--accent); color: var(--accent); }
+.chat-msg.assistant p { margin: 0 0 6px; }
+.chat-msg.assistant p:last-child { margin-bottom: 0; }
+.chat-msg.assistant ul, .chat-msg.assistant ol { margin: 4px 0 6px 18px; }
+.chat-msg.assistant li { margin: 2px 0; }
+.chat-msg.assistant h1, .chat-msg.assistant h2, .chat-msg.assistant h3 { font-size: 13px; margin: 6px 0 3px; color: var(--accent); }
+.chat-msg.assistant code { background: var(--bg); padding: 0 4px; border-radius: 3px; font-size: 12px; }
+.chat-msg.assistant.streaming::after { content: '▍'; color: var(--accent); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+#toast-host { position: fixed; left: 20px; bottom: 20px; z-index: 1100; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  color: var(--text); font-size: 13px; padding: 9px 14px; border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5); max-width: 360px;
+  animation: toast-in 0.2s ease;
+}
+.toast.error { border-left-color: var(--score-low); }
+.toast.success { border-left-color: var(--score-high); }
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
+.bracket-suggest-btn { margin-left: 6px; }

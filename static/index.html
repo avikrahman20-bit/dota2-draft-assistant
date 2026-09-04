@@ -47,7 +47,7 @@
       <button id="settings-btn" class="btn-ghost" title="Scoring weights">⚙ Settings</button>
       <button id="refresh-btn" class="btn-ghost">↻ Refresh Data</button>
       <div class="auth-controls" id="auth-controls">
-        <button id="login-btn" class="btn-ghost">Log In</button>
+        <button id="login-btn" class="btn-ghost" title="Save your hero pool, sync settings, and use AI chat">Log In <span class="login-hint">· pool &amp; AI chat</span></button>
       </div>
       <div class="user-controls hidden" id="user-controls">
         <button id="profile-btn" class="btn-ghost">👤 <span id="username-display"></span></button>
@@ -318,7 +318,8 @@
           <button type="button" class="btn-accent" id="link-account-btn">Link</button>
         </div>
         <div id="link-account-error" class="link-error hidden"></div>
-        <div class="account-hint">Find your Friend ID in Dota 2: top-left corner of your profile. Public match data required.</div>
+        <div class="account-hint">Friend ID (top-left of your in-game profile), a Steam64 ID, or a steamcommunity.com profile URL all work. Public match data required.</div>
+        <div class="account-hint hidden" id="bracket-suggest"></div>
         <div class="account-status hidden" id="account-status">
           <div class="account-info" id="account-info"></div>
           <button type="button" class="btn-unlink" id="unlink-account-btn" title="Unlink Dota account">✕</button>
@@ -372,12 +373,15 @@
       </div>
 
       <div class="profile-actions">
-        <button type="submit" class="btn-primary btn-save">Save Profile</button>
+        <button type="submit" class="btn-primary btn-save">Save now</button>
         <span class="form-status hidden" id="profile-status">Saved!</span>
+        <span class="section-hint">Changes save automatically.</span>
       </div>
     </form>
   </div>
 </div>
+
+<div id="toast-host" aria-live="polite"></div>
 
 <!-- Floating chat assistant -->
 <div id="chat-fab" title="Ask the Draft Assistant">
@@ -387,12 +391,19 @@
 <div id="chat-panel" class="hidden" role="region" aria-label="Draft assistant chat">
   <div class="chat-header">
     <span class="chat-title">DRAFT ASSISTANT</span>
+    <span class="chat-quota" id="chat-quota" title="AI messages left today"></span>
     <button type="button" id="chat-close-btn" class="chat-close" aria-label="Close chat">✕</button>
   </div>
   <div class="chat-messages" id="chat-messages" aria-live="polite">
     <div class="chat-msg assistant">
       <span>Ask me anything — best heroes for a role, who counters who, patch changes, draft advice. I use your live Stratz data and the latest patch notes.</span>
     </div>
+  </div>
+  <div class="chat-chips" id="chat-chips">
+    <button type="button" class="chat-chip" data-q="What should I pick next and why?">What should I pick?</button>
+    <button type="button" class="chat-chip" data-q="Is my draft okay? What are its biggest weaknesses?">Is my draft okay?</button>
+    <button type="button" class="chat-chip" data-q="Who counters the enemy's strongest hero?">Counter their carry</button>
+    <button type="button" class="chat-chip" data-q="What changed in the latest patch that matters for this draft?">Patch changes</button>
   </div>
   <div class="chat-input-row">
     <input type="text" id="chat-input" placeholder="e.g. best offlane right now?" autocomplete="off" />

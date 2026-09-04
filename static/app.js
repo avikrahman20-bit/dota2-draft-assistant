@@ -395,10 +395,42 @@ async function loadProfile() {
     const res = await fetch('/api/profile', { headers: authHeaders() });
     if (res.ok) {
       authState.profile = await res.json();
+      applySyncedSettings(authState.profile);
     } else if (res.status === 401) {
       setAuthState(null, null);
+      showToast('Your session expired — please log in again.', 'error');
     }
   } catch (_) {}
+}
+
+// Weights + bracket follow the account across devices
+function applySyncedSettings(p) {
+  if (!p) return;
+  let changed = false;
+  const w = p.custom_weights;
+  if (w && ['counter', 'win_rate', 'synergy', 'hero_pool', 'meta'].every(k => typeof w[k] === 'number')) {
+    state.weights = { ...w }; saveWeights(); applyWeightsToUI(); changed = true;
+  }
+  if (p.mmr_bracket && MATCHUP_COHORT[p.mmr_bracket]) {
+    state.mmr_bracket = p.mmr_bracket; saveMmrBracket();
+    const sel = document.getElementById('mmr-bracket-select'); if (sel) sel.value = p.mmr_bracket;
+    updateBracketNote(); changed = true;
+  }
+  if (changed) fetchRecommendations();
+}
+let settingsSyncTimer = null;
+function syncSettingsToProfile() {
+  if (!authState.token) return;
+  clearTimeout(settingsSyncTimer);
+  settingsSyncTimer = setTimeout(() => saveProfile({ custom_weights: state.weights, mmr_bracket: state.mmr_bracket }), 600);
+}
+
+// Auto-save profile edits (roles, pool, playstyle, notes)
+let profileSaveTimer = null;
+function scheduleProfileSave() {
+  if (!authState.token) return;
+  clearTimeout(profileSaveTimer);
+  profileSaveTimer = setTimeout(() => handleProfileSubmit(null), 700);
 }
 
 async function saveProfile(data) {
@@ -511,8 +543,10 @@ function populateProfileForm() {
   document.getElementById('profile-dota-id').value = p.dota_account_id || '';
   if (p.player_stats && p.player_stats.name) {
     showAccountStatus(p.player_stats);
+    offerBracketFromRank(p.player_stats);
   } else {
     document.getElementById('account-status').classList.add('hidden');
+    document.getElementById('bracket-suggest')?.classList.add('hidden');
   }
 
   // Player stats
@@ -762,6 +796,7 @@ function renderHeroPoolDisplay(heroIds) {
       if (authState.profile && authState.profile.hero_pool) {
         authState.profile.hero_pool = authState.profile.hero_pool.filter(h => h !== removeId);
         renderHeroPoolDisplay(authState.profile.hero_pool);
+        scheduleProfileSave();
       }
     });
   });
@@ -773,14 +808,16 @@ function addHeroToPool(heroId) {
   if (!authState.profile.hero_pool.includes(heroId)) {
     authState.profile.hero_pool.push(heroId);
     renderHeroPoolDisplay(authState.profile.hero_pool);
+    scheduleProfileSave();
   }
 }
 
 // ── Role Tags ────────────────────────────────────────────────
 function setupRoleTags() {
   document.querySelectorAll('#profile-roles .role-tag').forEach(btn => {
-    btn.addEventListener('click', () => btn.classList.toggle('active'));
+    btn.addEventListener('click', () => { btn.classList.toggle('active'); scheduleProfileSave(); });
   });
+  document.getElementById('profile-notes')?.addEventListener('input', scheduleProfileSave);
 }
 
 // ── Playstyle Tags (max 3) ───────────────────────────────────
@@ -799,6 +836,7 @@ function setupPlaystyleTags() {
         }
         btn.classList.add('active');
       }
+      scheduleProfileSave();
     });
   });
 }
@@ -811,11 +849,46 @@ function setupAccountLink() {
   if (unlinkBtn) unlinkBtn.addEventListener('click', unlinkDotaAccount);
 }
 
+const STEAM64_BASE = 76561197960265728n;
+function normalizeFriendId(raw) {
+  let s = (raw || '').trim();
+  const m = s.match(/steamcommunity\.com\/profiles\/(\d{17})/i);
+  if (m) s = m[1];
+  if (/^\d{17}$/.test(s)) s = (BigInt(s) - STEAM64_BASE).toString();
+  return /^\d{1,12}$/.test(s) ? s : '';
+}
+// Stratz seasonRank: tens digit = medal (1 Herald … 8 Immortal) → our bracket value
+function bracketFromRank(rankNum) {
+  const medal = Math.floor((rankNum || 0) / 10);
+  return { 8: '7', 7: '6', 6: '5', 5: '4', 4: '3', 3: '2', 2: '2', 1: '1' }[medal] || '';
+}
+function offerBracketFromRank(stats) {
+  const el = document.getElementById('bracket-suggest');
+  if (!el) return;
+  const b = bracketFromRank(stats?.rank_num);
+  if (!b || b === state.mmr_bracket) { el.classList.add('hidden'); return; }
+  const sel = document.getElementById('mmr-bracket-select');
+  const label = [...sel.options].find(o => o.value === b)?.textContent || b;
+  el.innerHTML = `Your Stratz rank is <b>${_esc(stats.rank || '')}</b>. Set bracket to <b>${_esc(label)}</b>?
+    <button type="button" class="btn-accent btn-sm bracket-suggest-btn" id="bracket-suggest-yes">Use ${_esc(label)}</button>`;
+  el.classList.remove('hidden');
+  el.querySelector('#bracket-suggest-yes').addEventListener('click', () => {
+    state.mmr_bracket = b; saveMmrBracket(); sel.value = b; updateBracketNote(); syncSettingsToProfile(); fetchRecommendations();
+    el.classList.add('hidden');
+    showToast(`Bracket set to ${label}.`, 'success');
+  });
+}
+
 async function linkDotaAccount() {
   const input = document.getElementById('profile-dota-id');
   const btn = document.getElementById('link-account-btn');
-  const accountId = input.value.trim();
-  if (!accountId) return;
+  const accountId = normalizeFriendId(input.value);
+  const errEl0 = document.getElementById('link-account-error');
+  if (!accountId) {
+    if (errEl0) { errEl0.textContent = 'Enter a numeric Friend ID, a 17-digit Steam64 ID, or a steamcommunity.com/profiles/… URL.'; errEl0.classList.remove('hidden'); }
+    return;
+  }
+  input.value = accountId;
 
   btn.disabled = true;
   btn.textContent = 'Linking...';
@@ -840,6 +913,8 @@ async function linkDotaAccount() {
     authState.profile.player_stats = data;
     showAccountStatus(data);
     renderPlayerStats(data);
+    offerBracketFromRank(data);
+    showToast(`Linked ${data.name || 'account'}.`, 'success');
   } catch (err) {
     if (errEl) { errEl.textContent = 'Network error — try again'; errEl.classList.remove('hidden'); }
   } finally {
@@ -921,7 +996,8 @@ function renderPlayerStats(data) {
 
 // ── Profile Save ─────────────────────────────────────────────
 async function handleProfileSubmit(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
+  clearTimeout(profileSaveTimer);
 
   // Roles
   const roles = [];
@@ -946,13 +1022,26 @@ async function handleProfileSubmit(e) {
 
   const statusEl = document.getElementById('profile-status');
   if (ok) {
-    statusEl.textContent = 'Saved!';
+    statusEl.textContent = 'Saved';
     statusEl.classList.remove('hidden');
-    setTimeout(() => statusEl.classList.add('hidden'), 2000);
+    setTimeout(() => statusEl.classList.add('hidden'), 1500);
+    fetchRecommendations();   // pool changes affect scores
   } else {
     statusEl.textContent = 'Save failed';
     statusEl.classList.remove('hidden');
+    showToast('Could not save your profile.', 'error');
   }
+}
+
+// ── Toasts ───────────────────────────────────────────────────
+function showToast(msg, kind = 'info', ms = 4000) {
+  const host = document.getElementById('toast-host');
+  if (!host) return;
+  const el = document.createElement('div');
+  el.className = `toast ${kind}`;
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(() => el.remove(), ms);
 }
 
 // ── Boot: poll until backend is ready ────────────────────────
@@ -965,8 +1054,11 @@ async function pollStatus() {
 
     if (data.error) {
       clearInterval(pollInterval);
+      const friendly = data.can_refresh
+        ? _esc(data.error)
+        : 'The server could not load hero data. This usually clears itself in a minute — try again shortly.';
       document.getElementById('splash-status').innerHTML =
-        `<strong>⚠ Startup Error</strong><br>${_esc(data.error)}<br><br>` +
+        `<strong>⚠ Startup Error</strong><br>${friendly}<br><br>` +
         `<button onclick="location.reload()" style="padding:8px 16px; font-size:14px; cursor:pointer;">Retry</button>`;
       return;
     }
@@ -975,7 +1067,8 @@ async function pollStatus() {
     document.getElementById('progress-fill').style.width = pct + '%';
     document.getElementById('splash-status').textContent =
       data.total > 0
-        ? `Caching matchup data... ${data.progress}/${data.total} heroes`
+        ? `Fetching matchup data from Stratz… ${data.progress}/${data.total} heroes` +
+          (data.total - data.progress > 3 ? ` (about ${Math.max(1, Math.round((data.total - data.progress) * 0.6 / 60))} min left)` : '')
         : 'Loading hero data...';
 
     if (data.ready) {
@@ -1683,6 +1776,7 @@ async function fetchRecommendations() {
     } catch (err) {
       if (seq !== recSeq) return;
       document.getElementById('rec-hint').textContent = 'Network error fetching recommendations';
+      showToast('Lost connection to the server — retrying on your next change.', 'error');
     }
   }, 150);
 }
@@ -1708,7 +1802,17 @@ function renderRecommendations() {
   const moreBtn = document.getElementById('rec-more-btn');
 
   if (!recs || recs.length === 0) {
-    list.innerHTML = '<div style="color:var(--text-muted);font-style:italic;padding:8px">No recommendations yet.</div>';
+    const noPicks = enemyPicks.length === 0 && allyPicks.length === 0;
+    list.innerHTML = noPicks
+      ? `<div class="rec-onboard">
+           <ol>
+             <li>Set <b>My Team</b> and your <b>Bracket</b> at the top.</li>
+             <li>Type a hero in the search box and press <kbd>Enter</kbd>, or click the hero grid. <kbd>Tab</kbd> flips between your pick and the enemy's.</li>
+             <li>Click a recommendation to add it. <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes.</li>
+           </ol>
+           ${authState.user ? '' : 'Log in to save a hero pool and use the AI assistant.'}
+         </div>`
+      : '<div style="color:var(--text-muted);font-style:italic;padding:8px">No recommendations yet.</div>';
     moreBtn?.classList.add('hidden');
     return;
   }
@@ -1970,6 +2074,7 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
     state.weights[stateKey] = parseFloat(slider.value);
     label.textContent = parseFloat(slider.value).toFixed(2);
     saveWeights();
+    syncSettingsToProfile();
     fetchRecommendations();
   });
 });
@@ -1979,6 +2084,7 @@ document.getElementById('mmr-bracket-select').addEventListener('change', (e) => 
   state.mmr_bracket = e.target.value;
   saveMmrBracket();
   updateBracketNote();
+  syncSettingsToProfile();
   fetchRecommendations();
 });
 
@@ -2007,6 +2113,7 @@ document.getElementById('settings-modal').addEventListener('click', (e) => { if 
 document.getElementById('weights-reset-btn').addEventListener('click', () => {
   state.weights = { ...DEFAULT_WEIGHTS };
   saveWeights();
+  syncSettingsToProfile();
   applyWeightsToUI();
   fetchRecommendations();
   const st = document.getElementById('weights-status');
@@ -2030,6 +2137,7 @@ const chatHistory = [];  // [{role, content}] kept for multi-turn context
 let chatGateShown = false;
 function chatOpen() {
   document.getElementById('chat-panel').classList.remove('hidden');
+  refreshChatQuota();
   const input = document.getElementById('chat-input');
   const send  = document.getElementById('chat-send-btn');
   if (!state.chat_enabled) {
@@ -2068,65 +2176,140 @@ document.getElementById('chat-input').addEventListener('keydown', (e) => {
 });
 document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
 
-function appendChatMsg(role, text) {
+/** Tiny markdown → HTML: headings, bold, italics, code, bullet/numbered lists, paragraphs. Escapes first. */
+function renderMarkdown(text) {
+  const lines = _esc(text || '').split(/\r?\n/);
+  const out = []; let list = null;
+  const inline = s => s
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<i>$2</i>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    let m;
+    if ((m = line.match(/^\s*[-*•]\s+(.*)/))) { if (list !== 'ul') { closeList(); out.push('<ul>'); list = 'ul'; } out.push(`<li>${inline(m[1])}</li>`); }
+    else if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== 'ol') { closeList(); out.push('<ol>'); list = 'ol'; } out.push(`<li>${inline(m[1])}</li>`); }
+    else if ((m = line.match(/^#{1,3}\s+(.*)/))) { closeList(); out.push(`<h3>${inline(m[1])}</h3>`); }
+    else if (!line.trim()) { closeList(); }
+    else { closeList(); out.push(`<p>${inline(line)}</p>`); }
+  }
+  closeList();
+  return out.join('');
+}
+
+function appendChatMsg(role, text, { markdown = false } = {}) {
   const el = document.createElement('div');
   el.className = `chat-msg ${role}`;
-  el.textContent = text;
+  if (markdown) el.innerHTML = renderMarkdown(text); else el.textContent = text;
   const msgs = document.getElementById('chat-messages');
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
   return el;
 }
 
-async function sendChatMessage() {
+function setChatQuota(remaining) {
+  const el = document.getElementById('chat-quota');
+  if (!el || remaining == null) return;
+  el.textContent = `${remaining} left today`;
+  el.classList.toggle('low', remaining <= 10);
+}
+async function refreshChatQuota() {
+  if (!authState.token || !state.chat_enabled) return;
+  try {
+    const r = await fetch('/api/chat/quota', { headers: authHeaders() });
+    if (r.ok) setChatQuota((await r.json()).remaining);
+  } catch (_) {}
+}
+
+// Persist the visible conversation for this browser tab
+const CHAT_KEY = 'chat_history_v1';
+function persistChat() { try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory.slice(-20))); } catch (_) {} }
+function restoreChat() {
+  try {
+    const h = JSON.parse(sessionStorage.getItem(CHAT_KEY) || '[]');
+    for (const m of h) { chatHistory.push(m); appendChatMsg(m.role, m.content, { markdown: m.role === 'assistant' }); }
+  } catch (_) {}
+}
+
+async function sendChatMessage(preset) {
   const input = document.getElementById('chat-input');
   const btn   = document.getElementById('chat-send-btn');
-  const question = input.value.trim();
-  if (!question) return;
+  const question = (preset || input.value).trim();
+  if (!question || input.disabled) return;
 
   input.value = '';
   btn.disabled = true;
+  document.getElementById('chat-chips')?.classList.add('hidden');
   appendChatMsg('user', question);
-  const thinking = appendChatMsg('thinking', '...');
+  const bubble = appendChatMsg('assistant', '');
+  bubble.classList.add('streaming', 'thinking');
+  bubble.textContent = '…';
 
-  const myTeam     = state.my_team;
-  const radiantIds = state.radiant_picks;
-  const direIds    = state.dire_picks;
+  const body = JSON.stringify({
+    question,
+    radiant: state.radiant_picks,
+    dire:    state.dire_picks,
+    my_team: state.my_team,
+    mmr_bracket: state.mmr_bracket,
+    weights: state.weights,
+    history: chatHistory.slice(-10),
+  });
+  const msgs = document.getElementById('chat-messages');
+  let reply = '';
+  let remaining = null;
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({
-        question,
-        radiant: radiantIds,
-        dire:    direIds,
-        my_team: myTeam,
-        mmr_bracket: state.mmr_bracket,
-        history: chatHistory.slice(-10),  // last 10 turns for context
-      }),
-    });
+    const res = await fetch('/api/chat/stream', { method: 'POST', headers: authHeaders(), body });
     if (!res.ok) {
       let msg = `Error ${res.status}`;
       try { const e = await res.json(); msg = e.detail || msg; } catch (_) {}
       throw new Error(msg);
     }
-    const data = await res.json();
-    thinking.remove();
-    appendChatMsg('assistant', data.reply);
-    chatHistory.push({ role: 'user',      content: question    });
-    chatHistory.push({ role: 'assistant', content: data.reply  });
-    if (data.chats_remaining !== undefined && data.chats_remaining <= 10) {
-      appendChatMsg('assistant', `⚠️ ${data.chats_remaining} AI messages remaining today.`);
+    bubble.classList.remove('thinking');
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    let first = true;
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf('\n\n')) >= 0) {
+        const frame = buf.slice(0, idx); buf = buf.slice(idx + 2);
+        const line = frame.split('\n').find(l => l.startsWith('data: '));
+        if (!line) continue;
+        let ev; try { ev = JSON.parse(line.slice(6)); } catch (_) { continue; }
+        if (ev.error) throw new Error(ev.error);
+        if (ev.delta) {
+          if (first) { bubble.textContent = ''; first = false; }
+          reply += ev.delta;
+          bubble.innerHTML = renderMarkdown(reply);
+          msgs.scrollTop = msgs.scrollHeight;
+        }
+        if (ev.done) remaining = ev.chats_remaining;
+      }
     }
+    bubble.classList.remove('streaming');
+    bubble.innerHTML = renderMarkdown(reply);
+    chatHistory.push({ role: 'user', content: question });
+    chatHistory.push({ role: 'assistant', content: reply });
+    persistChat();
+    setChatQuota(remaining);
+    if (remaining != null && remaining <= 5) showToast(`${remaining} AI messages left today.`, 'info');
   } catch (err) {
-    thinking.remove();
-    appendChatMsg('assistant', 'Error: ' + err.message);
+    bubble.classList.remove('streaming', 'thinking');
+    bubble.textContent = 'Error: ' + err.message;
+    bubble.classList.add('error');
   } finally {
     btn.disabled = false;
     input.focus();
   }
 }
+
+document.querySelectorAll('.chat-chip').forEach(c => c.addEventListener('click', () => sendChatMessage(c.dataset.q)));
+restoreChat();
 
 // ── Auth & Profile Event Listeners ───────────────────────────
 document.getElementById('login-btn').addEventListener('click', () => openAuthModal('login'));
