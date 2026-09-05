@@ -2133,3 +2133,23 @@ input[type="range"] {
 .gsi-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; }
 .gsi-toggle input { accent-color: var(--accent); }
 .gsi-section code { background: var(--bg); padding: 0 4px; border-radius: 3px; font-size: 11px; }
+
+
+/* ── Layout revert: stacked sections, no tabs (user preference) ── */
+.main-layout { grid-template-columns: 1fr; }
+.col-right { position: static; max-height: none; border-left: none; border-top: 1px solid var(--border); background: transparent; }
+#insight-tabs { display: none; }
+.tab-panel { display: block !important; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+.tab-panel .tab-empty { display: none; }
+#tab-recs    { order: 1; }
+#tab-lookup  { order: 2; }
+#tab-enemy   { order: 3; }
+#tab-winprob { order: 4; }
+#tab-threats { order: 5; padding-bottom: 90px; }
+.tab-panel:has(> .hidden:only-child), .tab-panel:has(> .tab-empty + .hidden) { display: none !important; }
+.rec-list, .enemy-predictions-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.rec-card.rec-more-hidden { display: flex; }
+#rec-more-btn { display: none; }
+.rec-card.top .rec-img { width: 48px; height: 48px; }
+.rec-card.top .rec-name { font-size: 13px; }
+@media (max-width: 768px) { .rec-list, .enemy-predictions-list { grid-template-columns: 1fr; } }

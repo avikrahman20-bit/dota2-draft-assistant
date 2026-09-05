@@ -26,7 +26,7 @@ const state = {
   chat_enabled: true,   // false when server has no ANTHROPIC_API_KEY
   data_updated_at: 0,    // unix seconds of the last real Stratz fetch (from /api/status)
   patch_name: '',
-  show_all_recs: false,
+  show_all_recs: true,   // stacked layout shows the full list
   active_tab: localStorage.getItem('insight_tab') || 'recs',
   draft_analysis: null,
 };
@@ -1694,7 +1694,7 @@ async function fetchDraftAnalysis() {
     const wasComplete = state.draft_analysis?.complete;
     state.draft_analysis = data;
     renderWinProb(data);
-    if (data.complete && !wasComplete) switchTab('winprob');
+    if (data.complete && !wasComplete) document.getElementById('winprob-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (_) {}
 }
 
